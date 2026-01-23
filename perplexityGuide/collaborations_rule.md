@@ -272,3 +272,8 @@ v0.2: Apple 스타일 Glassmorphism UI로 전체 오버홀, Glass* 컴포넌트 
 v0.2.2: 멀칭 비닐 계산기 UI 구조를 유지한 채, 서브 컴포넌트 분리와 접근성(ARIA) 강화, 타입/상수 정리를 포함한 안전 리팩터링 수행.
 
 이 버전의 collaborations_rule.md를 사용하면, v0.2 설계와 v0.2.2 리팩터링 원칙(행동 불변 + 구조 개선)이 명확히 문서화된 상태에서 Perplexity–Gemini–Claude가 계속 협업할 수 있다.
+
+9. Git Repository Info
+Project URL: https://github.com/soraul2/utility-hub.git
+
+이 저장소는 전체 프로젝트(문서 + 소스 코드)를 포함하며, 모든 AI 에이전트는 작업 시작 전 최신 코드를 git pull로 동기화해야 한다.

@@ -359,6 +359,10 @@ src/pages/tools/
 - ✅ 코드 품질 개선 완료
 - ✅ 접근성 개선 완료
 
+### Git 형상관리 (Version Control)
+- **Repository**: `https://github.com/soraul2/utility-hub.git`
+- **Initial Commit**: v0.2.2 (안전 리팩터링 완료) 시점을 기준으로 초기 커밋 및 푸시 완료.
+
 ---
 
 **작성자**: Claude (Refiner & Documentation Team)  
