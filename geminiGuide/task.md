@@ -67,4 +67,10 @@
     - [x] Claude 추가 리팩터링(컴포넌트 분리) 반영 확인
     - [x] 최종 운영 주체: Claude / Perplexity 팀으로 이관됨
 
+## 6. Git 형상관리 (Version Control)
+- [x] **Repository 초기화**
+    - [x] Root Directory: `c:/AiProject/utility-hub`
+    - [x] Remote URL: `https://github.com/soraul2/utility-hub.git`
+    - [x] Initial Commit: v0.2.2 구조 (frontend/backend 분리) 및 문서 포함
+
 *최종 상태: Gemini 팀 임무 완료 (Mission Complete)*

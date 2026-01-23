@@ -53,6 +53,14 @@ Antigravity 팀(Gemini)은 Perplexity에서 제공된 디자인 사양과 사용
 - **코드 품질 향상**: 타입스크립트 타입 정의 강화 및 JSDoc 주석 추가로 유지보수성 증대.
 - **문서화**: 프로젝트 루트에 상세한 `README.md`를 추가하여 온보딩 가이드 제공.
 
+### 8. Git 형상관리 (Version Control)
+- **Repository**: `https://github.com/soraul2/utility-hub.git`
+- **구조 변경**:
+    - `utility-hub/frontend`: React 소스 코드
+    - `utility-hub/backend`: (Future) 백엔드 예정
+    - `*Guide/`: 각 AI 팀별 가이드 문서
+- **Initial Commit**: v0.2.2 기준 전체 소스 및 문서 업로드 완료.
+
 ---
 
 ## 검증 (Verification)
