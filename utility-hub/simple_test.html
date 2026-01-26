@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+      <meta charset="UTF-8">
+      <title>Markdown Test</title>
+      <style>
+            body {
+                  font-family: sans-serif;
+                  padding: 20px;
+                  max-width: 1200px;
+                  margin: 0 auto;
+            }
+
+            .container {
+                  display: flex;
+                  gap: 20px;
+            }
+
+            .box {
+                  flex: 1;
+                  display: flex;
+                  flex-direction: column;
+            }
+
+            textarea {
+                  height: 300px;
+                  padding: 10px;
+                  border-radius: 5px;
+                  border: 1px solid #ccc;
+                  font-size: 14px;
+            }
+
+            #preview {
+                  height: 300px;
+                  border: 1px solid #ccc;
+                  padding: 10px;
+                  overflow-y: auto;
+                  background: #fff;
+                  border-radius: 5px;
+            }
+
+            button {
+                  margin: 10px 0;
+                  padding: 12px;
+                  cursor: pointer;
+                  background: #007bff;
+                  color: white;
+                  border: none;
+                  border-radius: 5px;
+                  font-weight: bold;
+                  font-size: 16px;
+                  transition: background 0.2s;
+            }
+
+            button:hover {
+                  background: #0056b3;
+            }
+
+            pre {
+                  white-space: pre-wrap;
+                  background: #eee;
+                  padding: 15px;
+                  border-radius: 5px;
+                  border: 1px solid #ddd;
+            }
+
+            .options {
+                  margin-bottom: 20px;
+                  padding: 10px;
+                  background: #f8f9fa;
+                  border-radius: 5px;
+            }
+
+            label {
+                  margin-right: 15px;
+                  cursor: pointer;
+            }
+      </style>
+      <!-- Marked.js: 마크다운을 HTML로 변환해주는 라이브러리 -->
+      <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+</head>
+
+<body>
+      <h1>📝 Text to Markdown Tester</h1>
+      <div class="options">
+            <label><input type="checkbox" id="autoHeading" checked> Auto Heading (# 제목)</label>
+            <label><input type="checkbox" id="autoList" checked> Auto List (- 리스트)</label>
+            <hr style="margin: 10px 0; border: 0; border-top: 1px solid #ddd;">
+            <strong>Persona:</strong>
+            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-top: 5px;">
+                  <label><input type="radio" name="persona" value="STANDARD" checked> 📄 STANDARD (표준 마크다운 - 이모지 없음,
+                        중립적)</label>
+                  <label><input type="radio" name="persona" value="SMART"> 🤖 SMART (친절한 AI 비서 - 이모지, 요약 포함)</label>
+                  <label><input type="radio" name="persona" value="DRY"> 😐 DRY (건조한 팩트 중심 - 명사형 종결)</label>
+                  <label><input type="radio" name="persona" value="ACADEMIC"> 🎓 ACADEMIC (학술적 - 인용 스타일, 섹션 번호)</label>
+                  <label><input type="radio" name="persona" value="CASUAL"> 🎈 CASUAL (캐주얼 - 편안한 말투, 이모지 다수)</label>
+                  <label><input type="radio" name="persona" value="TECHNICAL"> 💻 TECHNICAL (기술 문서 - 코드 블록, 구조화)</label>
+                  <label><input type="radio" name="persona" value="CREATIVE"> 🎨 CREATIVE (창의적 - 감성적 표현, 비유)</label>
+                  <label><input type="radio" name="persona" value="MINIMAL"> ⚡ MINIMAL (미니멀 - 핵심만, 불렛 포인트)</label>
+                  <label><input type="radio" name="persona" value="DETAILED"> 🔍 DETAILED (상세 - 단계별 설명, 예시)</label>
+                  <label><input type="radio" name="persona" value="BUSINESS"> 💼 BUSINESS (비즈니스 - 전문적, 액션 아이템)</label>
+            </div>
+      </div>
+
+      <div class="container">
+            <div class="box">
+                  <h3>📥 Input Results</h3>
+                  <textarea id="inputText" placeholder="테스트할 텍스트를 입력하세요..."></textarea>
+                  <div style="margin-bottom: 10px;">
+                        <button onclick="fillSample()" style="background:#28a745; margin-right: 5px;">📝 예시 데이터 채우기
+                              (10줄)</button>
+                        <button onclick="convert()">변환하기 (Convert)</button>
+                  </div>
+            </div>
+            <div class="box">
+                  <h3>🎨 Rendered Result (HTML)</h3>
+                  <div id="preview">여기에 변환된 결과가 보여집니다.</div>
+            </div>
+      </div>
+
+      <h3>🔍 Raw Response (실제 \n 적용 확인)</h3>
+      <pre id="rawOutput">API 응답 원본이 여기에 표시됩니다.</pre>
+
+      <script>
+            async function convert() {
+                  const text = document.getElementById('inputText').value;
+                  const autoHeading = document.getElementById('autoHeading').checked;
+                  const autoList = document.getElementById('autoList').checked;
+                  const preview = document.getElementById('preview');
+                  const rawOutput = document.getElementById('rawOutput');
+
+                  if (!text.trim()) {
+                        alert("텍스트를 입력해주세요!");
+                        return;
+                  }
+
+                  preview.innerHTML = "<p style='color:gray'>변환 중입니다...</p>";
+
+                  try {
+                        // 1. Send Request to Backend
+                        const response = await fetch('http://localhost:8080/api/text-to-md', {
+                              method: 'POST',
+                              headers: { 'Content-Type': 'application/json' },
+                              body: JSON.stringify({ rawText: text, autoHeading, autoList })
+                        });
+
+                        if (!response.ok) {
+                              throw new Error('HTTP Error ' + response.status);
+                        }
+
+                        const data = await response.json();
+
+                        // 2. Raw Markdown 확인 (줄바꿈이 적용된 텍스트 그대로 출력)
+                        // <pre> 태그 안에서는 \n이 실제 줄바꿈으로 보입니다.
+                        rawOutput.textContent = data.markdownText;
+
+                        // 3. Rendered HTML 확인 (marked.js 라이브러리 사용)
+                        // 마크다운 문법(#, -, **)이 실제 HTML(h1, li, strong)로 변환됩니다.
+                        preview.innerHTML = marked.parse(data.markdownText);
+
+                  } catch (e) {
+                        alert('에러 발생: ' + e);
+                        preview.innerHTML = "<p style='color:red'>실패</p>";
+                        rawOutput.textContent = e;
+                  }
+            }
+      </script>
+</body>
+
+</html>
