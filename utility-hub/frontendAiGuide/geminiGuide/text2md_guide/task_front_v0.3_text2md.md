@@ -1,0 +1,28 @@
+# TextToMd v0.3.0/v0.3.x Implementation Tasks
+
+- [x] Review Documentation <!-- id: 0 -->
+    - [x] Read design_spec_backend.md <!-- id: 1 -->
+    - [x] Read checklist_security_backend.md <!-- id: 2 -->
+    - [x] Read collaborations_rule_backend.md <!-- id: 3 -->
+    - [x] Read design_spec_front_text2md.md <!-- id: 4 -->
+    - [x] Read checklist_security_front_v0.3_text2md.md <!-- id: 5 -->
+    - [x] Read collaborations_rule_front_v0.3_text2md.md <!-- id: 6 -->
+- [x] Frontend Implementation (v0.3.x) <!-- id: 7 -->
+    - [x] Provide UX/Feature Advice <!-- id: 8 -->
+    - [x] Create Implementation Plan (`implementation_plan_front_text2md.md`) <!-- id: 9 -->
+    - [x] Component Implementation <!-- id: 10 -->
+        - [x] Mode Toggle & Persona Selector UI <!-- id: 11 -->
+        - [x] Enhanced Editor Layout (GlassCard, 2-column) <!-- id: 12 -->
+        - [x] Thinking Indicator <!-- id: 17 -->
+    - [x] Logic Implementation <!-- id: 13 -->
+        - [x] API Integration (`textToMdApi.ts`) <!-- id: 14 -->
+        - [x] State Management Hooks (`useTextToMdAi`) <!-- id: 15 -->
+        - [x] Main Page Integration (`TextToMd.tsx`) <!-- id: 18 -->
+    - [x] Verification & Polish <!-- id: 16 -->
+        - [x] Build Check <!-- id: 19 -->
+        - [x] Functional Verify (User) <!-- id: 20 -->
+- [x] Architecture Refactoring (Claude Integration) <!-- id: 21 -->
+    - [x] Error Code Mapping (`errorMapper.ts`) <!-- id: 22 -->
+    - [x] Utility Extraction (`clipboard.ts`, `fileDownload.ts`) <!-- id: 23 -->
+    - [x] Robust Retry Logic <!-- id: 24 -->
+    - [x] Metadata Display (Model, Tokens) <!-- id: 25 -->

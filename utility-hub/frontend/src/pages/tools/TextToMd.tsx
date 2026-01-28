@@ -1,72 +1,158 @@
-import React from 'react';
-import { GlassCard } from '../../components/ui/GlassCard';
-import { GlassButton } from '../../components/ui/GlassButton';
+import React, { useState } from 'react';
 import { useTextToMd } from '../../hooks/useTextToMd';
+import { useTextToMdAi } from '../../hooks/useTextToMdAi';
+import ModeToggle from '../../components/tools/text-to-md/ModeToggle';
+import PersonaSelector from '../../components/tools/text-to-md/PersonaSelector';
+import EditorLayout from '../../components/tools/text-to-md/EditorLayout';
+import ThinkingIndicator from '../../components/tools/text-to-md/ThinkingIndicator';
+import { GlassButton } from '../../components/ui/GlassButton';
+import { Alert } from '../../components/ui/Alert';
+import { mapErrorCodeToMessage, isInputError } from '../../lib/api/errorMapper';
+import type { TextToMdMode, Persona } from '../../components/tools/text-to-md/types';
 
 const TextToMd: React.FC = () => {
-      const {
-            input,
-            output,
-            options,
-            copySuccess,
-            setInput,
-            setOptions,
-            handleCopy,
-            handleDownload,
-      } = useTextToMd();
+      const [mode, setMode] = useState<TextToMdMode>('local');
+      const [persona, setPersona] = useState<Persona>('STANDARD');
+
+      const localTool = useTextToMd();
+      const aiTool = useTextToMdAi();
+
+      const handleConvert = () => {
+            if (mode === 'ai') {
+                  aiTool.convert(
+                        localTool.input,
+                        persona,
+                        localTool.options.autoHeading,
+                        localTool.options.autoList
+                  );
+            }
+      };
+
+      const displayMarkdown = mode === 'ai' ? aiTool.markdownText : localTool.output;
+      const isAiMode = mode === 'ai';
+
+      // 상단 Alert 에러 메시지 (입력 오류 제외)
+      const topErrorMessage = aiTool.errorCode && !isInputError(aiTool.errorCode)
+            ? mapErrorCodeToMessage(aiTool.errorCode, aiTool.error || '')
+            : aiTool.error && !aiTool.errorCode ? aiTool.error : null;
+
+      // 입력 영역 아래 에러 메시지
+      const inputErrorMessage = aiTool.errorCode && isInputError(aiTool.errorCode)
+            ? mapErrorCodeToMessage(aiTool.errorCode, "")
+            : null;
 
       return (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 h-[calc(100vh-140px)]">
-                  {/* Input Side */}
-                  <GlassCard title="입력 텍스트" className="flex flex-col h-full">
-                        <div className="flex gap-4 mb-4 text-sm">
-                              <label className="flex items-center gap-2 cursor-pointer select-none px-3 py-1.5 rounded-lg bg-gray-100 dark:bg-gray-700/50 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors">
-                                    <input
-                                          type="checkbox"
-                                          checked={options.autoHeading}
-                                          onChange={(e) => setOptions({ ...options, autoHeading: e.target.checked })}
-                                          className="rounded text-blue-500 focus:ring-blue-500"
-                                    />
-                                    <span className="text-gray-700 dark:text-gray-300">자동 제목 (첫 줄)</span>
-                              </label>
-                              <label className="flex items-center gap-2 cursor-pointer select-none px-3 py-1.5 rounded-lg bg-gray-100 dark:bg-gray-700/50 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors">
-                                    <input
-                                          type="checkbox"
-                                          checked={options.autoList}
-                                          onChange={(e) => setOptions({ ...options, autoList: e.target.checked })}
-                                          className="rounded text-blue-500 focus:ring-blue-500"
-                                    />
-                                    <span className="text-gray-700 dark:text-gray-300">자동 목록 변환</span>
-                              </label>
+            <div className="max-w-7xl mx-auto px-4 py-8 flex flex-col gap-6">
+                  {/* Header Section */}
+                  <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                        <div>
+                              <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white mb-2 tracking-tight flex items-center gap-3">
+                                    <i className="fa-brands fa-markdown text-blue-500"></i> 텍스트 변환기
+                              </h1>
+                              <p className="text-slate-500 dark:text-slate-400">
+                                    {isAiMode ? 'AI가 문맥을 분석하여 완벽한 마크다운을 만듭니다.' : '간단한 규칙으로 빠르게 마크다운을 생성합니다.'}
+                              </p>
                         </div>
-                        <textarea
-                              className="flex-1 w-full p-4 rounded-xl border-2 border-transparent bg-gray-50 dark:bg-gray-800 font-mono text-sm resize-none focus:bg-white focus:border-blue-500/50 dark:focus:bg-gray-700 outline-none transition-all text-gray-900 dark:text-white placeholder-gray-400"
-                              placeholder="여기에 텍스트를 붙여넣으세요..."
-                              value={input}
-                              onChange={(e) => setInput(e.target.value)}
-                        ></textarea>
-                  </GlassCard>
+                        <ModeToggle mode={mode} onModeChange={(m) => {
+                              setMode(m);
+                              aiTool.reset(); // 모드 변경 시 AI 상태 초기화
+                        }} disabled={aiTool.isLoading} />
+                  </div>
 
-                  {/* Output Side */}
-                  <GlassCard title="마크다운 결과" className="flex flex-col h-full"
-                        footer={
-                              <div className="flex justify-end gap-3 pt-4">
-                                    <span className="text-emerald-500 text-sm self-center font-bold animate-pulse">{copySuccess}</span>
-                                    <GlassButton variant="secondary" onClick={handleDownload} disabled={!output} size="sm">
-                                          <i className="fa-solid fa-download"></i> 다운로드
+                  {/* Top Alert for errors */}
+                  {topErrorMessage && (
+                        <Alert variant="error" className="animate-in fade-in slide-in-from-top-2">
+                              {topErrorMessage}
+                        </Alert>
+                  )}
+
+                  {/* Persona Selector (AI Mode Only) */}
+                  {isAiMode && (
+                        <div className="animate-in fade-in slide-in-from-top-2 duration-500">
+                              <PersonaSelector
+                                    selectedPersona={persona}
+                                    onSelect={setPersona}
+                                    disabled={aiTool.isLoading}
+                              />
+                        </div>
+                  )}
+
+                  {/* Editor Layout */}
+                  <EditorLayout
+                        inputText={localTool.input}
+                        onInputChange={localTool.setInput}
+                        outputText={displayMarkdown}
+                        isThinking={aiTool.isLoading}
+                        ThinkingComponent={<ThinkingIndicator />}
+                        inputHeader={
+                              <div className="flex gap-4 text-xs">
+                                    <label className="flex items-center gap-1.5 cursor-pointer select-none text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors">
+                                          <input
+                                                type="checkbox"
+                                                checked={localTool.options.autoHeading}
+                                                onChange={(e) => localTool.setOptions({ ...localTool.options, autoHeading: e.target.checked })}
+                                                className="rounded-sm w-3.5 h-3.5 text-blue-500 focus:ring-blue-500"
+                                          />
+                                          <span>자동 제목</span>
+                                    </label>
+                                    <label className="flex items-center gap-1.5 cursor-pointer select-none text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors">
+                                          <input
+                                                type="checkbox"
+                                                checked={localTool.options.autoList}
+                                                onChange={(e) => localTool.setOptions({ ...localTool.options, autoList: e.target.checked })}
+                                                className="rounded-sm w-3.5 h-3.5 text-blue-500 focus:ring-blue-500"
+                                          />
+                                          <span>자동 목록</span>
+                                    </label>
+                              </div>
+                        }
+                        outputHeader={
+                              isAiMode && aiTool.model && (
+                                    <div className="flex items-center gap-3 text-[10px] uppercase tracking-wider font-bold text-slate-400">
+                                          <span className="flex items-center gap-1">
+                                                <i className="fa-solid fa-microchip"></i> {aiTool.model}
+                                          </span>
+                                          {aiTool.tokensUsed !== null && (
+                                                <span className="px-1.5 py-0.5 bg-slate-100 dark:bg-slate-800 rounded border border-slate-200 dark:border-slate-700">
+                                                      {aiTool.tokensUsed.toLocaleString()} TOKENS
+                                                </span>
+                                          )}
+                                    </div>
+                              )
+                        }
+                        inputActions={
+                              <>
+                                    {inputErrorMessage && (
+                                          <span className="text-xs text-red-500 font-medium mr-2 animate-pulse">{inputErrorMessage}</span>
+                                    )}
+                                    {isAiMode ? (
+                                          <GlassButton
+                                                variant="primary"
+                                                size="sm"
+                                                onClick={handleConvert}
+                                                disabled={aiTool.isLoading || !localTool.input.trim()}
+                                          >
+                                                {aiTool.isLoading ? '변환 중...' : 'AI 변환 실행'}
+                                          </GlassButton>
+                                    ) : (
+                                          <div className="text-[10px] text-slate-400 font-bold uppercase tracking-widest px-2 py-1 border border-slate-200 dark:border-slate-800 rounded">
+                                                Local Realtime
+                                          </div>
+                                    )}
+                              </>
+                        }
+                        outputActions={
+                              <div className="flex gap-2">
+                                    <span className="text-emerald-500 text-xs self-center font-bold mr-2">{localTool.copySuccess}</span>
+                                    <GlassButton variant="secondary" onClick={localTool.handleDownload} disabled={!displayMarkdown} size="sm">
+                                          <i className="fa-solid fa-download"></i>
                                     </GlassButton>
-                                    <GlassButton variant="primary" onClick={handleCopy} disabled={!output} size="sm">
-                                          <i className="fa-regular fa-copy"></i> 복사
+                                    <GlassButton variant="primary" onClick={() => localTool.handleCopy()} disabled={!displayMarkdown} size="sm">
+                                          <i className="fa-regular fa-copy"></i>
                                     </GlassButton>
                               </div>
-                        }>
-                        <textarea
-                              readOnly
-                              className="flex-1 w-full p-4 rounded-xl border-2 border-transparent bg-gray-100 dark:bg-gray-800 font-mono text-sm text-gray-700 dark:text-gray-300 resize-none outline-none"
-                              value={output}
-                              placeholder="변환된 마크다운이 여기에 표시됩니다..."
-                        ></textarea>
-                  </GlassCard>
+                        }
+                  />
             </div>
       );
 };

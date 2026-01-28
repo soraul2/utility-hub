@@ -1,0 +1,138 @@
+import { describe, it, expect } from 'vitest';
+import { calculateCarrierTotal, calculateMvnoTotal } from './utils/calculators';
+import type { CarrierPlanInput, MvnoPlanInput } from './types';
+
+describe('Phone Cost Calculator Logic', () => {
+
+      describe('calculateCarrierTotal', () => {
+            it('Case 1: Standard High-End (iPhone Pro, 6mo High Plan)', () => {
+                  const input: CarrierPlanInput = {
+                        highPlanMonths: 6,
+                        highPlanMonthly: 100000,
+                        lowPlanMonths: 18,
+                        lowPlanMonthly: 69000,
+                        deviceCostTotal: 1500000,
+                        addons: []
+                  };
+                  // (6 * 100,000) + (18 * 69,000) + 1,500,000 = 600,000 + 1,242,000 + 1,500,000 = 3,342,000
+                  expect(calculateCarrierTotal(input).total).toBe(3342000);
+            });
+
+            it('Case 2: Mid-Range (Galaxy S, 4mo High Plan)', () => {
+                  const input: CarrierPlanInput = {
+                        highPlanMonths: 4,
+                        highPlanMonthly: 89000,
+                        lowPlanMonths: 20,
+                        lowPlanMonthly: 55000,
+                        deviceCostTotal: 800000,
+                        addons: []
+                  };
+                  // (4 * 89000) + (20 * 55000) + 800000 = 356000 + 1100000 + 800000 = 2,256,000
+                  expect(calculateCarrierTotal(input).total).toBe(2256000);
+            });
+
+            it('Case 3: Single Rate Plan (No High/Low split)', () => {
+                  const input: CarrierPlanInput = {
+                        highPlanMonths: 24,
+                        highPlanMonthly: 60000,
+                        lowPlanMonths: 0,
+                        lowPlanMonthly: 0,
+                        deviceCostTotal: 0,
+                        addons: []
+                  };
+                  // (24 * 60000) = 1,440,000
+                  expect(calculateCarrierTotal(input).total).toBe(1440000);
+            });
+
+            it('Case 4: With 1 Addon', () => {
+                  const input: CarrierPlanInput = {
+                        highPlanMonths: 6,
+                        highPlanMonthly: 90000,
+                        lowPlanMonths: 18,
+                        lowPlanMonthly: 50000,
+                        deviceCostTotal: 500000,
+                        addons: [
+                              { id: '1', name: 'Movie', monthlyFee: 9000, months: 3 }
+                        ]
+                  };
+                  // Plan: (6*90k) + (18*50k) + 500k = 540k + 900k + 500k = 1,940,000
+                  // Addon: 9000 * 3 = 27,000
+                  // Total: 1,967,000
+                  expect(calculateCarrierTotal(input).total).toBe(1967000);
+            });
+
+            it('Case 5: With Multiple Addons', () => {
+                  const input: CarrierPlanInput = {
+                        highPlanMonths: 6,
+                        highPlanMonthly: 50000,
+                        lowPlanMonths: 18,
+                        lowPlanMonthly: 50000,
+                        deviceCostTotal: 0,
+                        addons: [
+                              { id: '1', name: 'A', monthlyFee: 1000, months: 24 },
+                              { id: '2', name: 'B', monthlyFee: 5000, months: 6 }
+                        ]
+                  };
+                  // Plan: 24 * 50000 = 1,200,000
+                  // Addons: (1000*24) + (5000*6) = 24000 + 30000 = 54,000
+                  // Total: 1,254,000
+                  expect(calculateCarrierTotal(input).total).toBe(1254000);
+            });
+
+            it('Case 6: Edge Case - All Zero', () => {
+                  const input: CarrierPlanInput = {
+                        highPlanMonths: 0,
+                        highPlanMonthly: 0,
+                        lowPlanMonths: 0,
+                        lowPlanMonthly: 0,
+                        deviceCostTotal: 0,
+                        addons: []
+                  };
+                  expect(calculateCarrierTotal(input).total).toBe(0);
+            });
+
+            it('Case 7: High Device Cost, Low Plan', () => {
+                  const input: CarrierPlanInput = {
+                        highPlanMonths: 6,
+                        highPlanMonthly: 33000,
+                        lowPlanMonths: 18,
+                        lowPlanMonthly: 33000,
+                        deviceCostTotal: 2000000,
+                        addons: []
+                  };
+                  // (24*33000) + 2000000 = 792000 + 2000000 = 2,792,000
+                  expect(calculateCarrierTotal(input).total).toBe(2792000);
+            });
+      });
+
+      describe('calculateMvnoTotal', () => {
+            it('Case 8: Standard MVNO (Cheap Sim, Full Device)', () => {
+                  const input: MvnoPlanInput = {
+                        deviceCostTotal: 1000000,
+                        mvnoMonthly: 33000,
+                        months: 24
+                  };
+                  // 1,000,000 + (33000 * 24) = 1,000,000 + 792,000 = 1,792,000
+                  expect(calculateMvnoTotal(input).total).toBe(1792000);
+            });
+
+            it('Case 9: Zero Won Plan (Promo)', () => {
+                  const input: MvnoPlanInput = {
+                        deviceCostTotal: 500000,
+                        mvnoMonthly: 0,
+                        months: 24 // Assume 0 won for 24 months for simplicity or average
+                  };
+                  expect(calculateMvnoTotal(input).total).toBe(500000);
+            });
+
+            it('Case 10: Comparison Period Change (36 months)', () => {
+                  const input: MvnoPlanInput = {
+                        deviceCostTotal: 1000000,
+                        mvnoMonthly: 10000,
+                        months: 36
+                  };
+                  // 1,000,000 + (10000 * 36) = 1,360,000
+                  expect(calculateMvnoTotal(input).total).toBe(1360000);
+            });
+      });
+});

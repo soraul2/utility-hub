@@ -37,6 +37,14 @@ const tools: Tool[] = [
             icon: 'fa-brands fa-markdown',
             to: '/tools/text-to-md',
             color: 'from-blue-400 to-indigo-600'
+      },
+      {
+            id: 'phone-cost',
+            name: '휴대폰 요금 계산기',
+            description: '합리적인 통신비 선택을 위한 계산기',
+            icon: 'fa-solid fa-coins',
+            to: '/tools/phone-cost',
+            color: 'from-yellow-400 to-amber-600'
       }
 ];
 

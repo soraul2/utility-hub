@@ -16,7 +16,6 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/text-to-md")
 @RequiredArgsConstructor
-@org.springframework.web.bind.annotation.CrossOrigin(origins = "*") // Allow CORS for local HTML testing
 public class TextToMdController {
 
       private final TextToMdService textToMdService;
