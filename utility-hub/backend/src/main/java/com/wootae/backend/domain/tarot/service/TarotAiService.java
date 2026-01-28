@@ -11,10 +11,12 @@ import java.util.List;
 
 @Slf4j
 @Service
-@RequiredArgsConstructor
 public class TarotAiService {
+      private final ChatClient chatClient;
 
-      private final ChatClient.Builder chatClientBuilder;
+      public TarotAiService(ChatClient.Builder chatClientBuilder) {
+            this.chatClient = chatClientBuilder.build();
+      }
 
       public String generateReading(TarotDTOs.ThreeCardSpreadRequest request,
                   List<TarotDTOs.DrawnCardDto> drawnCards) {
@@ -52,7 +54,6 @@ public class TarotAiService {
             context.append("3. 질문자에게 따뜻하면서도 신비로운 조언을 건네며 마무리하세요.\n");
             context.append("4. 답변은 한국어로 정중하게 작성하세요.");
 
-            ChatClient chatClient = chatClientBuilder.build();
             String aiResponse = chatClient.prompt()
                         .user(context.toString())
                         .call()
@@ -79,7 +80,6 @@ public class TarotAiService {
             context.append("2. 오늘 하루를 어떻게 보내면 좋을지 구체적인 행동 조언을 제공하세요.\n");
             context.append("3. 답변은 한국어로 정중하고 신비로운 어조로 작성하세요.");
 
-            ChatClient chatClient = chatClientBuilder.build();
             String aiResponse = chatClient.prompt()
                         .user(context.toString())
                         .call()

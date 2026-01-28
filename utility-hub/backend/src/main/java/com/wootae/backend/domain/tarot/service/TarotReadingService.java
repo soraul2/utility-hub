@@ -23,7 +23,6 @@ public class TarotReadingService {
       private final TarotReadingRepository readingRepository;
       private final ObjectMapper objectMapper;
 
-      @Transactional
       public TarotDTOs.ThreeCardSpreadResponse createThreeCardReading(TarotDTOs.ThreeCardSpreadRequest request) {
             // 1. Draw 3 cards
             List<TarotDTOs.DrawnCardDto> drawnCards = cardService.drawCards(3);
@@ -58,7 +57,7 @@ public class TarotReadingService {
                         .aiReading(aiReading)
                         .build();
 
-            TarotReadingSession savedSession = readingRepository.save(session);
+            TarotReadingSession savedSession = saveSession(session);
 
             return TarotDTOs.ThreeCardSpreadResponse.builder()
                         .sessionId(savedSession.getId())
@@ -68,7 +67,6 @@ public class TarotReadingService {
                         .build();
       }
 
-      @Transactional
       public TarotDTOs.DailyCardResponse createDailyReading(String userName) {
             // 1. Draw 1 card
             List<TarotDTOs.DrawnCardDto> drawnCards = cardService.drawCards(1);
@@ -94,7 +92,7 @@ public class TarotReadingService {
                         .aiReading(aiReading)
                         .build();
 
-            TarotReadingSession savedSession = readingRepository.save(session);
+            TarotReadingSession savedSession = saveSession(session);
 
             return TarotDTOs.DailyCardResponse.builder()
                         .sessionId(savedSession.getId())
@@ -102,5 +100,10 @@ public class TarotReadingService {
                         .aiReading(aiReading)
                         .createdAt(savedSession.getCreatedAt())
                         .build();
+      }
+
+      @Transactional
+      protected TarotReadingSession saveSession(TarotReadingSession session) {
+            return readingRepository.save(session);
       }
 }
