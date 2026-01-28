@@ -5,40 +5,375 @@
 @tailwind components;
 @tailwind utilities;
 
-body {
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
-}
-
 @layer base {
   body {
-    @apply font-sans antialiased text-slate-900 bg-slate-50 dark:text-slate-100 dark:bg-slate-950 transition-colors duration-300;
+    @apply antialiased text-slate-900 bg-slate-950 text-slate-100 transition-colors duration-300;
+    font-family: 'Inter', -apple-system, sans-serif;
   }
+}
+
+.font-chakra {
+  font-family: 'Chakra Petch', sans-serif;
 }
 
 @layer components {
-  .custom-scrollbar::-webkit-scrollbar {
-    @apply w-2 h-2;
+
+  /* Premium Glassmorphism & Gold Theme */
+  .glass-card {
+    @apply bg-[#121216]/80 backdrop-blur-xl border border-white/10;
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5);
   }
 
-  .custom-scrollbar::-webkit-scrollbar-track {
+  .gold-border {
+    border: 1px solid transparent;
+    background: linear-gradient(#121216, #121216) padding-box,
+      linear-gradient(135deg, #bf953f, #fcf6ba, #b38728, #fbf5b7, #aa771c) border-box;
+  }
+
+  .text-gradient-gold {
+    background: linear-gradient(to right, #bf953f, #fcf6ba, #b38728, #fbf5b7);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  .glass-panel {
+    @apply bg-[#0a0a0a]/90 backdrop-blur-2xl border-t border-white/5 shadow-2xl;
+  }
+
+  .mystic-panel {
+    @apply relative bg-[#08080c] border border-amber-500/20 rounded-[2rem] p-8 md:p-16 overflow-hidden;
+    box-shadow: 0 0 100px rgba(0, 0, 0, 0.8);
+  }
+
+  .mystic-panel::before {
+    content: "";
+    @apply absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-amber-500/50 to-transparent opacity-50;
+  }
+
+  /* Utilities */
+  .perspective-1000 {
+    perspective: 1000px;
+  }
+
+  /* Custom Scrollbar for Mystic Theme */
+  .mystic-scrollbar::-webkit-scrollbar {
+    @apply w-1.5;
+  }
+
+  .mystic-scrollbar::-webkit-scrollbar-track {
     @apply bg-transparent;
   }
 
-  .custom-scrollbar::-webkit-scrollbar-thumb {
-    @apply bg-slate-300 dark:bg-slate-700 rounded-full hover:bg-slate-400 dark:hover:bg-slate-600 transition-colors;
+  .mystic-scrollbar::-webkit-scrollbar-thumb {
+    @apply bg-amber-500/50 rounded-full hover:bg-amber-400/80 transition-all;
   }
 }
 
-/* Glassmorphism Background Animation */
-body::before {
-  content: "";
+/* Base Mystic Dark Background */
+.mystic-bg {
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
   z-index: -1;
-  background: radial-gradient(circle at 20% 20%, rgba(59, 130, 246, 0.05) 0%, transparent 40%),
-              radial-gradient(circle at 80% 80%, rgba(139, 92, 246, 0.05) 0%, transparent 40%);
-  @apply dark:opacity-20;
+  background-color: #050505;
+  background-image:
+    radial-gradient(circle at 50% 0%, rgba(191, 149, 63, 0.15) 0%, transparent 50%),
+    radial-gradient(circle at 85% 30%, rgba(76, 29, 149, 0.1) 0%, transparent 50%),
+    radial-gradient(circle at 15% 70%, rgba(59, 130, 246, 0.05) 0%, transparent 50%);
+}
+
+.mystic-bg::before {
+  content: "";
+  position: absolute;
+  width: 200%;
+  height: 200%;
+  top: -50%;
+  left: -50%;
+  background: radial-gradient(circle at 30% 30%, rgba(139, 92, 246, 0.08) 0%, transparent 40%),
+    radial-gradient(circle at 70% 70%, rgba(59, 130, 246, 0.08) 0%, transparent 40%),
+    radial-gradient(circle at 50% 50%, rgba(217, 70, 239, 0.03) 0%, transparent 60%);
+  animation: bg-drift 30s linear infinite;
+}
+
+@keyframes bg-drift {
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* Animations */
+@keyframes float {
+
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+.animate-mystic-float {
+  animation: float 6s ease-in-out infinite;
+}
+
+@keyframes pulse-glow {
+
+  0%,
+  100% {
+    filter: drop-shadow(0 0 5px rgba(139, 92, 246, 0.3));
+  }
+
+  50% {
+    filter: drop-shadow(0 0 20px rgba(139, 92, 246, 0.6));
+  }
+}
+
+.animate-glow {
+  animation: pulse-glow 3s ease-in-out infinite;
+}
+
+@keyframes flip-in {
+  from {
+    transform: perspective(1000px) rotateY(180deg);
+    opacity: 0;
+  }
+
+  to {
+    transform: perspective(1000px) rotateY(0deg);
+    opacity: 1;
+  }
+}
+
+.animate-flip-in {
+  animation: flip-in 0.8s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+@keyframes fade-in-up {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.animate-fade-in-up {
+  animation: fade-in-up 0.6s ease-out forwards;
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+.animate-fade-in {
+  animation: fade-in 1s ease-out forwards;
+}
+
+@keyframes fade-in-scale {
+  from {
+    transform: scale(0.9);
+    opacity: 0;
+  }
+
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.animate-fade-in-scale {
+  animation: fade-in-scale 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+@keyframes spin-reverse {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(-360deg);
+  }
+}
+
+.animate-spin-reverse {
+  animation: spin-reverse 3s linear infinite;
+}
+
+/* AI Reading Text Enhancements */
+.prose-mystic {
+  @apply text-amber-50 leading-loose tracking-wide text-lg;
+}
+
+.prose-mystic>*+* {
+  margin-top: 1.5em;
+}
+
+.prose-mystic h2 {
+  @apply text-3xl font-bold text-amber-400/90 font-chakra tracking-wide text-center mt-2 mb-6 drop-shadow-lg w-full block border-none;
+  background: none;
+  -webkit-text-fill-color: initial;
+}
+
+.prose-mystic h3 {
+  @apply text-xs font-bold text-amber-500/50 font-chakra uppercase tracking-[0.3em] text-center mt-12 mb-2 w-full block border-none;
+  background: none;
+  -webkit-text-fill-color: initial;
+}
+
+.prose-mystic p {
+  @apply opacity-90 leading-8 text-justify text-lg;
+  margin-bottom: 2em;
+}
+
+.prose-mystic strong {
+  @apply text-amber-300 font-bold;
+  background: none;
+  padding: 0;
+  border: none;
+  box-shadow: none;
+}
+
+.prose-mystic ul {
+  @apply list-none ml-4 space-y-3 my-6;
+}
+
+.prose-mystic li {
+  @apply relative pl-6;
+}
+
+.prose-mystic li::before {
+  content: "✦";
+  @apply absolute left-0 text-amber-500 text-xs top-3;
+}
+
+/* Hearthstone-style Animations */
+@keyframes slam-in {
+  0% {
+    transform: scale(3) rotate(5deg);
+    opacity: 0;
+  }
+
+  60% {
+    transform: scale(0.9) rotate(-2deg);
+    opacity: 1;
+  }
+
+  80% {
+    transform: scale(1.05) rotate(1deg);
+  }
+
+  100% {
+    transform: scale(1) rotate(0deg);
+  }
+}
+
+.animate-slam-in {
+  animation: slam-in 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+@keyframes shockwave {
+  0% {
+    transform: scale(1);
+    opacity: 0.8;
+  }
+
+  100% {
+    transform: scale(2);
+    opacity: 0;
+  }
+}
+
+.shockwave-effect {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  border: 2px solid rgba(245, 158, 11, 0.8);
+  animation: shockwave 0.5s ease-out forwards;
+  pointer-events: none;
+}
+
+.prose-mystic blockquote {
+  @apply border-l-4 border-amber-500/50 bg-[#0a0a0f]/50 py-4 px-6 italic text-amber-200/80 rounded-r-lg my-8;
+}
+
+.prose-mystic hr {
+  @apply border-amber-500/20 my-10;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.animate-shimmer {
+  background: linear-gradient(90deg, transparent 25%, rgba(168, 85, 247, 0.1) 50%, transparent 75%);
+  background-size: 200% 100%;
+  animation: shimmer 2s infinite;
+}
+
+/* Hide Scrollbar Utility */
+.scrollbar-none {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
+
+/* Gold Line Scrollbar Utility */
+.gold-scrollbar::-webkit-scrollbar {
+  height: 4px;
+  /* Thin line */
+  width: 0px;
+  /* Robustly hide vertical */
+}
+
+.gold-scrollbar::-webkit-scrollbar:vertical {
+  display: none !important;
+}
+
+.gold-scrollbar::-webkit-scrollbar-thumb:vertical {
+  display: none !important;
+}
+
+.gold-scrollbar::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 2px;
+  margin: 0 15%;
+  /* Keep track centered */
+}
+
+.gold-scrollbar::-webkit-scrollbar-thumb {
+  background: linear-gradient(to right, #bf953f, #fcf6ba, #bf953f);
+  border-radius: 2px;
+  box-shadow: 0 0 10px rgba(191, 149, 63, 0.5);
+}
+
+.gold-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: #bf953f transparent;
 }

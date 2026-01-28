@@ -45,6 +45,14 @@ const tools: Tool[] = [
             icon: 'fa-solid fa-coins',
             to: '/tools/phone-cost',
             color: 'from-yellow-400 to-amber-600'
+      },
+      {
+            id: 'mystic-tarot',
+            name: '미스틱 타로',
+            description: 'AI와 함께하는 신비로운 타로 리딩',
+            icon: 'fa-solid fa-moon',
+            to: '/tarot',
+            color: 'from-fuchsia-500 to-purple-600'
       }
 ];
 

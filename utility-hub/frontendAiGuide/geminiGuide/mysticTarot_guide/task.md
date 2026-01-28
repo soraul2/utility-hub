@@ -1,0 +1,28 @@
+# 미스틱 타로 프론트엔드 구현 작업 (Mystic Tarot Frontend Implementation)
+
+- [x] 구현 계획 수립 (`implementation_plan.md`) <!-- id: 0 -->
+- [/] 프로젝트 환경 설정 <!-- id: 1 -->
+    - [x] `react-markdown` 및 관련 플러그인 설치 <!-- id: 2 -->
+    - [/] 공통 상수 및 타입 정의 (`types.ts`, `constants.ts`) <!-- id: 3 -->
+- [ ] 공통 UI/UX 구현 <!-- id: 4 -->
+    - [ ] `App.tsx` 라우팅 설정 (`/daily-card`, `/three-cards` 등) <!-- id: 5 -->
+    - [ ] `AppLayout` 및 다크/신비로운 테마 적용 (CSS/Tailwind) <!-- id: 6 -->
+    - [x] 공통 컴포넌트 (`ErrorBanner`, `LoadingSpinner`, `MarkdownViewer`) 구현 <!-- id: 7 -->
+- [x] '오늘의 카드' 기능 구현 <!-- id: 8 -->
+    - [x] `DailyCardPage` 컴포넌트 스캐폴딩 <!-- id: 9 -->
+    - [x] `useDailyCard` 훅 및 API 연동 (`GET /daily-card`) <!-- id: 10 -->
+    - [x] 카드 뷰어 및 뒤집기 애니메이션 구현 <!-- id: 11 -->
+- [x] '3카드 스프레드' 기능 구현 <!-- id: 12 -->
+    - [x] `ThreeCardReadingPage` 입력 폼 구현 (질문, 토픽, 선택정보) <!-- id: 13 -->
+    - [x] `useThreeCardReading` 훅 및 API 연동 (`POST /readings/three-cards`) <!-- id: 14 -->
+    - [x] 결과 화면 3단 그리드 및 순차적 오픈 연출 구현 <!-- id: 15 -->
+- [x] 검증 및 문서화 <!-- id: 16 -->
+    - [x] 기능별 수동 테스트 및 버그 수정 (브라우저 도구 오류로 수동 대체) <!-- id: 17 -->
+    - [x] `walkthrough.md` 작성 및 시연 영상 기록 (영상 제외) <!-- id: 18 -->
+- [x] UI/UX 고도화 및 감성 품질 개선 (v0.3) <!-- id: 19 -->
+    - [x] 카드 이름 표시 '알약 모양(Pill-shaped)' 프리미엄 디자인 적용 <!-- id: 20 -->
+    - [x] 데일리 카드 결과 화면 '보라색 빛 산란(Scattering)' 이펙트 구현 <!-- id: 21 -->
+    - [x] 3카드 스프레드 결과 화면 서사적 라벨 적용 (지나온 시간, 마주한 현실, 다가올 운명) <!-- id: 22 -->
+    - [x] 카드 뒷면 'Tap to flip' 인터랙션 가이드 추가 <!-- id: 23 -->
+    - [x] 고해상도 플립 애니메이션 및 '나의 운명은...?' 신비로운 메시지 연출 <!-- id: 24 -->
+    - [x] 모바일/PC 레이아웃 최적화 및 요소 간 간격(overlap) 조정 <!-- id: 25 -->

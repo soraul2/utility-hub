@@ -5,6 +5,10 @@ import Pomodoro from './pages/tools/Pomodoro';
 import MulchingFilm from './pages/tools/MulchingFilm';
 import TextToMd from './pages/tools/TextToMd';
 import PhoneCost from './pages/tools/PhoneCost/PhoneCost';
+import TarotLayout from './layouts/TarotLayout';
+import TarotHome from './pages/tarot/TarotHome';
+import DailyCardPage from './pages/tarot/DailyCardPage';
+import ThreeCardReadingPage from './pages/tarot/ThreeCardReadingPage';
 
 function App() {
   return (
@@ -20,6 +24,14 @@ function App() {
           </Route>
           {/* Catch all */}
           <Route path="*" element={<Navigate to="/" replace />} />
+        </Route>
+
+        {/* Tarot Routes */}
+        <Route path="/tarot" element={<TarotLayout />}>
+          <Route index element={<TarotHome />} />
+          <Route path="daily" element={<DailyCardPage />} />
+          <Route path="three-cards" element={<ThreeCardReadingPage />} />
+          <Route path="*" element={<Navigate to="/tarot" replace />} />
         </Route>
       </Routes>
     </BrowserRouter>
