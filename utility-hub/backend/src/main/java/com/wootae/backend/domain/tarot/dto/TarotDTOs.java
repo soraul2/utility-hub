@@ -6,10 +6,30 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 
+import com.wootae.backend.domain.tarot.enums.TarotAssistantType;
+
 import java.time.LocalDateTime;
 import java.util.List;
 
 public class TarotDTOs {
+
+      @Getter
+      @Setter
+      @Builder
+      @Schema(description = "조수 리딩 응답 객체")
+      public static class AssistantReadingResponse {
+            @Schema(description = "조수 타입")
+            private TarotAssistantType assistantType;
+
+            @Schema(description = "조수 이름 (한글)")
+            private String assistantName;
+
+            @Schema(description = "조수 칭호")
+            private String assistantTitle;
+
+            @Schema(description = "AI 리딩 결과")
+            private String reading;
+      }
 
       @Getter
       @Setter
@@ -31,6 +51,9 @@ public class TarotDTOs {
 
             @Schema(description = "사용자 나이 (선택)", example = "25")
             private Integer userAge;
+
+            @Schema(description = "선택한 리더 타입 (옵션)", nullable = true)
+            private TarotAssistantType assistantType;
       }
 
       @Getter

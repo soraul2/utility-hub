@@ -66,4 +66,43 @@ public class TarotCardService {
             log.info("Drew {} cards from deck", count);
             return drawnCards;
       }
+
+      public List<TarotDTOs.DrawnCardDto> drawPositiveCards(int count) {
+            List<String> positiveCardNames = List.of(
+                        "The Sun", "The Star", "The World", "The Lovers", "Wheel of Fortune",
+                        "The Empress", "Strength", "Ace of Cups", "Ten of Cups",
+                        "Ace of Pentacles", "Ten of Pentacles", "Six of Wands", "Ace of Wands");
+
+            List<TarotCard> positiveDeck = deck.stream()
+                        .filter(card -> positiveCardNames.contains(card.getNameEn()))
+                        .toList();
+
+            if (positiveDeck.size() < count) {
+                  // Fallback if names don't match or not enough cards found
+                  log.warn("Not enough positive cards found. Falling back to specific Major Arcana indices.");
+                  return drawCards(count);
+            }
+
+            List<Integer> indices = new ArrayList<>();
+            for (int i = 0; i < positiveDeck.size(); i++) {
+                  indices.add(i);
+            }
+            Collections.shuffle(indices);
+
+            List<TarotDTOs.DrawnCardDto> drawnCards = new ArrayList<>();
+            for (int i = 0; i < count; i++) {
+                  TarotCard card = positiveDeck.get(indices.get(i));
+                  // Master Fortuna always gives Upright cards (No Reversed) for maximum luck
+                  boolean reversed = false;
+
+                  drawnCards.add(TarotDTOs.DrawnCardDto.builder()
+                              .position("") // Set by caller
+                              .cardInfo(card)
+                              .isReversed(reversed)
+                              .build());
+            }
+
+            log.info("Drew {} POSITIVE cards for Fortuna", count);
+            return drawnCards;
+      }
 }

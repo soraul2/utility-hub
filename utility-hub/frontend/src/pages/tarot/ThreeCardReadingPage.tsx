@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useThreeCardReading } from '../../hooks/useThreeCardReading';
 import { TAROT_TOPICS } from '../../lib/tarot';
 import type { TarotTopic, UserGender } from '../../lib/tarot';
@@ -6,10 +6,106 @@ import TarotCardView from '../../components/tarot/TarotCardView';
 import MarkdownViewer from '../../components/common/MarkdownViewer';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 import ErrorBanner from '../../components/common/ErrorBanner';
+import { createAssistantReading } from '../../lib/api/tarotApi';
+import type { TarotAssistantType, AssistantReadingResponse } from '../../lib/tarot';
+import confetti from 'canvas-confetti';
 
 const ThreeCardReadingPage: React.FC = () => {
       const { data, loading, error, createReading, reset } = useThreeCardReading();
-      const [step, setStep] = useState<'input' | 'selection' | 'result'>('input');
+      const [step, setStep] = useState<'input' | 'selection' | 'leader' | 'result'>('input');
+      const [selectedLeader, setSelectedLeader] = useState<TarotAssistantType | null>(null);
+
+      // Assistant State
+      const [assistants, setAssistants] = useState<{ type: TarotAssistantType; name: string; title: string; desc: string; image: string; }[]>([]);
+
+
+      const ASSISTANTS = [
+            {
+                  type: 'SYLVIA', name: '실비아', title: '냉철한 분석가', desc: '팩트 중심의 현실적인 조언', image: '/assets/tarot/assistants/silvia.png',
+                  introQuote: "감정을 배제하고 오직 논리와 이성으로만 분석하겠습니다. 달콤한 거짓말보다는 차가운 진실을 들을 준비가 되셨습니까?",
+                  confirmBtn: "진실을 들려줘", cancelBtn: "아직은 무서워"
+            },
+            {
+                  type: 'LUNA', name: '루나', title: '다정한 치유자', desc: '마음을 어루만지는 위로', image: '/assets/tarot/assistants/luna.png',
+                  introQuote: "마음이 많이 다치셨군요... 제 따뜻한 달빛으로 당신의 상처를 어루만져 드려도 될까요? 아프지 않게 말씀드릴게요.",
+                  confirmBtn: "응, 위로가 필요해", cancelBtn: "아니, 괜찮아"
+            },
+            {
+                  type: 'ORION', name: '오리온', title: '쾌활한 예언가', desc: '긍정 에너지와 유머', image: '/assets/tarot/assistants/orion.png',
+                  introQuote: "어두운 표정 짓지 마! 태양은 언제나 다시 뜨니까. 내가 네 운명에서 가장 빛나는 부분을 찾아줄게. 갈 준비 됐어?",
+                  confirmBtn: "가자! 에너지 충전!", cancelBtn: "조금 부담스러워"
+            },
+            {
+                  type: 'NOCTIS', name: '녹티스', title: '그림자 독설가', desc: '뼈 때리는 직설 화법', image: '/assets/tarot/assistants/noctis.png',
+                  introQuote: "당신조차 모르는 당신의 무의식... 그 깊은 심연을 들여다볼 용기가 있는가? 내가 보는 진실은 다소 어둡고 날카로울 것이다.",
+                  confirmBtn: "심연을 마주할게", cancelBtn: "다음에 볼게"
+            },
+            {
+                  type: 'VANCE', name: '반스', title: '야망의 전략가', desc: '성공을 위한 구체적 전략', image: '/assets/tarot/assistants/vance.png',
+                  introQuote: "운명은 기다리는 게 아니라 쟁취하는 것입니다. 이 판을 뒤집고 승리할 수 있는 확실한 전략을 원하십니까? 승리의 수를 알려드리죠.",
+                  confirmBtn: "전략을 알려줘", cancelBtn: "그냥 흘러갈래"
+            },
+            {
+                  type: 'ELARA', name: '엘라라', title: '몽환의 시인', desc: '감성적인 은유와 표현', image: '/assets/tarot/assistants/elara.png',
+                  introQuote: "현실의 경계 너머, 꿈속의 이야기를 들려드릴게요. 별들이 속삭이는 운명의 시를 함께 들어보시겠어요?",
+                  confirmBtn: "꿈을 꾸고 싶어", cancelBtn: "현실에 있을래"
+            },
+            {
+                  type: 'KLAUS', name: '클라우스', title: '엄격한 규율자', desc: '원칙 중심의 단호한 경고', image: '/assets/tarot/assistants/klaus.png',
+                  introQuote: "모든 결과에는 원인이 있는 법. 당신이 지은 업보와 마주할 시간이다. 핑계 댈 생각 말고, 내 심판을 받아들이겠나?",
+                  confirmBtn: "심판을 받아들인다", cancelBtn: "너무 무거워"
+            },
+      ] as const;
+
+      const HIDDEN_ASSISTANT = {
+            type: 'FORTUNA', name: '마스터 포르투나', title: '행운의 여신', desc: '무조건적인 축복과 행운', image: '/assets/tarot/assistants/fortuna.png',
+            introQuote: "어머나! 저를 찾으셨군요? 이건 우연이 아니에요. 당신에게 쏟아질 기적 같은 행운을 지금 바로 축복해 드릴게요! 준비되셨나요?",
+            confirmBtn: "기적을 받을게! ✨", cancelBtn: ""
+      } as const;
+
+      const MYSTIC_INFO = {
+            type: 'MYSTIC', name: 'Mystic', title: '운명의 관찰자', desc: '정석적인 타로 리딩', image: '/assets/tarot/assistants/mystic.png',
+            introQuote: "운명의 흐름을 읽는 자로서, 당신의 질문에 담긴 진실만을 전하겠습니다. 허상 없는 가장 투명한 거울을 마주할 준비가 되셨습니까?",
+            confirmBtn: "진실을 보여줘", cancelBtn: "아직 준비 안 됐어"
+      };
+
+      const triggerFortunaEffect = () => {
+            // Fancy Confetti Effect
+            const duration = 3000;
+            const animationEnd = Date.now() + duration;
+            const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 0 };
+
+            const randomInRange = (min: number, max: number) => Math.random() * (max - min) + min;
+
+            const interval: any = setInterval(function () {
+                  const timeLeft = animationEnd - Date.now();
+
+                  if (timeLeft <= 0) {
+                        return clearInterval(interval);
+                  }
+
+                  const particleCount = 50 * (timeLeft / duration);
+                  confetti({ ...defaults, particleCount, origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 } });
+                  confetti({ ...defaults, particleCount, origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 } });
+            }, 250);
+      };
+
+      const shuffleAssistants = () => {
+            const shuffled = [...ASSISTANTS].sort(() => 0.5 - Math.random()).slice(0, 3);
+            // 1% Chance for Fortuna
+            if (Math.random() < 0.01) {
+                  const replaceIdx = Math.floor(Math.random() * 3);
+                  // @ts-ignore
+                  shuffled[replaceIdx] = HIDDEN_ASSISTANT;
+                  triggerFortunaEffect(); // Trigger effect on appearance
+            }
+            // @ts-ignore
+            setAssistants(shuffled);
+      };
+
+
+
+
 
       // Form State
       const [question, setQuestion] = useState('');
@@ -18,6 +114,9 @@ const ThreeCardReadingPage: React.FC = () => {
       const [userAge, setUserAge] = useState('');
       const [userGender, setUserGender] = useState<UserGender | ''>('');
       const [revealedCards, setRevealedCards] = useState<boolean[]>([false, false, false]);
+      const [showResultRevealModal, setShowResultRevealModal] = useState(false);
+      const [isResultUnlocked, setIsResultUnlocked] = useState(false);
+      const [isOpening, setIsOpening] = useState(false);
 
       // Selection State
       const [selectedSlots, setSelectedSlots] = useState<(number | null)[]>([null, null, null]);
@@ -54,6 +153,35 @@ const ThreeCardReadingPage: React.FC = () => {
             sliderRef.current.scrollLeft = scrollLeft - walk;
       };
 
+      // Leader Drag Scrolling State
+      const leaderListRef = React.useRef<HTMLDivElement>(null);
+      const [isLeaderDragging, setIsLeaderDragging] = useState(false);
+      const [leaderStartX, setLeaderStartX] = useState(0);
+      const [leaderScrollLeft, setLeaderScrollLeft] = useState(0);
+
+      const handleLeaderMouseDown = (e: React.MouseEvent) => {
+            if (!leaderListRef.current) return;
+            setIsLeaderDragging(true);
+            setLeaderStartX(e.pageX - leaderListRef.current.offsetLeft);
+            setLeaderScrollLeft(leaderListRef.current.scrollLeft);
+      };
+
+      const handleLeaderMouseLeave = () => {
+            setIsLeaderDragging(false);
+      };
+
+      const handleLeaderMouseUp = () => {
+            setIsLeaderDragging(false);
+      };
+
+      const handleLeaderMouseMove = (e: React.MouseEvent) => {
+            if (!isLeaderDragging || !leaderListRef.current) return;
+            e.preventDefault();
+            const x = e.pageX - leaderListRef.current.offsetLeft;
+            const walk = (x - leaderStartX) * 1.5;
+            leaderListRef.current.scrollLeft = leaderScrollLeft - walk;
+      };
+
       const handleInputSubmit = (e: React.FormEvent) => {
             e.preventDefault();
             if (!question.trim()) return;
@@ -86,14 +214,50 @@ const ThreeCardReadingPage: React.FC = () => {
             setShowConfirmModal(true);
       };
 
-      const handleFinalReveal = async () => {
+      const handleMoveToLeaderSelection = () => {
             setShowConfirmModal(false);
+            shuffleAssistants(); // Shuffle assistants before showing selection
+            setStep('leader');
+      };
+
+      // Soul Contract State
+      const [leaderPending, setLeaderPending] = useState<any>(null);
+      const [showLeaderConfirmModal, setShowLeaderConfirmModal] = useState(false);
+
+      const handleCreateReading = (leaderType?: TarotAssistantType) => {
+            let leaderData;
+            if (!leaderType) {
+                  leaderData = MYSTIC_INFO;
+            } else if (leaderType === 'FORTUNA') {
+                  leaderData = HIDDEN_ASSISTANT;
+                  triggerFortunaEffect();
+            } else {
+                  // Find from state or constant
+                  leaderData = assistants.find(a => a.type === leaderType) || ASSISTANTS.find(a => a.type === leaderType);
+            }
+
+            if (leaderData) {
+                  setLeaderPending(leaderData);
+                  setShowLeaderConfirmModal(true);
+            }
+      };
+
+      const handleConfirmLeader = async () => {
+            if (!leaderPending) return;
+            setShowLeaderConfirmModal(false);
+
+            const leaderType = leaderPending.type === 'MYSTIC' ? undefined : leaderPending.type;
+
+            setSelectedLeader(leaderType || null);
+            if (leaderType === 'FORTUNA') triggerFortunaEffect();
+
             await createReading({
                   question,
                   topic,
                   userName: userName || undefined,
                   userAge: userAge ? parseInt(userAge, 10) : undefined,
                   userGender: userGender || undefined,
+                  assistantType: leaderType
             });
             setRevealedCards([false, false, false]);
             setStep('result');
@@ -105,23 +269,65 @@ const ThreeCardReadingPage: React.FC = () => {
             setQuestion('');
             setSelectedSlots([null, null, null]);
             setRevealedCards([false, false, false]);
+            setSelectedLeader(null);
+            setShowResultRevealModal(false);
+            setIsResultUnlocked(false);
+            setIsOpening(false);
       };
 
+      const handleOpenResult = () => {
+            setIsOpening(true);
+            setTimeout(() => {
+                  setShowResultRevealModal(false);
+                  setIsResultUnlocked(true);
+            }, 800);
+      };
+
+      useEffect(() => {
+            if (revealedCards.every(Boolean) && !isResultUnlocked) {
+                  const timer = setTimeout(() => {
+                        setShowResultRevealModal(true);
+                  }, 500);
+                  return () => clearTimeout(timer);
+            }
+      }, [revealedCards, isResultUnlocked]);
+
       if (loading) {
+            const isFortuna = selectedLeader === 'FORTUNA';
+
             return (
                   <div className="flex flex-col items-center justify-center p-20">
-                        <div className="relative w-64 h-64 mb-8 flex items-center justify-center">
-                              <div className="absolute inset-0 border-4 border-amber-500/20 border-t-amber-500 rounded-full animate-spin" />
-                              <div className="absolute inset-4 border-4 border-amber-200/20 border-b-amber-200 rounded-full animate-spin-reverse" />
-                              <div className="absolute w-48 h-48 border border-purple-500/30 rounded-full animate-[spin_10s_linear_infinite]" />
-                              <div className="relative z-10 w-24 h-36 bg-gradient-to-br from-purple-900/50 to-indigo-900/50 rounded-lg border border-purple-400/30 shadow-[0_0_50px_rgba(168,85,247,0.6)] animate-pulse flex items-center justify-center">
-                                    <i className="fas fa-eye text-4xl text-purple-200/80 animate-pulse"></i>
+                        {isFortuna ? (
+                              <div className="relative w-64 h-64 mb-8 flex items-center justify-center">
+                                    <div className="absolute inset-0 border-4 border-amber-400 rounded-full animate-spin shadow-[0_0_50px_rgba(251,191,36,0.6)]" />
+                                    <div className="absolute inset-4 border-4 border-purple-500 rounded-full animate-spin-reverse opacity-80" />
+                                    <div className="absolute inset-0 flex items-center justify-center">
+                                          <div className="absolute inset-0 bg-amber-500/20 blur-xl animate-pulse" />
+                                          <span className="text-6xl animate-bounce drop-shadow-[0_0_20px_rgba(251,191,36,0.8)]">✨</span>
+                                    </div>
                               </div>
-                        </div>
-                        <LoadingSpinner message="Reading the stars..." />
-                        <p className="mt-6 text-purple-200/50 text-xs font-light tracking-wider animate-pulse">
-                              "같은 질문을 반복하면 카드의 목소리가 흐려집니다."
-                        </p>
+                        ) : (
+                              <div className="relative w-64 h-64 mb-8 flex items-center justify-center">
+                                    <div className="absolute inset-0 border-4 border-amber-500/20 border-t-amber-500 rounded-full animate-spin" />
+                                    <div className="absolute inset-4 border-4 border-amber-200/20 border-b-amber-200 rounded-full animate-spin-reverse" />
+                                    <div className="absolute w-48 h-48 border border-purple-500/30 rounded-full animate-[spin_10s_linear_infinite]" />
+                                    <div className="relative z-10 w-24 h-36 bg-gradient-to-br from-purple-900/50 to-indigo-900/50 rounded-lg border border-purple-400/30 shadow-[0_0_50px_rgba(168,85,247,0.6)] animate-pulse flex items-center justify-center">
+                                          <i className="fas fa-eye text-4xl text-purple-200/80 animate-pulse"></i>
+                                    </div>
+                              </div>
+                        )}
+
+                        <LoadingSpinner message={isFortuna ? "FATE REWRITING..." : "Reading the stars..."} />
+
+                        {isFortuna ? (
+                              <p className="mt-8 text-transparent bg-clip-text bg-gradient-to-r from-amber-200 via-yellow-400 to-amber-200 font-bold text-lg md:text-xl tracking-widest animate-pulse text-center drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] font-serif leading-relaxed">
+                                    "마스터 포르투나가 기존 운명을 뒤틀어버리고<br />새롭게 바꿔버립니다."
+                              </p>
+                        ) : (
+                              <p className="mt-6 text-purple-200/50 text-xs font-light tracking-wider animate-pulse">
+                                    "같은 질문을 반복하면 카드의 목소리가 흐려집니다."
+                              </p>
+                        )}
                   </div>
             );
       }
@@ -407,7 +613,7 @@ const ThreeCardReadingPage: React.FC = () => {
                                           </div>
 
                                           <div ref={sliderRef} onMouseDown={handleMouseDown} onMouseLeave={handleMouseLeave} onMouseUp={handleMouseUp} onMouseMove={handleMouseMove}
-                                                className="flex items-center justify-start overflow-x-auto pt-24 pb-24 w-full gold-scrollbar cursor-grab active:cursor-grabbing select-none mask-mystic">
+                                                className="flex items-center justify-start overflow-x-auto pt-12 pb-20 md:pt-24 md:pb-24 w-full gold-scrollbar cursor-grab active:cursor-grabbing select-none mask-mystic pl-10 md:pl-0">
                                                 <div className="flex items-center space-x-0 relative min-w-max px-32">
                                                       {[...Array(22)].map((_, i) => {
                                                             const isSelected = selectedSlots.includes(i);
@@ -415,7 +621,7 @@ const ThreeCardReadingPage: React.FC = () => {
                                                             const translateY = Math.abs(i - 10.5) * 6;
                                                             return (
                                                                   <button key={i} onClick={() => !isDragging && handleCardSelect(i)}
-                                                                        className={`relative flex-shrink-0 w-28 h-44 md:w-44 md:h-64 transition-all duration-700 -ml-20 md:-ml-32 first:ml-0 ${isSelected ? 'opacity-0 scale-0' : 'group/deck-card'}`}
+                                                                        className={`relative flex-shrink-0 w-28 h-44 md:w-44 md:h-64 transition-all duration-300 -ml-22 md:-ml-32 first:ml-0 ${isSelected ? 'opacity-0 scale-0' : 'group/deck-card'} hover:-translate-y-6 md:hover:-translate-y-10 hover:!z-[100] active:scale-105 active:-translate-y-6 active:!z-[100]`}
                                                                         style={{ zIndex: isSelected ? 0 : 22 - i, transform: `rotate(${rotation}deg) translateY(${translateY}px)` }}>
                                                                         <div className="w-full h-full animate-chrarak-in" style={{ animationDelay: `${i * 50}ms` }}>
                                                                               <TarotCardView isFaceDown={true} className="w-full h-full shadow-2xl rounded-xl border border-amber-500/20" />
@@ -467,10 +673,10 @@ const ThreeCardReadingPage: React.FC = () => {
                                                             잠시 더 생각하기
                                                       </button>
                                                       <button
-                                                            onClick={handleFinalReveal}
+                                                            onClick={handleMoveToLeaderSelection}
                                                             className="flex-1 px-8 py-4 rounded-xl bg-gradient-to-r from-amber-900 to-amber-700 text-white font-chakra text-sm uppercase tracking-[0.2em] font-bold shadow-[0_0_20px_rgba(217,119,6,0.3)] hover:shadow-[0_0_30px_rgba(217,119,6,0.5)] transition-all animate-pulse-slow"
                                                       >
-                                                            결과 확인하기
+                                                            운명의 리더 선택하기
                                                       </button>
                                                 </div>
                                           </div>
@@ -487,6 +693,189 @@ const ThreeCardReadingPage: React.FC = () => {
             );
       }
 
+      // Leader Selection Step
+      if (step === 'leader') {
+            return (
+                  <div className="max-w-6xl mx-auto py-10 px-4 animate-fade-in space-y-12">
+                        <div className="text-center space-y-4">
+                              <h2 className="text-3xl md:text-5xl font-serif font-bold text-amber-100 tracking-tight leading-tight">
+                                    운명의 흐름을 읽어줄 리더를 선택하세요
+                              </h2>
+                              <p className="text-slate-400 font-light text-sm md:text-base tracking-wide max-w-2xl mx-auto">
+                                    각기 다른 시선이 당신의 운명을 비춥니다. 마음이 이끄는 리더를 선택하여 그들의 목소리로 해답을 들어보세요.
+                              </p>
+                        </div>
+
+                        <div className="relative group/leader-list">
+                              {/* Navigation Guides */}
+                              <div className="absolute left-2 top-1/2 -translate-y-1/2 z-30 flex items-center gap-2 text-amber-500/60 pointer-events-none animate-pulse md:hidden drop-shadow-md">
+                                    <i className="fas fa-chevron-left animate-bounce-left"></i>
+                                    <span className="text-[10px] font-chakra uppercase tracking-widest font-bold">Left</span>
+                              </div>
+                              <div className="absolute right-2 top-1/2 -translate-y-1/2 z-30 flex items-center gap-2 text-amber-500/60 pointer-events-none animate-pulse md:hidden drop-shadow-md">
+                                    <span className="text-[10px] font-chakra uppercase tracking-widest font-bold">Right</span>
+                                    <i className="fas fa-chevron-right animate-bounce-right"></i>
+                              </div>
+
+                              <div
+                                    ref={leaderListRef}
+                                    onMouseDown={handleLeaderMouseDown}
+                                    onMouseLeave={handleLeaderMouseLeave}
+                                    onMouseUp={handleLeaderMouseUp}
+                                    onMouseMove={handleLeaderMouseMove}
+                                    className="flex md:grid md:grid-cols-2 lg:grid-cols-4 gap-6 overflow-x-auto md:overflow-visible px-10 md:px-0 pb-8 md:pb-0 snap-x snap-mandatory gold-scrollbar justify-start md:justify-center max-w-5xl mx-auto cursor-grab active:cursor-grabbing"
+                              >
+                                    <button
+                                          onClick={() => handleCreateReading(undefined)}
+                                          className="group relative aspect-[3/4] flex-shrink-0 w-[85vw] md:w-auto snap-center rounded-2xl overflow-hidden shadow-2xl transition-all duration-500 hover:scale-105 border border-amber-500/20 hover:border-amber-500/60 bg-[#0a0a0f]"
+                                    >
+                                          <img
+                                                src={MYSTIC_INFO.image}
+                                                alt={MYSTIC_INFO.name}
+                                                className="absolute inset-0 w-full h-full object-cover opacity-60 grayscale group-hover:grayscale-0 group-hover:opacity-100 transition-all duration-500 z-0"
+                                          />
+                                          <div className="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-transparent z-10" />
+
+                                          <div className="absolute top-4 left-4 z-20">
+                                                <span className="px-2 py-1 rounded bg-amber-500/20 text-amber-300 text-[10px] font-bold border border-amber-500/30 uppercase tracking-wider drop-shadow-md">Master</span>
+                                          </div>
+
+                                          <div className="absolute bottom-6 left-6 right-6 z-20 text-left space-y-2">
+                                                <h3 className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-amber-200 to-amber-500 font-serif drop-shadow-sm">Mystic</h3>
+                                                <p className="text-xs text-amber-100/80 font-medium uppercase tracking-widest drop-shadow-md">운명의 관찰자</p>
+                                                <p className="text-xs text-slate-300 font-light leading-relaxed line-clamp-2 drop-shadow-md">
+                                                      모든 가능성을 아우르는 깊고 통찰력 있는 정석 리딩. 운명의 큰 흐름을 읽어냅니다.
+                                                </p>
+                                          </div>
+                                    </button>
+
+                                    {/* Assistant Cards */}
+                                    {assistants.map((assistant) => (
+                                          <button
+                                                key={assistant.type}
+                                                onClick={() => handleCreateReading(assistant.type)}
+                                                className={`group relative aspect-[3/4] flex-shrink-0 w-[85vw] md:w-auto snap-center rounded-2xl overflow-hidden shadow-2xl transition-all duration-500 hover:scale-105 bg-[#0a0a0f] text-left ${assistant.type === 'FORTUNA'
+                                                      ? 'border-transparent shadow-[0_0_40px_rgba(251,191,36,0.3)]'
+                                                      : 'border border-white/5 hover:border-amber-500/30'
+                                                      }`}
+                                          >
+                                                {assistant.type === 'FORTUNA' ? (
+                                                      <>
+                                                            <div className="absolute inset-0 bg-gradient-to-br from-indigo-950 via-purple-900/50 to-amber-900/50 opacity-80 z-0" />
+                                                            <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 z-0" />
+                                                            <div className="absolute inset-0 border-2 border-transparent bg-gradient-to-r from-red-500 via-yellow-500 via-green-500 via-blue-500 to-purple-500 opacity-20 animate-spin-slow blur-xl -z-10" />
+                                                            <div className="absolute top-4 right-4 animate-pulse z-20"><span className="text-xl">✨</span></div>
+                                                      </>
+                                                ) : (
+                                                      <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-slate-900/80 to-[#0a0a0f] z-0" />
+                                                )}
+
+                                                <div className="absolute inset-x-0 bottom-0 h-2/3 bg-gradient-to-t from-black via-black/80 to-transparent z-10" />
+
+                                                <div className="absolute top-4 left-4 z-20 flex gap-2">
+                                                      {assistant.type === 'FORTUNA' ? (
+                                                            <span className="px-2 py-1 rounded bg-amber-500/20 text-amber-300 text-[10px] font-bold border border-amber-500/30 uppercase tracking-wider animate-pulse">Secret</span>
+                                                      ) : (
+                                                            <span className="px-2 py-1 rounded bg-white/10 text-slate-400 text-[10px] font-bold border border-white/10 uppercase tracking-wider">Apprentice</span>
+                                                      )}
+                                                </div>
+
+                                                {/* Character Image */}
+                                                <div className="absolute inset-0 z-0">
+                                                      <img
+                                                            src={assistant.image}
+                                                            alt={assistant.name}
+                                                            className={`w-full h-full object-cover transition-all duration-700 ${assistant.type === 'FORTUNA'
+                                                                  ? 'opacity-90 group-hover:scale-110'
+                                                                  : 'opacity-60 group-hover:opacity-80 group-hover:scale-105 grayscale group-hover:grayscale-0'}`}
+                                                      />
+                                                </div>
+
+                                                <div className="absolute bottom-6 left-6 right-6 z-20 space-y-2">
+                                                      <h3 className={`text-xl font-bold font-serif ${assistant.type === 'FORTUNA' ? 'text-transparent bg-clip-text bg-gradient-to-r from-amber-200 to-yellow-400' : 'text-slate-200'}`}>
+                                                            {assistant.name}
+                                                      </h3>
+                                                      <p className="text-xs text-white/50 font-medium uppercase tracking-widest">{assistant.title}</p>
+                                                      <p className="text-xs text-slate-400 font-light leading-relaxed line-clamp-2">
+                                                            "{assistant.desc}"
+                                                      </p>
+                                                </div>
+                                          </button>
+                                    ))}
+                              </div>
+                        </div>
+
+                        <div className="flex justify-center pt-8">
+                              <button onClick={shuffleAssistants} className="px-6 py-3 rounded-full border border-white/10 hover:bg-white/5 text-slate-400 hover:text-white transition-all text-xs font-chakra uppercase tracking-widest flex items-center gap-2">
+                                    <i className="fas fa-random"></i> 다른 조수 찾기
+                              </button>
+                        </div>
+
+                        {showLeaderConfirmModal && leaderPending && (
+                              <div className="fixed inset-0 z-[100] flex items-center justify-center px-4 overflow-hidden">
+                                    <div className="absolute inset-0 bg-black/90 backdrop-blur-xl animate-fade-in" onClick={() => setShowLeaderConfirmModal(false)} />
+
+                                    <div className="relative w-full max-w-md bg-[#0d0d15] border border-amber-500/30 rounded-2xl p-8 md:p-10 shadow-[0_0_100px_rgba(217,119,6,0.3)] animate-scale-in text-center overflow-hidden">
+                                          {/* Decorative Elements */}
+                                          <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-amber-500 to-transparent" />
+                                          <div className="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-amber-500 to-transparent opacity-50" />
+
+                                          {/* Profile Image */}
+                                          <div className="relative w-32 h-32 mx-auto mb-6">
+                                                <div className={`absolute inset-0 rounded-full border-2 ${leaderPending.type === 'FORTUNA' ? 'border-amber-400 animate-spin-slow' : 'border-amber-500/30'}`} />
+                                                <div className="absolute inset-1 rounded-full overflow-hidden">
+                                                      <img src={leaderPending.image} alt={leaderPending.name} className="w-full h-full object-cover" />
+                                                </div>
+                                                {leaderPending.type === 'FORTUNA' && (
+                                                      <div className="absolute -top-2 -right-2 text-2xl animate-bounce">✨</div>
+                                                )}
+                                          </div>
+
+                                          {/* Title & Name */}
+                                          <div className="space-y-1 mb-8">
+                                                <p className="text-xs text-amber-500/70 font-bold tracking-[0.2em] uppercase">{leaderPending.title}</p>
+                                                <h3 className="text-2xl md:text-3xl font-serif font-bold text-amber-100">
+                                                      {leaderPending.name}
+                                                </h3>
+                                          </div>
+
+                                          {/* Quote */}
+                                          <div className="relative mb-10 px-4">
+                                                <i className="fas fa-quote-left absolute -top-4 -left-2 text-amber-500/20 text-2xl"></i>
+                                                <p className="text-slate-300 font-serif italic leading-loose text-lg break-keep">
+                                                      "{leaderPending.introQuote}"
+                                                </p>
+                                                <i className="fas fa-quote-right absolute -bottom-4 -right-2 text-amber-500/20 text-2xl"></i>
+                                          </div>
+
+                                          {/* Actions */}
+                                          <div className="flex flex-col gap-3">
+                                                <button
+                                                      onClick={handleConfirmLeader}
+                                                      className={`w-full py-4 rounded-xl font-bold tracking-widest uppercase transition-all transform hover:scale-[1.02] shadow-lg ${leaderPending.type === 'FORTUNA'
+                                                            ? 'bg-gradient-to-r from-amber-400 via-yellow-500 to-amber-400 text-black hover:shadow-[0_0_30px_rgba(251,191,36,0.6)]'
+                                                            : 'bg-gradient-to-r from-amber-800 to-amber-600 text-white hover:from-amber-700 hover:to-amber-500 shadow-[0_0_20px_rgba(217,119,6,0.2)]'
+                                                            }`}
+                                                >
+                                                      {leaderPending.confirmBtn}
+                                                </button>
+
+                                                {leaderPending.cancelBtn && (
+                                                      <button
+                                                            onClick={() => setShowLeaderConfirmModal(false)}
+                                                            className="w-full py-3 rounded-xl border border-white/10 text-slate-500 hover:text-slate-300 hover:bg-white/5 transition-all text-xs tracking-widest uppercase font-bold"
+                                                      >
+                                                            {leaderPending.cancelBtn}
+                                                      </button>
+                                                )}
+                                          </div>
+                                    </div>
+                              </div>
+                        )}
+                  </div>
+            );
+      }
+
       // Result Step
       return (
             <div className="max-w-6xl mx-auto space-y-16 animate-fade-in py-10">
@@ -495,9 +884,22 @@ const ThreeCardReadingPage: React.FC = () => {
                               <i className="fas fa-arrow-left text-xs"></i>
                               <span className="text-xs font-chakra tracking-[0.2em] uppercase">돌아가기</span>
                         </button>
-                        <h2 className="text-4xl md:text-5xl font-serif font-bold italic text-transparent bg-clip-text bg-gradient-to-b from-amber-200 via-amber-400 to-amber-600 tracking-[0.1em] drop-shadow-[0_0_15px_rgba(245,158,11,0.5)] animate-pulse-slow">
-                              운명의 계시
-                        </h2>
+                        <div className="text-center">
+                              <h2 className="text-4xl md:text-5xl font-serif font-bold italic text-transparent bg-clip-text bg-gradient-to-b from-amber-200 via-amber-400 to-amber-600 tracking-[0.1em] drop-shadow-[0_0_15px_rgba(245,158,11,0.5)] animate-pulse-slow">
+                                    운명의 계시
+                              </h2>
+                              {selectedLeader ? (
+                                    <p className="text-sm font-chakra text-white/50 mt-2 uppercase tracking-widest">
+                                          Reading by <span className={selectedLeader === 'FORTUNA' ? 'text-amber-400 font-bold' : 'text-slate-300'}>
+                                                {assistants.find(a => a.type === selectedLeader)?.name || 'Unknown'}
+                                          </span>
+                                    </p>
+                              ) : (
+                                    <p className="text-sm font-chakra text-white/50 mt-2 uppercase tracking-widest">
+                                          Reading by <span className="text-amber-500 font-bold">Mystic</span>
+                                    </p>
+                              )}
+                        </div>
                         <div className="w-8" />
                   </div>
 
@@ -577,18 +979,117 @@ const ThreeCardReadingPage: React.FC = () => {
                         })}
                   </div>
 
-                  <div className="max-w-4xl mx-auto animate-fade-in-up">
-                        <div className="mystic-panel">
-                              <h3 className="text-center text-amber-500 font-chakra font-bold uppercase tracking-[0.3em] mb-12">운명의 조언</h3>
-                              <div className="prose-mystic">
-                                    <MarkdownViewer content={data?.aiReading || ''} />
-                              </div>
-                              <div className="mt-12 flex justify-center">
-                                    <button onClick={handleReset} className="px-8 py-3 bg-amber-500 text-black font-bold font-chakra uppercase text-xs tracking-widest rounded">새로운 카드 뽑기</button>
+
+
+                  {showResultRevealModal && (
+                        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 perspective-[1000px]">
+                              {/* Custom Animations */}
+                              <style>
+                                    {`
+                                          @keyframes flyInCenter {
+                                                0% { transform: translateY(-100vh) scale(0.5) rotate(5deg); opacity: 0; }
+                                                60% { transform: translateY(20px) scale(1.05) rotate(-2deg); opacity: 1; }
+                                                100% { transform: translateY(0) scale(1) rotate(0deg); opacity: 1; }
+                                          }
+                                          @keyframes shatterOpen {
+                                                0% { transform: scale(1); filter: brightness(1) blur(0px); opacity: 1; }
+                                                40% { transform: scale(1.2); filter: brightness(3) blur(2px); opacity: 0.8; }
+                                                100% { transform: scale(4); filter: brightness(10) blur(20px); opacity: 0; }
+                                          }
+                                          @keyframes sealPulse {
+                                                0%, 100% { transform: scale(1); filter: drop-shadow(0 0 10px rgba(217, 119, 6, 0.4)); }
+                                                50% { transform: scale(1.05); filter: drop-shadow(0 0 30px rgba(217, 119, 6, 0.8)); }
+                                          }
+                                          .animate-fly-in-center {
+                                                animation: flyInCenter 0.8s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+                                          }
+                                          .animate-shatter-open {
+                                                animation: shatterOpen 0.9s ease-in forwards;
+                                          }
+                                          .animate-seal-pulse {
+                                                animation: sealPulse 2s ease-in-out infinite;
+                                          }
+                                    `}
+                              </style>
+
+                              <div className={`absolute inset-0 bg-black backdrop-blur-2xl transition-opacity duration-1000 ${isOpening ? 'opacity-0' : 'animate-fade-in'}`} />
+
+                              <div className={`relative bg-black border border-amber-500/10 p-12 rounded-[2.5rem] shadow-[0_0_120px_rgba(0,0,0,1)] text-center max-w-xl w-full space-y-10 overflow-hidden transform-style-3d ${isOpening ? 'animate-shatter-open' : 'animate-fly-in-center'}`}>
+                                    {/* Layers of Ambient Magic Dust */}
+                                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-amber-500/[0.03] blur-[150px] rounded-full animate-pulse-slow pointer-events-none" />
+                                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-3/4 h-3/4 bg-amber-600/[0.02] blur-[100px] rounded-full animate-pulse pointer-events-none" style={{ animationDelay: '1s' }} />
+
+                                    {/* High-End Envelope Asset with Multi-Layered Glow */}
+                                    <div className="relative w-full aspect-[16/9] mx-auto z-10 animate-seal-pulse flex items-center justify-center scale-110">
+                                          <img
+                                                src="/assets/tarot/envelope.png"
+                                                alt="Destiny Envelope"
+                                                className="w-full h-full object-contain filter 
+                                                      drop-shadow-[0_0_20px_rgba(251,191,36,0.4)] 
+                                                      drop-shadow-[0_10px_40px_rgba(180,120,40,0.2)] 
+                                                      brightness-110 contrast-105"
+                                          />
+                                          {/* Magic core pulse centered on the tree seal */}
+                                          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-24 h-24 bg-amber-400/20 blur-[50px] rounded-full animate-pulse pointer-events-none" />
+                                    </div>
+
+                                    <div className="space-y-4 relative z-10 mt-4">
+                                          <h3 className="text-4xl font-serif text-transparent bg-clip-text bg-gradient-to-b from-amber-50 via-amber-300 to-amber-600 italic drop-shadow-[0_4px_8px_rgba(0,0,0,0.8)] tracking-tight">
+                                                운명의 메시지가 도착했습니다
+                                          </h3>
+                                          <p className="text-white/40 text-xs font-chakra tracking-widest leading-relaxed uppercase">
+                                                The wax seal is unbroken.<br />
+                                                Your destiny awaits within.
+                                          </p>
+                                    </div>
+
+                                    <button
+                                          onClick={handleOpenResult}
+                                          disabled={isOpening}
+                                          className="group relative w-full py-4 rounded-xl font-bold font-chakra uppercase tracking-[0.2em] text-xs transition-all transform hover:scale-[1.02] active:scale-95 shadow-[0_0_30px_rgba(217,119,6,0.15)] hover:shadow-[0_0_50px_rgba(217,119,6,0.4)] overflow-hidden disabled:cursor-not-allowed"
+                                    >
+                                          <div className="absolute inset-0 bg-gradient-to-r from-amber-900 via-amber-700 to-amber-900 opacity-100 group-hover:opacity-90 transition-opacity" />
+                                          <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20" />
+                                          <div className="absolute inset-x-0 bottom-0 h-[1px] bg-gradient-to-r from-transparent via-amber-400 to-transparent opacity-50" />
+                                          <div className="absolute inset-x-0 top-0 h-[1px] bg-gradient-to-r from-transparent via-amber-400/30 to-transparent opacity-30" />
+
+                                          <span className="relative z-10 text-amber-100 group-hover:text-white flex items-center justify-center gap-2">
+                                                <i className="fas fa-magic text-amber-400/80 group-hover:text-amber-300 transition-transform group-hover:rotate-12"></i>
+                                                운명 봉인 해제
+                                          </span>
+                                    </button>
+
+                                    {/* Shatter Flash Effect Overlay */}
+                                    {isOpening && (
+                                          <div className="absolute inset-0 bg-white z-50 animate-flash-white pointer-events-none" />
+                                    )}
                               </div>
                         </div>
-                  </div>
-            </div>
+                  )}
+
+                  {isResultUnlocked && (
+                        <div className="max-w-4xl mx-auto mt-12 animate-fade-in-up">
+                              {/* Main Content */}
+                              <div className="mystic-panel">
+                                    <h3 className="text-center text-amber-500 font-chakra font-bold uppercase tracking-[0.3em] mb-12">운명의 조언</h3>
+                                    <div className="prose-mystic">
+                                          <MarkdownViewer content={data?.aiReading || ''} />
+                                    </div>
+
+                                    <div className="mt-12 flex justify-center">
+                                          <button onClick={handleReset} className="px-8 py-3 bg-amber-500 text-black font-bold font-chakra uppercase text-xs tracking-widest rounded transition-transform hover:scale-105 shadow-[0_0_15px_rgba(245,158,11,0.4)]">새로운 카드 뽑기</button>
+                                    </div>
+                              </div>
+                        </div>
+                  )}
+
+
+
+
+
+
+
+            </div >
       );
 };
 

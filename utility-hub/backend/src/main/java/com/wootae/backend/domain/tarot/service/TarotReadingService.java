@@ -13,6 +13,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
+import com.wootae.backend.domain.tarot.enums.TarotAssistantType;
+
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -24,8 +26,13 @@ public class TarotReadingService {
       private final ObjectMapper objectMapper;
 
       public TarotDTOs.ThreeCardSpreadResponse createThreeCardReading(TarotDTOs.ThreeCardSpreadRequest request) {
-            // 1. Draw 3 cards
-            List<TarotDTOs.DrawnCardDto> drawnCards = cardService.drawCards(3);
+            // (existing code...)
+            List<TarotDTOs.DrawnCardDto> drawnCards;
+            if (request.getAssistantType() == TarotAssistantType.FORTUNA) {
+                  drawnCards = cardService.drawPositiveCards(3);
+            } else {
+                  drawnCards = cardService.drawCards(3);
+            }
 
             // Mapping with positions
             List<TarotDTOs.DrawnCardDto> positionedCards = List.of(
@@ -37,7 +44,18 @@ public class TarotReadingService {
                                     .isReversed(drawnCards.get(2).isReversed()).build());
 
             // 2. Generate AI reading
-            String aiReading = aiService.generateReading(request, positionedCards);
+            String aiReading;
+            if (request.getAssistantType() != null) {
+                  // Create temporary session object for context (not saved yet)
+                  TarotReadingSession tempSession = TarotReadingSession.builder()
+                              .question(request.getQuestion())
+                              .userName(request.getUserName())
+                              .build();
+                  aiReading = aiService.generateAssistantReading(tempSession, positionedCards,
+                              request.getAssistantType());
+            } else {
+                  aiReading = aiService.generateReading(request, positionedCards);
+            }
 
             // 3. Save session
             String cardsJson;
@@ -68,7 +86,7 @@ public class TarotReadingService {
       }
 
       public TarotDTOs.DailyCardResponse createDailyReading(String userName) {
-            // 1. Draw 1 card
+            // (existing code...)
             List<TarotDTOs.DrawnCardDto> drawnCards = cardService.drawCards(1);
             TarotDTOs.DrawnCardDto dailyCard = drawnCards.get(0);
             dailyCard.setPosition("DAILY");

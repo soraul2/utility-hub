@@ -33,6 +33,7 @@ export interface ThreeCardRequest {
       userName?: string;
       userAge?: number;
       userGender?: UserGender;
+      assistantType?: TarotAssistantType;
 }
 
 export interface ThreeCardResponse {
@@ -55,3 +56,12 @@ export const TAROT_GENDERS: { value: UserGender; label: string }[] = [
       { value: 'MALE', label: '남성' },
       { value: 'UNKNOWN', label: '말하고 싶지 않음' },
 ];
+
+export type TarotAssistantType = 'SYLVIA' | 'LUNA' | 'ORION' | 'NOCTIS' | 'VANCE' | 'ELARA' | 'KLAUS' | 'FORTUNA';
+
+export interface AssistantReadingResponse {
+      assistantType: TarotAssistantType;
+      assistantName: string;
+      assistantTitle: string;
+      reading: string;
+}

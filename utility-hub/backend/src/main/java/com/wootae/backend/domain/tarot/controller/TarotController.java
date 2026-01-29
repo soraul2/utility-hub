@@ -9,6 +9,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import com.wootae.backend.domain.tarot.enums.TarotAssistantType;
+
 @Tag(name = "Tarot Reading", description = "타로 리딩 관련 API")
 @RestController
 @RequestMapping("/api/tarot")
