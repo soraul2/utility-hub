@@ -28,33 +28,65 @@ const TarotCardView: React.FC<TarotCardViewProps> = ({
                   <div className={`flex flex-col items-center ${className}`} onClick={onClick}>
                         <div className="relative w-full h-full transition-transform duration-500 ease-out transform hover:scale-[1.02] cursor-pointer group perspective-1000">
                               {/* Card Container with Premium Border */}
-                              <div className="w-full h-full rounded-xl bg-[#0a0a0f] relative overflow-hidden shadow-2xl border-[3px] border-[#b8860b] flex items-center justify-center">
+                              <div className="w-full h-full rounded-xl bg-[#0a0a0f] relative overflow-hidden shadow-2xl border-[3px] border-amber-900/50 flex items-center justify-center">
+                                    {/* Paper Texture Overlay (Requirement 3: Material) */}
+                                    <div className="paper-texture" />
 
-                                    {/* Inner Gold Frame */}
-                                    <div className="absolute inset-2 border border-[#b8860b]/50 rounded-lg z-10" />
-                                    <div className="absolute inset-3 border border-[#b8860b]/30 rounded-lg z-10" />
-
-                                    {/* Corner Accents */}
-                                    <div className="absolute top-2 left-2 w-4 h-4 border-t-2 border-l-2 border-[#b8860b] z-20" />
-                                    <div className="absolute top-2 right-2 w-4 h-4 border-t-2 border-r-2 border-[#b8860b] z-20" />
-                                    <div className="absolute bottom-2 left-2 w-4 h-4 border-b-2 border-l-2 border-[#b8860b] z-20" />
-                                    <div className="absolute bottom-2 right-2 w-4 h-4 border-b-2 border-r-2 border-[#b8860b] z-20" />
-
-                                    {/* Galaxy/Glow Background Effect */}
-                                    <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-purple-900/20 via-[#0a0a0f] to-[#0a0a0f]" />
-
-                                    {/* Central Mystic Eye */}
-                                    <div className="relative z-20 flex flex-col items-center justify-center gap-2">
-                                          <div className="relative">
-                                                <div className="absolute inset-0 bg-[#b8860b] blur-xl opacity-20 animate-pulse" />
-                                                <i className="fas fa-eye text-3xl md:text-4xl text-[#b8860b] drop-shadow-[0_0_10px_rgba(184,134,11,0.5)]"></i>
-                                          </div>
-                                          <span className="text-[10px] md:text-xs text-[#b8860b]/70 font-chakra uppercase tracking-[0.2em] animate-pulse">Tap to flip</span>
+                                    {/* Esoteric Background Pattern (Requirement 1 & 2) */}
+                                    <div className="absolute inset-0 opacity-20 pointer-events-none">
+                                          <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_#b8860b22_0%,_transparent_70%)]" />
+                                          {/* Symmetrical Grid lines */}
+                                          <div className="absolute inset-x-0 top-1/2 h-[1px] bg-amber-500/20" />
+                                          <div className="absolute inset-y-0 left-1/2 w-[1px] bg-amber-500/20" />
+                                          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-48 border border-amber-500/10 rounded-full" />
                                     </div>
 
-                                    {/* Decorative Rotating Mandala (Subtle) */}
-                                    <div className="absolute inset-0 flex items-center justify-center opacity-10 pointer-events-none">
-                                          <i className="fas fa-sun text-[120px] text-[#b8860b] animate-spin-slow"></i>
+                                    {/* Premium Double Border (Material Feel) - Using Gold Foil */}
+                                    <div className="absolute inset-1.5 border-[1.5px] border-transparent gold-foil-border rounded-[10px] z-10 opacity-70" />
+                                    <div className="absolute inset-2 border border-amber-900/40 rounded-[9px] z-10" />
+
+                                    {/* Perfect Symmetry: Corner Accents (Vintage Overlay) */}
+                                    {[
+                                          "top-2 left-2",
+                                          "top-2 right-2",
+                                          "bottom-2 left-2",
+                                          "bottom-2 right-2"
+                                    ].map((pos, i) => (
+                                          <div key={i} className={`absolute ${pos} w-6 h-6 z-20`}>
+                                                <div className={`absolute inset-0 border-transparent gold-foil-border ${pos.includes('top') ? 'border-t-2' : 'border-b-2'} ${pos.includes('left') ? 'border-l-2' : 'border-r-2'} rounded-sm opacity-80`} />
+                                                <div className="absolute inset-[3px] border border-amber-900/40 opacity-50" />
+                                          </div>
+                                    ))}
+
+                                    {/* Symmetrical Middle Icons (Requirement 1: Secretive Symmetry) */}
+                                    <div className="absolute inset-y-8 left-1/2 -translate-x-1/2 flex flex-col justify-between items-center z-20 opacity-40">
+                                          <i className="fas fa-star text-[8px] text-amber-500"></i>
+                                          <i className="fas fa-star text-[8px] text-amber-500"></i>
+                                    </div>
+
+                                    {/* Central Mandala (Main Esoteric Pattern) */}
+                                    <div className="relative z-20 flex items-center justify-center">
+                                          {/* Outer Rotating layer */}
+                                          <div className="absolute w-32 h-32 border border-amber-500/10 rounded-full animate-spin-slow" />
+
+                                          {/* Core Symmetrical Design */}
+                                          <div className="relative w-24 h-24 flex items-center justify-center">
+                                                <div className="absolute inset-0 bg-amber-900/20 rounded-full blur-xl animate-pulse" />
+                                                <div className="relative">
+                                                      <i className="fas fa-circle-notch text-5xl gold-foil-text drop-shadow-[0_0_15px_rgba(184,134,11,0.4)]"></i>
+                                                      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
+                                                            <i className="fas fa-eye text-xl gold-foil-text animate-blink"></i>
+                                                      </div>
+                                                </div>
+                                                {/* Symmetrical Orbitals */}
+                                                <div className="absolute inset-[-10px] border border-dashed border-amber-500/30 rounded-full animate-spin-reverse" style={{ animationDuration: '20s' }} />
+                                          </div>
+                                    </div>
+
+                                    {/* Symmetrical Side Markers */}
+                                    <div className="absolute inset-x-4 top-1/2 -translate-y-1/2 flex justify-between items-center z-10 opacity-20">
+                                          <div className="w-1 h-8 bg-gradient-to-b from-transparent via-fcf6ba to-transparent" />
+                                          <div className="w-1 h-8 bg-gradient-to-b from-transparent via-fcf6ba to-transparent" />
                                     </div>
                               </div>
                         </div>

@@ -42,8 +42,9 @@
   }
 
   .mystic-panel {
-    @apply relative bg-[#08080c] border border-amber-500/20 rounded-[2rem] p-8 md:p-16 overflow-hidden;
+    @apply relative bg-[#08080c] border border-amber-500/20 rounded-[2rem] p-8 md:p-[30px_24px] overflow-hidden;
     box-shadow: 0 0 100px rgba(0, 0, 0, 0.8);
+    line-height: 1.6;
   }
 
   .mystic-panel::before {
@@ -58,11 +59,11 @@
 
   /* Custom Scrollbar for Mystic Theme */
   .mystic-scrollbar::-webkit-scrollbar {
-    @apply w-1.5;
+    @apply w-2;
   }
 
   .mystic-scrollbar::-webkit-scrollbar-track {
-    @apply bg-transparent;
+    @apply bg-white/5 rounded-full;
   }
 
   .mystic-scrollbar::-webkit-scrollbar-thumb {
@@ -185,6 +186,128 @@
 
 .animate-fade-in {
   animation: fade-in 1s ease-out forwards;
+}
+
+@keyframes chrarak-in {
+  from {
+    transform: translateX(200px) rotate(10deg);
+    opacity: 0;
+  }
+
+  to {
+    transform: translateX(0) rotate(0deg);
+    opacity: 1;
+  }
+}
+
+.animate-chrarak-in {
+  opacity: 0;
+  animation: chrarak-in 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+}
+
+.mask-edges {
+  mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
+  -webkit-mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
+}
+
+.mask-mystic {
+  mask-image: linear-gradient(to right, transparent, black 15%, black 85%, transparent),
+    linear-gradient(to bottom, transparent, black 15%, black 92%, transparent);
+  -webkit-mask-image: linear-gradient(to right, transparent, black 15%, black 85%, transparent),
+    linear-gradient(to bottom, transparent, black 15%, black 92%, transparent);
+  mask-composite: intersect;
+  -webkit-mask-composite: source-in;
+}
+
+/* Gold Foil Texture Styles */
+.gold-foil-text {
+  background: linear-gradient(135deg, #bf953f 0%, #fcf6ba 25%, #b38728 50%, #fcf6ba 75%, #bf953f 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  filter: drop-shadow(0 0 5px rgba(191, 149, 63, 0.3));
+  padding-left: 0.1em;
+  padding-right: 0.1em;
+}
+
+.gold-foil-border {
+  border-image: linear-gradient(135deg, #bf953f 0%, #fcf6ba 25%, #b38728 50%, #fcf6ba 75%, #bf953f 100%) 1;
+}
+
+/* Levitation Animation */
+@keyframes levitate {
+
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+.animate-levitate {
+  animation: levitate 4s ease-in-out infinite;
+}
+
+/* Background Particles (Dust/Fireflies) */
+@keyframes float-particle {
+  0% {
+    transform: translateY(0) translateX(0) scale(1);
+    opacity: 0;
+  }
+
+  50% {
+    opacity: 0.6;
+  }
+
+  100% {
+    transform: translateY(-100vh) translateX(50px) scale(0);
+    opacity: 0;
+  }
+}
+
+.bg-particles {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: 1;
+}
+
+.particle {
+  position: absolute;
+  background: white;
+  border-radius: 50%;
+  filter: blur(1px);
+  animation: float-particle linear infinite;
+}
+
+/* Eye Blink Animation */
+@keyframes eye-blink {
+
+  0%,
+  45%,
+  55%,
+  100% {
+    transform: scaleY(1);
+    opacity: 1;
+  }
+
+  50% {
+    transform: scaleY(0.1);
+    opacity: 0.5;
+  }
+}
+
+.animate-blink {
+  display: inline-block;
+  animation: eye-blink 5s ease-in-out infinite;
+  transform-origin: center;
 }
 
 @keyframes fade-in-scale {
@@ -346,10 +469,9 @@
 
 /* Gold Line Scrollbar Utility */
 .gold-scrollbar::-webkit-scrollbar {
-  height: 4px;
-  /* Thin line */
+  height: 6px;
+  /* Slightly thicker */
   width: 0px;
-  /* Robustly hide vertical */
 }
 
 .gold-scrollbar::-webkit-scrollbar:vertical {
@@ -368,12 +490,91 @@
 }
 
 .gold-scrollbar::-webkit-scrollbar-thumb {
-  background: linear-gradient(to right, #bf953f, #fcf6ba, #bf953f);
-  border-radius: 2px;
-  box-shadow: 0 0 10px rgba(191, 149, 63, 0.5);
+  background: linear-gradient(to right, #d4af37, #fff7ad, #fcf6ba, #fff7ad, #d4af37);
+  border-radius: 4px;
+  box-shadow: 0 0 20px rgba(255, 215, 0, 0.6);
+}
+
+@keyframes spin-slow {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-spin-slow {
+  animation: spin-slow 15s linear infinite;
+}
+
+.paper-texture {
+  position: absolute;
+  inset: 0;
+  opacity: 0.05;
+  pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+  z-index: 5;
 }
 
 .gold-scrollbar {
   scrollbar-width: thin;
   scrollbar-color: #bf953f transparent;
+}
+
+/* Cinematic Effects for 3-Card Selection */
+@keyframes magic-circle-spin {
+  from {
+    transform: translate(-50%, -50%) rotate(0deg) scale(0.8);
+    opacity: 0;
+  }
+
+  to {
+    transform: translate(-50%, -50%) rotate(360deg) scale(1.1);
+    opacity: 0.15;
+  }
+}
+
+.animate-magic-circle {
+  animation: magic-circle-spin 20s linear infinite forwards;
+}
+
+@keyframes golden-pulse {
+  0% {
+    transform: scale(1);
+    box-shadow: 0 0 20px rgba(217, 119, 6, 0.3);
+  }
+
+  50% {
+    transform: scale(1.05);
+    box-shadow: 0 0 60px rgba(217, 119, 6, 0.7);
+  }
+
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 20px rgba(217, 119, 6, 0.3);
+  }
+}
+
+.animate-golden-pulse {
+  animation: golden-pulse 2s infinite ease-in-out;
+}
+
+@keyframes float-up-glow {
+  0% {
+    transform: translateY(40px);
+    opacity: 0;
+    filter: brightness(0.5);
+  }
+
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+    filter: brightness(1.2);
+  }
+}
+
+.animate-float-up-glow {
+  animation: float-up-glow 1.2s cubic-bezier(0.22, 1, 0.36, 1) forwards;
 }
