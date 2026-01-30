@@ -1,7 +1,5 @@
 import React from 'react';
 import type { TarotCard } from '../../lib/tarot';
-// @ts-ignore
-import tarotBackImage from '../../assets/tarot_back.png';
 
 interface TarotCardViewProps {
       card?: TarotCard;
