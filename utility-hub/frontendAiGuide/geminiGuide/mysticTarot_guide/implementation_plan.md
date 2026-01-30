@@ -40,14 +40,17 @@ Perplexity 팀이 설계한 **Mystic Tarot**의 v0.1 프론트엔드를 구현�
 #### [NEW] `src/pages/tarot/`
 *   **DailyCardPage.tsx**:
     *   `useEffect`로 진입 시 API 호출
-    *   단일 카드 표시 및 리딩 노출
+    *   **확정 리추얼**: 카드 선택 후 '운명 확정 모달'을 통한 몰입감 강화
+    *   단일 카드 표시 및 **Mystic Scattering** 보랏빛 산란 이펙트 적용
 *   **ThreeCardReadingPage.tsx**:
-    *   **Phase 1 (Input)**: 질문, 토픽 선택, 사용자 정보(선택) 입력 폼
-    *   **Phase 2 (Result)**: 3장의 카드(Past, Present, Future)와 AI 해석 결과 표시
+    *   **Phase 1 (Input)**: 질문, 토픽 선택 및 **상세 사용자 정보(이름, 나이, 성별)** 입력 폼
+    *   **Phase 2 (Selection)**: 카드 셔플 애니메이션 및 드래그 인터랙션
+    *   **Phase 3 (Leader Selection)**: 7인의 조수 및 **1% 확률의 히든 마스터 '포르투나(Fortuna)'** 시스템
+    *   **Phase 4 (Result)**: **서사적 리추얼(Narrative Ritual)** 기반의 단계적 오픈 및 **앤티크 편지 봉투(Seal of Destiny)** 연출
 
 #### [NEW] `src/api/tarotApi.ts`
 *   `fetchDailyCard(userName?)`
-*   `createThreeCardReading(payload)`
+*   `createThreeCardReading(payload)` (userName, userAge, userGender 포함)
 *   DTO 타입 정의 (`DailyCardResponse`, `ThreeCardRequest` 등)
 
 ## 4. 검증 계획 (Verification Plan)

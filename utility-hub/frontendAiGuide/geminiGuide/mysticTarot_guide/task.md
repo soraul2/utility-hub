@@ -41,11 +41,14 @@
     - [x] 배경 몽환적 파티클(Background Dust) 효과 구현 <!-- id: 38 -->
 - [x] 타로 조수 캐릭터 통합 (Tarot Assistant Integration) <!-- id: 39 -->
     - [x] AI 생성 캐릭터 이미지 자산(Assets) 생성 및 배치 (Fortuna 외 7인) <!-- id: 40 -->
+    - [x] **히든 마스터 '포르투나' 1% 확률 등장 로직 및 전용 이펙트** <!-- id: 50 -->
     - [x] 조수 선택 UI에 캐릭터 일러스트 적용 및 고급화 (Pill badge, Shadow) <!-- id: 41 -->
     - [x] 결과 화면 조수 목록에 이미지 배경 적용 <!-- id: 42 -->
 - [x] 서사적 리추얼 강화 및 코드 정제 (v0.6 - Narrative Ritual) <!-- id: 43 -->
     - [x] 불필요한 'Second Opinion' 기능 완전 제거 (Front/Back) <!-- id: 44 -->
     - [x] Mystic 리더 캐릭터 고해상도 이미지 생성 및 적용 <!-- id: 45 -->
+    - [x] **상세 입력 폼(이름, 나이, 성별) UI 및 API 연동** <!-- id: 51 -->
+    - [x] **오늘의 카드 '운명 확인' 감성 리추얼 모달 구현** <!-- id: 52 -->
     - [x] 3카드 결과 공개 '운명의 봉인' 연출 구현 <!-- id: 46 -->
     - [x] Fly-in -> Pulse -> Shatter Open 애니메이션 시퀀스 완성 <!-- id: 47 -->
     - [x] 앤티크 황금 인장 편지(Wax Seal Envelope) 자산 적용 <!-- id: 48 -->
