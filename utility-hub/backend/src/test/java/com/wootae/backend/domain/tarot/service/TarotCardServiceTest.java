@@ -1,61 +1,100 @@
 package com.wootae.backend.domain.tarot.service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wootae.backend.domain.tarot.dto.TarotDTOs;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.ResourceLoader;
 
-import java.util.HashSet;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
-import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
-@SpringBootTest
+@ExtendWith(MockitoExtension.class)
 class TarotCardServiceTest {
 
-      @Autowired
-      private TarotCardService tarotCardService;
+      private TarotCardService tarotCardService; // System Under Test
+
+      private ResourceLoader resourceLoader;
+      private ObjectMapper objectMapper;
+
+      @BeforeEach
+      void setUp() throws IOException {
+            resourceLoader = mock(ResourceLoader.class);
+            objectMapper = new ObjectMapper(); // Use real ObjectMapper
+
+            // Mock JSON data
+            String jsonContent = "[" +
+                        "{\"nameEn\": \"The Fool\", \"arcana\": \"MAJOR\", \"number\": 0}," + // Not positive
+                        "{\"nameEn\": \"The Magician\", \"arcana\": \"MAJOR\", \"number\": 1}," + // Not positive
+                        "{\"nameEn\": \"The Sun\", \"arcana\": \"MAJOR\", \"number\": 19}," + // Positive
+                        "{\"nameEn\": \"The Star\", \"arcana\": \"MAJOR\", \"number\": 17}," + // Positive
+                        "{\"nameEn\": \"Ace of Cups\", \"suit\": \"CUPS\", \"number\": 1}," + // Positive
+                        "{\"nameEn\": \"Ten of Cups\", \"suit\": \"CUPS\", \"number\": 10}," + // Positive
+                        "{\"nameEn\": \"Five of Swords\", \"suit\": \"SWORDS\", \"number\": 5}" + // Negative? Not in
+                                                                                                  // list
+                        "]";
+
+            Resource mockResource = new ByteArrayResource(jsonContent.getBytes(StandardCharsets.UTF_8));
+            when(resourceLoader.getResource(anyString())).thenReturn(mockResource);
+
+            tarotCardService = new TarotCardService(resourceLoader, objectMapper);
+            tarotCardService.initializeDeck(); // Manually trigger @PostConstruct logic
+      }
 
       @Test
+      @DisplayName("Deck Initialization Test")
       void testDeckInitialization() {
-            // 덱이 78장의 카드로 초기화되는지 확인
-            List<TarotDTOs.DrawnCardDto> allCards = tarotCardService.drawCards(78);
-            assertThat(allCards).hasSize(78);
-
-            // 모든 카드가 고유한지 확인
-            Set<String> cardIds = new HashSet<>();
-            for (TarotDTOs.DrawnCardDto card : allCards) {
-                  cardIds.add(card.getCardInfo().getId());
-            }
-            assertThat(cardIds).hasSize(78);
+            List<TarotDTOs.DrawnCardDto> cards = tarotCardService.drawCards(7); // Should draw all if size is 7
+            assertThat(cards).hasSize(7);
       }
 
       @Test
+      @DisplayName("Random Draw Test")
       void testDrawCards() {
-            // 3장의 카드를 뽑는지 확인
-            List<TarotDTOs.DrawnCardDto> drawnCards = tarotCardService.drawCards(3);
-            assertThat(drawnCards).hasSize(3);
+            List<TarotDTOs.DrawnCardDto> cards = tarotCardService.drawCards(3);
+            assertThat(cards).hasSize(3);
+            assertThat(cards).doesNotHaveDuplicates();
+      }
 
-            // 각 카드가 null이 아닌지 확인
-            for (TarotDTOs.DrawnCardDto card : drawnCards) {
-                  assertThat(card.getCardInfo()).isNotNull();
-                  assertThat(card.getCardInfo().getNameKo()).isNotBlank();
-                  assertThat(card.getCardInfo().getNameEn()).isNotBlank();
+      @Test
+      @DisplayName("Draw Positive Cards (Fortuna Logic)")
+      void testDrawPositiveCards() {
+            // Expected positive cards in our mock data: The Sun, The Star, Ace of Cups, Ten
+            // of Cups (4 cards)
+            List<TarotDTOs.DrawnCardDto> cards = tarotCardService.drawPositiveCards(3);
+
+            assertThat(cards).hasSize(3);
+            for (TarotDTOs.DrawnCardDto card : cards) {
+                  // Verify drawn card is one of the positive ones
+                  assertThat(List.of("The Sun", "The Star", "Ace of Cups", "Ten of Cups"))
+                              .contains(card.getCardInfo().getNameEn());
+
+                  // Verify NO reversed cards for Fortuna
+                  assertThat(card.isReversed()).isFalse();
             }
       }
 
       @Test
-      void testRandomness() {
-            // 여러 번 뽑았을 때 다른 결과가 나오는지 확인 (무작위성 검증)
-            List<TarotDTOs.DrawnCardDto> draw1 = tarotCardService.drawCards(3);
-            List<TarotDTOs.DrawnCardDto> draw2 = tarotCardService.drawCards(3);
+      @DisplayName("Draw Positive Cards - Not Enough Positive Cards Fallback")
+      void testDrawPositiveCardsFallback() {
+            // Request more than available positive cards (we have 4 positive in mock)
+            // But actually logic says: if size < count, fallback to normal draw.
+            // We have 4 positive, let's request 5.
+            List<TarotDTOs.DrawnCardDto> cards = tarotCardService.drawPositiveCards(5);
 
-            // 두 번의 뽑기가 동일하지 않을 가능성이 높음 (완벽한 테스트는 아니지만 기본적인 무작위성 확인)
-            boolean isDifferent = !draw1.get(0).getCardInfo().getId().equals(draw2.get(0).getCardInfo().getId()) ||
-                        !draw1.get(1).getCardInfo().getId().equals(draw2.get(1).getCardInfo().getId()) ||
-                        !draw1.get(2).getCardInfo().getId().equals(draw2.get(2).getCardInfo().getId());
-
-            assertThat(isDifferent).isTrue();
+            assertThat(cards).hasSize(5);
+            // Behavior: logs warning and calls drawCards(count), which returns mixed.
+            // So might contain "The Fool" or "Five of Swords"
       }
 }

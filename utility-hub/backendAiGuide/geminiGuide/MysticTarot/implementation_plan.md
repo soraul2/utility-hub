@@ -13,8 +13,8 @@
   - `GET /api/tarot/daily-card`: 오늘의 카드 조회 엔드포인트 추가
   - `POST /api/tarot/readings/three-cards`: 기존 3카드 리딩 유지 및 고도화
 - **Service**:
-  - `TarotCardService.java`: `tarot_data.json` 로딩 및 덱 관리 로직
-  - `TarotAiService.java`: 'Mystic' 페르소나 기반 프롬프트 생성 및 AI 호출
+  - `TarotCardService.java`: `tarot_data.json` 로딩, 덱 관리 및 **Fortuna 전용 필터링** 로직
+  - `TarotAiService.java`: 다중 페르소나(`TarotAssistantType`) 기반 동적 프롬프트 생성 및 AI 호출
   - `TarotReadingService.java`: 리딩 세션 생성, 결과 저장 및 비즈니스 워크플로우 제어
 - **DTO**: `TarotDTOs.java`
   - `DailyCardResponse`, `DrawnCardDto`, `ThreeCardSpreadResponse` 등 정의
@@ -24,12 +24,12 @@
   - `TarotSpread.java`: 스프레드 타입(DAILY_ONE, THREE_CARD) Enum
 
 ## 3. 구현 단계 (Work Order)
-1. **데이터 통합**: `tarot_data.json`의 필드(ID, 한글/영문명, 키워드, 정/역 의미)를 `TarotCard` 엔티티에 반영.
-2. **덱 초기화 로직 구현**: `TarotCardService`에서 `ObjectMapper`를 사용하여 JSON 데이터를 로드하고 메모리에 덱을 구성.
-3. **AI 리딩 고도화**: `TarotAiService`에서 카드별 키워드와 상세 의미를 프롬프트에 동적으로 삽입하도록 수정.
-4. **오늘의 카드 구현**: 단일 카드 추출 및 전용 AI 해석 생성 로직 개발.
-5. **API 엔드포인트 추가**: `TarotController`에 오늘의 카드 API 구현 및 Swagger 문서화.
-6. **검증**: 단위 테스트 및 스웨거를 통한 통합 테스트 수행.
+- [x] **데이터 통합**: `tarot_data.json`의 필드(ID, 한글/영문명, 키워드, 정/역 의미)를 `TarotCard` 엔티티에 반영.
+- [x] **덱 초기화 로직 구현**: `TarotCardService`에서 `ObjectMapper`를 사용하여 JSON 데이터를 로드하고 메모리에 덱을 구성.
+- [x] **AI 리딩 고도화**: `TarotAiService`에서 8가지 페르소나별 성격과 말투를 적용하고, 카드별 상세 의미를 프롬프트에 동적으로 삽입.
+- [x] **오늘의 카드 구현**: 단일 카드 추출 및 전용 AI 해석 생성 로직 개발.
+- [x] **API 엔드포인트 추가**: `TarotController`에 오늘의 카드 API 구현 및 Swagger 문서화완료.
+- [x] **검증**: 단위 테스트(`TarotCardServiceTest`) 및 통합 테스트(`TarotControllerTest`) 수행 완료 (Swagger 명세 포함).
 
 ## 4. 테스트 전략
 - `TarotCardService`: JSON 데이터 로딩 성공 여부 및 카드 추출 무작위성 검증.

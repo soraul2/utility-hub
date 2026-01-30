@@ -49,8 +49,12 @@
   "userName": "홍길동",
   "userAge": 25,
   "userGender": "MALE",
-  "topic": "LOVE"
+  "userGender": "MALE",
+  "topic": "LOVE",
+  "assistantType": "LUNA"
 }
+```
+- **assistantType Options**: `SYLVIA`, `LUNA`, `ORION`, `NOCTIS`, `VANCE`, `ELARA`, `KLAUS`, `FORTUNA` (기본값: null/Mystic)
 ```
 - **Success Response (200 OK)**:
 ```json
@@ -65,6 +69,20 @@
   "createdAt": "2024-01-28T14:10:00"
 }
 ```
+
+### 2.3 지원되는 AI 조수 목록 (Assistant Types)
+프론트엔드에서는 다음 Enum 값을 사용하여 사용자가 원하는 타로 리더 스타일을 선택하게 할 수 있습니다.
+
+| Code | 이름 (Name) | 칭호 (Title) | 특징 |
+| :--- | :--- | :--- | :--- |
+| `SYLVIA` | 실비아 | 현실적 분석가 | 냉철하고 직설적인 팩트 폭격, 현실적 조언 |
+| `LUNA` | 루나 | 감성적 치유자 | 따뜻한 위로와 공감, 힐링 메시지 |
+| `ORION` | 오리온 | 쾌활한 예언가 | 긍정적인 에너지, 유머, 응원 |
+| `NOCTIS` | 녹티스 | 그림자 독설가 | 무의식 통찰, 시니컬한 일침, 반말 사용 |
+| `VANCE` | 반스 | 야망의 전략가 | 성공/처세술 중심의 전략적 조언 |
+| `ELARA` | 엘라라 | 몽환적 시인 | 아름다운 비유와 은유, 동화적인 스토리텔링 |
+| `KLAUS` | 클라우스 | 엄격한 규율자 | 원칙 주의, 인과응보 경고, 단호함 |
+| `FORTUNA` | 마스터 포르투나 | 행운의 여신 | **무조건적인 긍정 해석**, 행운과 기적 강조 |
 
 ## 3. 프론트엔드 가이드
 
