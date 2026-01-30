@@ -1,6 +1,8 @@
 import type { AssistantReadingResponse, DailyCardResponse, TarotAssistantType, ThreeCardRequest, ThreeCardResponse } from '../tarot';
 
-const BASE_URL = `http://${window.location.hostname}:8080/api/tarot`;
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:8080`;
+const API_PATH = import.meta.env.VITE_API_PATH || '/api/tarot';
+const BASE_URL = `${API_BASE_URL}${API_PATH}`;
 
 export const fetchDailyCard = async (userName?: string): Promise<DailyCardResponse> => {
       const params = userName ? `?userName=${encodeURIComponent(userName)}` : '';
