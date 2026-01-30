@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import TarotCardView from '../../../components/tarot/TarotCardView';
+import { useDragScroll } from '../../../hooks/useDragScroll';
 
 interface DailyCardSelectionViewProps {
   selectedCardIndex: number | null;
@@ -21,10 +22,7 @@ const DailyCardSelectionView: React.FC<DailyCardSelectionViewProps> = ({
   onFinalConfirm,
 }) => {
   const [isDealing, setIsDealing] = useState(true);
-  const sliderRef = useRef<HTMLDivElement>(null);
-  const [isDragging, setIsDragging] = useState(false);
-  const [startX, setStartX] = useState(0);
-  const [scrollLeft, setScrollLeft] = useState(0);
+  const { sliderRef, isDragging, handlers } = useDragScroll(2);
   const dragStartPosRef = useRef({ x: 0, y: 0 });
   const isDragScrollRef = useRef(false);
   const rafRef = useRef<number | null>(null);
@@ -64,37 +62,20 @@ const DailyCardSelectionView: React.FC<DailyCardSelectionViewProps> = ({
   };
 
   const handleMouseDown = (e: React.MouseEvent) => {
-    if (!sliderRef.current) return;
-    setIsDragging(true);
-    setStartX(e.pageX - sliderRef.current.offsetLeft);
-    setScrollLeft(sliderRef.current.scrollLeft);
-
     isDragScrollRef.current = false;
     dragStartPosRef.current = { x: e.pageX, y: e.pageY };
-  };
-
-  const handleMouseLeave = () => {
-    setIsDragging(false);
-  };
-
-  const handleMouseUp = () => {
-    setIsDragging(false);
+    handlers.onMouseDown(e);
   };
 
   const handleMouseMove = (e: React.MouseEvent) => {
-    if (!isDragging || !sliderRef.current) return;
-    e.preventDefault();
-    const x = e.pageX - sliderRef.current.offsetLeft;
-    const walk = (x - startX) * 2;
-    sliderRef.current.scrollLeft = scrollLeft - walk;
-
-    if (!isDragScrollRef.current) {
+    if (isDragging && !isDragScrollRef.current) {
       const moveX = Math.abs(e.pageX - dragStartPosRef.current.x);
       const moveY = Math.abs(e.pageY - dragStartPosRef.current.y);
       if (moveX > 5 || moveY > 5) {
         isDragScrollRef.current = true;
       }
     }
+    handlers.onMouseMove(e);
   };
 
   return (
@@ -184,8 +165,8 @@ const DailyCardSelectionView: React.FC<DailyCardSelectionViewProps> = ({
             <div
               ref={sliderRef}
               onMouseDown={handleMouseDown}
-              onMouseLeave={handleMouseLeave}
-              onMouseUp={handleMouseUp}
+              onMouseLeave={handlers.onMouseLeave}
+              onMouseUp={handlers.onMouseUp}
               onMouseMove={handleMouseMove}
               onScroll={handleScroll}
               className="w-full overflow-x-auto scrollbar-none pt-20 pb-24 md:py-32 px-0 cursor-grab active:cursor-grabbing select-none mask-linear-both touch-pan-x flex items-center justify-start relative z-10 transform-gpu perspective-1000"

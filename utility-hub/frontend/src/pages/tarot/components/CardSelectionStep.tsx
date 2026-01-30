@@ -1,5 +1,6 @@
-import React, { useState, useRef } from 'react';
+import React from 'react';
 import TarotCardView from '../../../components/tarot/TarotCardView';
+import { useDragScroll } from '../../../hooks/useDragScroll';
 
 interface CardSelectionStepProps {
   selectedSlots: (number | null)[];
@@ -24,33 +25,7 @@ const CardSelectionStep: React.FC<CardSelectionStepProps> = ({
   setShowConfirmModal,
   onConfirmProceed,
 }) => {
-  const sliderRef = useRef<HTMLDivElement>(null);
-  const [isDragging, setIsDragging] = useState(false);
-  const [startX, setStartX] = useState(0);
-  const [scrollLeft, setScrollLeft] = useState(0);
-
-  const handleMouseDown = (e: React.MouseEvent) => {
-    if (!sliderRef.current) return;
-    setIsDragging(true);
-    setStartX(e.pageX - sliderRef.current.offsetLeft);
-    setScrollLeft(sliderRef.current.scrollLeft);
-  };
-
-  const handleMouseLeave = () => {
-    setIsDragging(false);
-  };
-
-  const handleMouseUp = () => {
-    setIsDragging(false);
-  };
-
-  const handleMouseMove = (e: React.MouseEvent) => {
-    if (!isDragging || !sliderRef.current) return;
-    e.preventDefault();
-    const x = e.pageX - sliderRef.current.offsetLeft;
-    const walk = (x - startX) * 2;
-    sliderRef.current.scrollLeft = scrollLeft - walk;
-  };
+  const { sliderRef, isDragging, handlers } = useDragScroll(2);
 
   return (
     <div className="relative py-4 px-4 flex flex-col items-center">
@@ -172,7 +147,7 @@ const CardSelectionStep: React.FC<CardSelectionStepProps> = ({
               <i className="fas fa-chevron-right text-sm md:text-xl text-amber-500"></i>
             </div>
 
-            <div ref={sliderRef} onMouseDown={handleMouseDown} onMouseLeave={handleMouseLeave} onMouseUp={handleMouseUp} onMouseMove={handleMouseMove}
+            <div ref={sliderRef} {...handlers}
               className="flex items-center justify-start overflow-x-auto pt-12 pb-20 md:pt-24 md:pb-24 w-full gold-scrollbar cursor-grab active:cursor-grabbing select-none mask-mystic pl-10 md:pl-0">
               <div className="flex items-center space-x-0 relative min-w-max px-32">
                 {[...Array(22)].map((_, i) => {

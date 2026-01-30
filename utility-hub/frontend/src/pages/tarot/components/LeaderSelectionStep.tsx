@@ -1,6 +1,7 @@
-import React, { useState, useRef } from 'react';
+import React from 'react';
 import { MYSTIC_INFO, type AssistantInfo } from '../../../lib/tarot-assistants';
 import type { TarotAssistantType } from '../../../lib/tarot';
+import { useDragScroll } from '../../../hooks/useDragScroll';
 
 interface LeaderSelectionStepProps {
   assistants: AssistantInfo[];
@@ -21,33 +22,7 @@ const LeaderSelectionStep: React.FC<LeaderSelectionStepProps> = ({
   setShowLeaderConfirmModal,
   onConfirmLeader,
 }) => {
-  const leaderListRef = useRef<HTMLDivElement>(null);
-  const [isLeaderDragging, setIsLeaderDragging] = useState(false);
-  const [leaderStartX, setLeaderStartX] = useState(0);
-  const [leaderScrollLeft, setLeaderScrollLeft] = useState(0);
-
-  const handleLeaderMouseDown = (e: React.MouseEvent) => {
-    if (!leaderListRef.current) return;
-    setIsLeaderDragging(true);
-    setLeaderStartX(e.pageX - leaderListRef.current.offsetLeft);
-    setLeaderScrollLeft(leaderListRef.current.scrollLeft);
-  };
-
-  const handleLeaderMouseLeave = () => {
-    setIsLeaderDragging(false);
-  };
-
-  const handleLeaderMouseUp = () => {
-    setIsLeaderDragging(false);
-  };
-
-  const handleLeaderMouseMove = (e: React.MouseEvent) => {
-    if (!isLeaderDragging || !leaderListRef.current) return;
-    e.preventDefault();
-    const x = e.pageX - leaderListRef.current.offsetLeft;
-    const walk = (x - leaderStartX) * 1.5;
-    leaderListRef.current.scrollLeft = leaderScrollLeft - walk;
-  };
+  const { sliderRef: leaderListRef, handlers } = useDragScroll(1.5);
 
   return (
     <div className="max-w-6xl mx-auto py-10 px-4 animate-fade-in space-y-12">
@@ -73,10 +48,7 @@ const LeaderSelectionStep: React.FC<LeaderSelectionStepProps> = ({
 
         <div
           ref={leaderListRef}
-          onMouseDown={handleLeaderMouseDown}
-          onMouseLeave={handleLeaderMouseLeave}
-          onMouseUp={handleLeaderMouseUp}
-          onMouseMove={handleLeaderMouseMove}
+          {...handlers}
           className="flex md:grid md:grid-cols-2 lg:grid-cols-4 gap-6 overflow-x-auto md:overflow-visible px-10 md:px-0 pb-8 md:pb-0 snap-x snap-mandatory gold-scrollbar justify-start md:justify-center max-w-5xl mx-auto cursor-grab active:cursor-grabbing"
         >
           {/* Mystic Card */}
