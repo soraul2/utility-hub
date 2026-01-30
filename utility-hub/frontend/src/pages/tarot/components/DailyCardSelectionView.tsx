@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import TarotCardView from '../../../components/tarot/TarotCardView';
 import { useDragScroll } from '../../../hooks/useDragScroll';
 
@@ -48,7 +48,7 @@ const DailyCardSelectionView: React.FC<DailyCardSelectionViewProps> = ({
     };
   }, []);
 
-  const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
+  const handleScroll = useCallback((e: React.UIEvent<HTMLDivElement>) => {
     const target = e.currentTarget;
 
     if (rafRef.current) {
@@ -59,15 +59,15 @@ const DailyCardSelectionView: React.FC<DailyCardSelectionViewProps> = ({
       const progress = target.scrollLeft / (target.scrollWidth - target.clientWidth);
       target.parentElement?.parentElement?.style.setProperty('--scroll-progress', `${progress * 100}%`);
     });
-  };
+  }, []);
 
-  const handleMouseDown = (e: React.MouseEvent) => {
+  const handleMouseDown = useCallback((e: React.MouseEvent) => {
     isDragScrollRef.current = false;
     dragStartPosRef.current = { x: e.pageX, y: e.pageY };
     handlers.onMouseDown(e);
-  };
+  }, [handlers]);
 
-  const handleMouseMove = (e: React.MouseEvent) => {
+  const handleMouseMove = useCallback((e: React.MouseEvent) => {
     if (isDragging && !isDragScrollRef.current) {
       const moveX = Math.abs(e.pageX - dragStartPosRef.current.x);
       const moveY = Math.abs(e.pageY - dragStartPosRef.current.y);
@@ -76,7 +76,7 @@ const DailyCardSelectionView: React.FC<DailyCardSelectionViewProps> = ({
       }
     }
     handlers.onMouseMove(e);
-  };
+  }, [isDragging, handlers]);
 
   return (
     <>

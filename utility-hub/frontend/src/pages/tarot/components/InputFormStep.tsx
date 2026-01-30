@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import { TAROT_TOPICS, type TarotTopic, type UserGender } from '../../../lib/tarot';
 
 interface InputFormStepProps {
@@ -32,11 +32,11 @@ const InputFormStep: React.FC<InputFormStepProps> = ({
   showConfirmModal,
   setShowConfirmModal,
 }) => {
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = useCallback((e: React.FormEvent) => {
     e.preventDefault();
     if (!question.trim()) return;
     setShowConfirmModal(true);
-  };
+  }, [question, setShowConfirmModal]);
 
   return (
     <div className="max-w-2xl mx-auto space-y-8 animate-fade-in-up py-10">

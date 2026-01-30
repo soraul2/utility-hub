@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { useDailyCard } from '../../hooks/useDailyCard';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 import ErrorBanner from '../../components/common/ErrorBanner';
@@ -11,31 +11,31 @@ const DailyCardPage: React.FC = () => {
   const [selectedCardIndex, setSelectedCardIndex] = useState<number | null>(null);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
 
-  const handleCardSelect = (index: number) => {
+  const handleCardSelect = useCallback((index: number) => {
     if (loading || step === 'result' || selectedCardIndex !== null) return;
     setSelectedCardIndex(index);
-  };
+  }, [loading, step, selectedCardIndex]);
 
-  const handleCardDeselect = () => {
+  const handleCardDeselect = useCallback(() => {
     if (loading || step === 'result') return;
     setSelectedCardIndex(null);
-  };
+  }, [loading, step]);
 
-  const handleConfirm = () => {
+  const handleConfirm = useCallback(() => {
     if (loading || selectedCardIndex === null) return;
     setShowConfirmModal(true);
-  };
+  }, [loading, selectedCardIndex]);
 
-  const handleFinalConfirm = async () => {
+  const handleFinalConfirm = useCallback(async () => {
     setShowConfirmModal(false);
     await loadDailyCard();
     setStep('result');
-  };
+  }, [loadDailyCard]);
 
-  const handleRetry = () => {
+  const handleRetry = useCallback(() => {
     setStep('selection');
     setSelectedCardIndex(null);
-  };
+  }, []);
 
   if (loading) {
     return (

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import TarotCardView from '../../../components/tarot/TarotCardView';
 import MarkdownViewer from '../../../components/common/MarkdownViewer';
 import type { ThreeCardResponse, TarotAssistantType } from '../../../lib/tarot';
@@ -23,13 +23,13 @@ const ResultStep: React.FC<ResultStepProps> = ({
   const [isOpening, setIsOpening] = useState(false);
   const [flippingIndex, setFlippingIndex] = useState<number | null>(null);
 
-  const handleOpenResult = () => {
+  const handleOpenResult = useCallback(() => {
     setIsOpening(true);
     setTimeout(() => {
       setShowResultRevealModal(false);
       setIsResultUnlocked(true);
     }, 800);
-  };
+  }, []);
 
   useEffect(() => {
     if (revealedCards.every(Boolean) && !isResultUnlocked) {

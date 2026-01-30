@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { useThreeCardReading } from '../../hooks/useThreeCardReading';
 import { ASSISTANTS, HIDDEN_ASSISTANT, type AssistantInfo } from '../../lib/tarot-assistants';
 import type { TarotTopic, UserGender, TarotAssistantType } from '../../lib/tarot';
@@ -54,7 +54,7 @@ const ThreeCardReadingPage: React.FC = () => {
     }, 250);
   };
 
-  const shuffleAssistants = () => {
+  const shuffleAssistants = useCallback(() => {
     const shuffled = [...ASSISTANTS].sort(() => 0.5 - Math.random()).slice(0, 3);
     if (Math.random() < 0.01) {
       const replaceIdx = Math.floor(Math.random() * 3);
@@ -62,14 +62,14 @@ const ThreeCardReadingPage: React.FC = () => {
       triggerFortunaEffect();
     }
     setAssistants(shuffled);
-  };
+  }, []);
 
-  const handleProceedToSelection = () => {
+  const handleProceedToSelection = useCallback(() => {
     setShowInputConfirmModal(false);
     setStep('selection');
-  };
+  }, []);
 
-  const handleCardSelect = (index: number) => {
+  const handleCardSelect = useCallback((index: number) => {
     if (selectedSlots.includes(index)) return;
     const firstEmptyIndex = selectedSlots.indexOf(null);
     if (firstEmptyIndex === -1) return;
@@ -77,26 +77,26 @@ const ThreeCardReadingPage: React.FC = () => {
     const newSlots = [...selectedSlots];
     newSlots[firstEmptyIndex] = index;
     setSelectedSlots(newSlots);
-  };
+  }, [selectedSlots]);
 
-  const handleCardDeselect = (slotIndex: number) => {
+  const handleCardDeselect = useCallback((slotIndex: number) => {
     const newSlots = [...selectedSlots];
     newSlots[slotIndex] = null;
     setSelectedSlots(newSlots);
-  };
+  }, [selectedSlots]);
 
-  const handleReveal = () => {
+  const handleReveal = useCallback(() => {
     if (selectedSlots.includes(null)) return;
     setShowConfirmModal(true);
-  };
+  }, [selectedSlots]);
 
-  const handleMoveToLeaderSelection = () => {
+  const handleMoveToLeaderSelection = useCallback(() => {
     setShowConfirmModal(false);
     shuffleAssistants();
     setStep('leader');
-  };
+  }, [shuffleAssistants]);
 
-  const handleCreateReading = (leaderType?: TarotAssistantType) => {
+  const handleCreateReading = useCallback((leaderType?: TarotAssistantType) => {
     let leaderData: AssistantInfo | undefined;
     if (!leaderType) {
       leaderData = {
@@ -120,9 +120,9 @@ const ThreeCardReadingPage: React.FC = () => {
       setLeaderPending(leaderData);
       setShowLeaderConfirmModal(true);
     }
-  };
+  }, [assistants]);
 
-  const handleConfirmLeader = async () => {
+  const handleConfirmLeader = useCallback(async () => {
     if (!leaderPending) return;
     setShowLeaderConfirmModal(false);
 
@@ -140,15 +140,15 @@ const ThreeCardReadingPage: React.FC = () => {
       assistantType: leaderType
     });
     setStep('result');
-  };
+  }, [leaderPending, question, topic, userName, userAge, userGender, createReading]);
 
-  const handleReset = () => {
+  const handleReset = useCallback(() => {
     reset();
     setStep('input');
     setQuestion('');
     setSelectedSlots([null, null, null]);
     setSelectedLeader(null);
-  };
+  }, [reset]);
 
   if (loading) {
     const isFortuna = selectedLeader === 'FORTUNA';
