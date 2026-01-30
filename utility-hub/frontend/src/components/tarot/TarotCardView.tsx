@@ -99,7 +99,7 @@ const TarotCardView: React.FC<TarotCardViewProps> = ({
 
       const imageUrl = (card.imagePath && card.imagePath.startsWith('http'))
             ? card.imagePath
-            : (card.imagePath ? `http://localhost:8080${card.imagePath}` : 'https://placehold.co/300x500/1e1e2e/FFF?text=No+Image');
+            : (card.imagePath ? `http://${window.location.hostname}:8080${card.imagePath}` : 'https://placehold.co/300x500/1e1e2e/FFF?text=No+Image');
 
       return (
             <div className={`flex flex-col items-center ${className}`} onClick={onClick}>

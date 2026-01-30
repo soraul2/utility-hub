@@ -11,17 +11,77 @@ const DailyCardPage: React.FC = () => {
       const [selectedCardIndex, setSelectedCardIndex] = useState<number | null>(null);
       const [showConfirmModal, setShowConfirmModal] = useState(false);
 
+      // Dealing Animation State
+      const [isDealing, setIsDealing] = useState(true);
+
+      React.useEffect(() => {
+            // Trigger dealing animation on mount
+            const timer = setTimeout(() => setIsDealing(false), 300);
+            return () => clearTimeout(timer);
+      }, []);
+
+      // Center scroll on mount (Delayed to happen after deal)
+      React.useEffect(() => {
+            if (!isDealing && sliderRef.current) {
+                  const scrollWidth = sliderRef.current.scrollWidth;
+                  const clientWidth = sliderRef.current.clientWidth;
+                  sliderRef.current.scrollTo({ left: (scrollWidth - clientWidth) / 2, behavior: 'smooth' });
+            }
+      }, [isDealing, step]);
+
+
+      // ... (drag states) ...
+
+      // ... (handlers) ...
+
+      // In the JSX (inside the selection step):
+      <p className="text-slate-400 font-light tracking-widest uppercase text-xs md:text-sm">
+            {step === 'result' ? '우주가 당신에게 전하는 메시지' : '10장의 카드 중 당신의 운명을 선택하세요'}
+      </p>
+
       // Drag Scrolling State
       const sliderRef = React.useRef<HTMLDivElement>(null);
       const [isDragging, setIsDragging] = useState(false);
       const [startX, setStartX] = useState(0);
       const [scrollLeft, setScrollLeft] = useState(0);
 
+      // Refs for distinguishing click vs drag/scroll
+      const dragStartPosRef = React.useRef({ x: 0, y: 0 });
+      const isDragScrollRef = React.useRef(false);
+
+      const rafRef = React.useRef<number | null>(null); // For scroll optimization
+
+      // Optimized Scroll Handler using RequestAnimationFrame
+      const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
+            const target = e.currentTarget;
+
+            if (rafRef.current) {
+                  cancelAnimationFrame(rafRef.current);
+            }
+
+            rafRef.current = requestAnimationFrame(() => {
+                  const progress = target.scrollLeft / (target.scrollWidth - target.clientWidth);
+                  target.parentElement?.parentElement?.style.setProperty('--scroll-progress', `${progress * 100}%`);
+            });
+      };
+
+      React.useEffect(() => {
+            return () => {
+                  if (rafRef.current) {
+                        cancelAnimationFrame(rafRef.current);
+                  }
+            };
+      }, []);
+
       const handleMouseDown = (e: React.MouseEvent) => {
             if (!sliderRef.current) return;
             setIsDragging(true);
             setStartX(e.pageX - sliderRef.current.offsetLeft);
             setScrollLeft(sliderRef.current.scrollLeft);
+
+            // Init drag detection
+            isDragScrollRef.current = false;
+            dragStartPosRef.current = { x: e.pageX, y: e.pageY };
       };
 
       const handleMouseLeave = () => {
@@ -38,7 +98,18 @@ const DailyCardPage: React.FC = () => {
             const x = e.pageX - sliderRef.current.offsetLeft;
             const walk = (x - startX) * 2; // Drag multiplier speed
             sliderRef.current.scrollLeft = scrollLeft - walk;
+
+            // Check drag distance
+            if (!isDragScrollRef.current) {
+                  const moveX = Math.abs(e.pageX - dragStartPosRef.current.x);
+                  const moveY = Math.abs(e.pageY - dragStartPosRef.current.y);
+                  if (moveX > 5 || moveY > 5) {
+                        isDragScrollRef.current = true;
+                  }
+            }
       };
+
+
 
       const handleCardSelect = (index: number) => {
             if (loading || step === 'result' || selectedCardIndex !== null) return;
@@ -50,6 +121,7 @@ const DailyCardPage: React.FC = () => {
             setSelectedCardIndex(null);
       };
 
+      // ... existing handlers ...
       const handleConfirm = () => {
             if (loading || selectedCardIndex === null) return;
             setShowConfirmModal(true);
@@ -98,8 +170,8 @@ const DailyCardPage: React.FC = () => {
                   {/* Mystic Background */}
                   <div className="mystic-bg" />
 
-                  {/* Background Particles (Requirement: Polish) */}
-                  <div className="bg-particles">
+                  {/* Background Particles (Requirement: Polish) - Optimized for Mobile */}
+                  <div className="bg-particles hidden md:block">
                         {[...Array(20)].map((_, i) => (
                               <div key={i} className="particle" style={{
                                     left: `${Math.random() * 100}%`,
@@ -122,7 +194,7 @@ const DailyCardPage: React.FC = () => {
                                           }
                                     </h1>
                                     <p className="text-slate-400 font-light tracking-widest uppercase text-xs md:text-sm">
-                                          {step === 'result' ? '우주가 당신에게 전하는 메시지' : '7장의 카드 중 당신의 운명을 선택하세요'}
+                                          {step === 'result' ? '우주가 당신에게 전하는 메시지' : '10장의 카드 중 당신의 운명을 선택하세요'}
                                     </p>
                               </div>
                               {selectedCardIndex !== null && step === 'selection' && (
@@ -159,11 +231,11 @@ const DailyCardPage: React.FC = () => {
                                                 {/* Slamming Card Animation */}
                                                 {selectedCardIndex !== null && (
                                                       <div
-                                                            className="absolute inset-0 animate-slam-in animate-levitate z-20 cursor-pointer group/slotted transition-transform"
+                                                            className="absolute inset-0 animate-slam-in z-20 cursor-pointer group/slotted touch-manipulation transition-transform duration-75 active:scale-90"
                                                             onClick={handleCardDeselect}
                                                       >
                                                             {/* Levitation Shadow */}
-                                                            <div className="absolute -bottom-10 left-1/2 -translate-x-1/2 w-[70%] h-4 bg-black/40 blur-xl rounded-full" />
+                                                            <div className="absolute -bottom-10 left-1/2 -translate-x-1/2 w-[70%] h-4 bg-black/40 blur-md rounded-full" />
 
                                                             <TarotCardView isFaceDown={true} className="w-full h-full shadow-[0_0_50px_rgba(217,119,6,0.3)] rounded-xl border border-amber-500/30 transition-transform group-hover/slotted:scale-[1.02]" />
                                                       </div>
@@ -180,67 +252,103 @@ const DailyCardPage: React.FC = () => {
                                                             <span className="relative z-20 text-white font-serif italic text-lg tracking-[0.4em] uppercase drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)]">
                                                                   운명 확인하기
                                                             </span>
-                                                            <div className="absolute inset-0 bg-amber-500/20 blur-2xl group-hover:bg-amber-500/40 transition-all duration-500" />
+                                                            <div className="absolute inset-0 bg-amber-500/20 blur-md group-hover:bg-amber-500/40 transition-all duration-500" />
                                                       </button>
                                                 </div>
                                           )}
 
-                                          {/* Interactive Deck (Bottom) - Fixed Aura Clipping with Masking */}
-                                          <div
-                                                ref={sliderRef}
-                                                onMouseDown={handleMouseDown}
-                                                onMouseLeave={handleMouseLeave}
-                                                onMouseUp={handleMouseUp}
-                                                onMouseMove={handleMouseMove}
-                                                className="w-full overflow-x-auto scrollbar-none pb-24 pt-24 px-4 md:px-0 cursor-grab active:cursor-grabbing select-none mask-mystic mt-8"
-                                          >
-                                                <div className="group/deck flex items-center justify-start md:justify-center min-w-max md:min-w-full px-12 md:px-0 relative overflow-visible">
-                                                      {[...Array(7)].map((_, index) => {
-                                                            const isSelected = selectedCardIndex === index;
-                                                            // Dramatic Fan Effect for Desktop
-                                                            const rotation = (index - 3) * 6; // -18 to +18 degrees
-                                                            const translateY = Math.abs(index - 3) * 12; // Curved arc height
+                                          {/* Interactive Deck (Bottom) - Horizontal Scroll like Three Card Reading */}
 
-                                                            return (
-                                                                  <div
-                                                                        key={index}
-                                                                        className={`relative group transition-all duration-700
-                                                                              ${selectedCardIndex !== null && !isSelected ? 'opacity-0 scale-50 blur-2xl pointer-events-none' : 'opacity-100'}
-                                                                              ${isSelected ? 'opacity-0 scale-150 pointer-events-none' : ''}
-                                                                              w-32 h-48 md:w-52 md:h-80 -ml-20 md:-ml-32 first:ml-0
+
+                                          {/* Interactive Deck (Bottom) - Horizontal Scroll like Three Card Reading */}
+                                          <div className="relative w-full mt-0 md:mt-8"> {/* Wrapper for stable positioning - Pulled up for mobile */}
+                                                {/* Navigation Hints - Enhanced Visibility & Centered on Cards */}
+                                                <div className="absolute top-[40%] left-1 md:left-4 -translate-y-1/2 z-30 text-xs md:text-sm text-amber-300 font-bold font-chakra animate-pulse drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] pointer-events-none">
+                                                      <i className="fas fa-chevron-left mr-1 md:mr-2"></i> LEFT
+                                                </div>
+                                                <div className="absolute top-[40%] right-1 md:right-4 -translate-y-1/2 z-30 text-xs md:text-sm text-amber-300 font-bold font-chakra animate-pulse drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] pointer-events-none">
+                                                      RIGHT <i className="fas fa-chevron-right ml-1 md:ml-2"></i>
+                                                </div>
+
+                                                <div
+                                                      ref={sliderRef}
+                                                      onMouseDown={handleMouseDown}
+                                                      onMouseLeave={handleMouseLeave}
+                                                      onMouseUp={handleMouseUp}
+                                                      onMouseMove={handleMouseMove}
+                                                      onScroll={handleScroll}
+                                                      // Mobile Touch Handlers - REMOVED complex logic to fix lag
+                                                      className="w-full overflow-x-auto scrollbar-none pt-20 pb-24 md:py-32 px-0 cursor-grab active:cursor-grabbing select-none mask-linear-both touch-pan-x flex items-center justify-start relative z-10 transform-gpu perspective-1000"
+                                                >
+                                                      <div className="flex items-end justify-center px-[50vw] md:px-[calc(50vw-9rem)] relative min-w-max pb-4 md:pb-12">
+                                                            {[...Array(10)].map((_, index) => {
+                                                                  const isSelected = selectedCardIndex === index;
+                                                                  const isSelectionActive = selectedCardIndex !== null;
+
+                                                                  // Straight Layout for Mobile Friendliness
+                                                                  const rotation = 0;
+                                                                  const translateY = 0;
+
+                                                                  return (
+                                                                        <div
+                                                                              key={index}
+                                                                              data-card-index={index}
+                                                                              className={`relative group will-change-transform flex-shrink-0 animate-float
+                                                                              ${isSelectionActive && !isSelected ? 'opacity-50 blur-sm grayscale pointer-events-none' : 'opacity-100'} 
+                                                                              ${isSelected ? 'opacity-0 scale-0 pointer-events-none' : ''}
+                                                                              w-24 h-40 md:w-36 md:h-64 -ml-2 md:-ml-12 first:ml-0
+                                                                              hover:!z-50 active:scale-95 active:brightness-90 z-10
                                                                         `}
-                                                                        onClick={() => !isDragging && handleCardSelect(index)}
-                                                                        style={{
-                                                                              zIndex: 7 - index,
-                                                                              transform: `rotate(${rotation}deg) translateY(${translateY}px)`
-                                                                        }}
-                                                                  >
-                                                                        <div className="w-full h-full transition-all duration-500 ease-out transform-gpu animate-mystic-float group-hover/deck:opacity-40 group-hover/deck:scale-95 group-hover/deck:blur-sm group-hover/deck:grayscale hover:!opacity-100 hover:!scale-110 hover:!blur-0 hover:!grayscale-0 hover:!z-50 hover:-translate-y-20 hover:-rotate-0"
+                                                                              onClick={() => !isDragging && handleCardSelect(index)}
                                                                               style={{
-                                                                                    animationDelay: `${index * 800}ms`,
-                                                                                    background: 'linear-gradient(to bottom right, #1a1a2e, #0d0d15)',
+                                                                                    zIndex: isSelectionActive ? 0 : 10 - Math.abs(index - 4.5),
+                                                                                    transform: isDealing
+                                                                                          ? `rotate(0deg) translateY(100px) scale(0)`
+                                                                                          : `rotate(${rotation}deg) translateY(${translateY}px)`,
+                                                                                    transition: isDealing ? 'transform 1000ms cubic-bezier(0.34, 1.56, 0.64, 1)' : 'transform 300ms cubic-bezier(0.25, 0.8, 0.25, 1), opacity 300ms ease',
+                                                                                    animationDelay: `${index * 0.2}s`
                                                                               }}
                                                                         >
-                                                                              <TarotCardView isFaceDown={true} className="w-full h-full shadow-2xl rounded-xl border border-amber-500/20" />
+                                                                              <div className="w-full h-full transition-all duration-300 ease-out transform-gpu group-hover:scale-105"
+                                                                                    style={{
+                                                                                          background: 'linear-gradient(to bottom right, #1a1a2e, #0d0d15)',
+                                                                                    }}
+                                                                              >
+                                                                                    <TarotCardView isFaceDown={true} className="w-full h-full shadow-2xl rounded-xl border border-amber-500/20 group-hover:border-amber-400 group-hover:shadow-[0_0_30px_rgba(251,191,36,0.6)] transition-all duration-300" />
 
-                                                                              {/* Intense Orbital Glow on Hover */}
-                                                                              <div className="absolute -inset-16 opacity-0 group-hover:opacity-100 transition-all duration-700 pointer-events-none">
-                                                                                    <div className="absolute inset-0 bg-amber-600/30 blur-3xl animate-pulse" />
-                                                                                    <div className="absolute inset-8 bg-amber-500/20 blur-2xl animate-pulse" style={{ animationDelay: '0.5s' }} />
+
                                                                               </div>
+
+                                                                              {/* Card Number */}
+                                                                              <span className="absolute -bottom-8 left-1/2 -translate-x-1/2 text-[10px] text-white/20 font-chakra opacity-0 group-hover:opacity-100 transition-opacity">
+                                                                                    {index + 1}
+                                                                              </span>
                                                                         </div>
-                                                                  </div>
-                                                            );
-                                                      })}
+                                                                  );
+                                                            })}
+                                                      </div>      </div>
+
+                                                {/* Custom Gold Scrollbar */}
+                                                <div className="w-64 h-[1px] bg-white/5 rounded-full mx-auto relative -mt-4 md:mt-4 overflow-hidden">
+                                                      <div
+                                                            className="absolute left-0 top-0 h-full bg-gradient-to-r from-transparent via-amber-500 to-transparent w-full transition-transform duration-100 ease-out"
+                                                            style={{
+                                                                  transform: 'translateX(calc(-100% + var(--scroll-progress, 50%)))'
+                                                            }}
+                                                      />
                                                 </div>
-                                          </div>
+
+                                                <div className="mt-1 text-[10px] text-amber-500/20 font-chakra tracking-[0.3em] uppercase animate-pulse">
+                                                      Scroll to Explore
+                                                </div>
+                                          </div> {/* End of Relative Wrapper */}
                                     </>
                               ) : (
                                     /* RESULT STEP: Selected Card & Reading */
-                                    <div className="w-full px-4 relative z-10">
-                                          <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center animate-fade-in">
-                                                {/* Card Display */}
-                                                <div className="flex flex-col items-center justify-center order-1 md:order-1 perspective-1000">
+                                    <div className="w-full px-4 relative z-10 pb-20">
+                                          <div className="flex flex-col gap-20 items-center animate-fade-in max-w-4xl mx-auto">
+                                                {/* Card Display - Top Center */}
+                                                <div className="flex flex-col items-center justify-center perspective-1000 w-full">
                                                       {data?.card ? (
                                                             <>
                                                                   <div className="relative w-64 md:w-80 animate-flip-in perspective-1000 group">
@@ -269,10 +377,27 @@ const DailyCardPage: React.FC = () => {
                                                                               isReversed={data.card.isReversed}
                                                                               position={data.card.position}
                                                                               className="relative z-10"
+                                                                              showName={false}
                                                                         />
                                                                   </div>
 
-                                                                  <div className="mt-8 text-center animate-fade-in-up" style={{ animationDelay: '0.5s' }}>
+                                                                  {/* Added Card Info Text */}
+                                                                  <div className="mt-8 text-center space-y-2 animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
+                                                                        <h3 className="text-2xl font-bold text-amber-100 font-chakra tracking-wider">
+                                                                              {data.card.cardInfo.nameKo}
+                                                                        </h3>
+                                                                        <div className="text-amber-400/60 text-sm font-light uppercase tracking-[0.2em]">
+                                                                              {data.card.cardInfo.nameEn} • {data.card.isReversed ? 'Reversed' : 'Upright'}
+                                                                        </div>
+                                                                        {/* Optional Keywords if available - safer check */}
+                                                                        {Array.isArray((data.card.cardInfo as any).keywords) && (data.card.cardInfo as any).keywords.length > 0 && (
+                                                                              <p className="text-slate-400 text-sm mt-2 font-light">
+                                                                                    {(data.card.cardInfo as any).keywords.slice(0, 3).join(" • ")}
+                                                                              </p>
+                                                                        )}
+                                                                  </div>
+
+                                                                  <div className="mt-12 text-center animate-fade-in-up" style={{ animationDelay: '0.5s' }}>
                                                                         <button
                                                                               onClick={handleRetry}
                                                                               className="px-8 py-3 rounded-full border border-purple-500/30 text-purple-300 text-xs font-chakra tracking-widest hover:bg-purple-500/10 hover:border-purple-500 transition-all uppercase"
@@ -289,22 +414,22 @@ const DailyCardPage: React.FC = () => {
                                                       )}
                                                 </div>
 
-                                                {/* Interpretation Text */}
-                                                <div className="order-2 md:order-2 h-full flex flex-col justify-center">
+                                                {/* Interpretation Text - Vertical Flow (No Internal Scroll) */}
+                                                <div className="w-full">
                                                       {!loading && data && (
-                                                            <div className="glass-card p-8 md:p-10 rounded-3xl border-purple-500/20 shadow-2xl animate-fade-in-up" style={{ animationDelay: '0.3s' }}>
-                                                                  <div className="mb-6 border-b border-purple-500/20 pb-4">
-                                                                        <h2 className="text-3xl font-bold text-white mb-2 font-chakra">
+                                                            <div className="glass-card p-6 md:p-10 rounded-3xl border-purple-500/20 shadow-2xl animate-fade-in-up" style={{ animationDelay: '0.3s' }}>
+                                                                  <div className="mb-8 border-b border-purple-500/20 pb-6 text-center">
+                                                                        <h2 className="text-3xl md:text-4xl font-bold text-white mb-3 font-chakra">
                                                                               {data.card.cardInfo.nameKo}
                                                                         </h2>
-                                                                        <div className="flex items-center gap-3 text-purple-300/60 text-sm font-light uppercase tracking-widest">
+                                                                        <div className="flex items-center justify-center gap-3 text-purple-300/60 text-sm font-light uppercase tracking-widest">
                                                                               <span>{data.card.cardInfo.nameEn}</span>
                                                                               <span className="w-1 h-1 rounded-full bg-purple-500/50" />
                                                                               <span>{data.card.isReversed ? 'Reversed' : 'Upright'}</span>
                                                                         </div>
                                                                   </div>
 
-                                                                  <div className="prose-mystic max-h-[50vh] overflow-y-auto pr-4 mystic-scrollbar">
+                                                                  <div className="prose-mystic w-full">
                                                                         <MarkdownViewer content={data.aiReading} />
                                                                   </div>
                                                             </div>

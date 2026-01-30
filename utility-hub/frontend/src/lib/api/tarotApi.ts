@@ -1,6 +1,6 @@
 import type { AssistantReadingResponse, DailyCardResponse, TarotAssistantType, ThreeCardRequest, ThreeCardResponse } from '../tarot';
 
-const BASE_URL = 'http://localhost:8080/api/tarot';
+const BASE_URL = `http://${window.location.hostname}:8080/api/tarot`;
 
 export const fetchDailyCard = async (userName?: string): Promise<DailyCardResponse> => {
       const params = userName ? `?userName=${encodeURIComponent(userName)}` : '';

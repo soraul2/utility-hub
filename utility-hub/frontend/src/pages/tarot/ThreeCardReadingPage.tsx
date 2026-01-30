@@ -6,8 +6,7 @@ import TarotCardView from '../../components/tarot/TarotCardView';
 import MarkdownViewer from '../../components/common/MarkdownViewer';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 import ErrorBanner from '../../components/common/ErrorBanner';
-import { createAssistantReading } from '../../lib/api/tarotApi';
-import type { TarotAssistantType, AssistantReadingResponse } from '../../lib/tarot';
+import type { TarotAssistantType } from '../../lib/tarot';
 import confetti from 'canvas-confetti';
 
 const ThreeCardReadingPage: React.FC = () => {
@@ -287,7 +286,7 @@ const ThreeCardReadingPage: React.FC = () => {
             if (revealedCards.every(Boolean) && !isResultUnlocked) {
                   const timer = setTimeout(() => {
                         setShowResultRevealModal(true);
-                  }, 500);
+                  }, 500); // Slight delay for dramatic effect
                   return () => clearTimeout(timer);
             }
       }, [revealedCards, isResultUnlocked]);
@@ -981,91 +980,70 @@ const ThreeCardReadingPage: React.FC = () => {
 
 
 
-                  {showResultRevealModal && (
-                        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 perspective-[1000px]">
-                              {/* Custom Animations */}
+
+                  {/* Scroll Hint (Appears after cards are revealed) */}
+                  {showResultRevealModal && !isResultUnlocked && (
+                        <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-40 text-center pointer-events-none animate-fade-in transition-opacity duration-500" style={{ animationDelay: '0.5s' }}>
+                              <p className="text-[10px] text-amber-200/50 uppercase tracking-[0.2em] mb-2 animate-pulse">운명이 도착했습니다</p>
+                              <i className="fas fa-chevron-down text-amber-500 text-xl animate-bounce"></i>
+                        </div>
+                  )}
+
+                  {/* Destiny Envelope Section (In-flow, requires scrolling) */}
+                  {showResultRevealModal && !isResultUnlocked && (
+                        <div className="relative w-full text-center py-20 md:py-32 animate-fade-in">
                               <style>
                                     {`
-                                          @keyframes flyInCenter {
-                                                0% { transform: translateY(-100vh) scale(0.5) rotate(5deg); opacity: 0; }
-                                                60% { transform: translateY(20px) scale(1.05) rotate(-2deg); opacity: 1; }
-                                                100% { transform: translateY(0) scale(1) rotate(0deg); opacity: 1; }
+                                          @keyframes gatherGold {
+                                                0% { transform: scale(3); filter: blur(20px); opacity: 0; }
+                                                50% { opacity: 0.5; }
+                                                100% { transform: scale(1); filter: blur(0); opacity: 1; }
                                           }
-                                          @keyframes shatterOpen {
-                                                0% { transform: scale(1); filter: brightness(1) blur(0px); opacity: 1; }
-                                                40% { transform: scale(1.2); filter: brightness(3) blur(2px); opacity: 0.8; }
-                                                100% { transform: scale(4); filter: brightness(10) blur(20px); opacity: 0; }
-                                          }
-                                          @keyframes sealPulse {
-                                                0%, 100% { transform: scale(1); filter: drop-shadow(0 0 10px rgba(217, 119, 6, 0.4)); }
-                                                50% { transform: scale(1.05); filter: drop-shadow(0 0 30px rgba(217, 119, 6, 0.8)); }
-                                          }
-                                          .animate-fly-in-center {
-                                                animation: flyInCenter 0.8s cubic-bezier(0.22, 1, 0.36, 1) forwards;
-                                          }
-                                          .animate-shatter-open {
-                                                animation: shatterOpen 0.9s ease-in forwards;
-                                          }
-                                          .animate-seal-pulse {
-                                                animation: sealPulse 2s ease-in-out infinite;
+                                          .animate-gather-gold {
+                                                animation: gatherGold 1.5s cubic-bezier(0.22, 1, 0.36, 1) forwards;
                                           }
                                     `}
                               </style>
 
-                              <div className={`absolute inset-0 bg-black backdrop-blur-2xl transition-opacity duration-1000 ${isOpening ? 'opacity-0' : 'animate-fade-in'}`} />
+                              <div className={`relative max-w-xl mx-auto cursor-pointer group transition-all duration-1000 ${isOpening ? 'opacity-0 scale-95 pointer-events-none' : 'animate-gather-gold'}`} onClick={handleOpenResult}>
 
-                              <div className={`relative bg-black border border-amber-500/10 p-12 rounded-[2.5rem] shadow-[0_0_120px_rgba(0,0,0,1)] text-center max-w-xl w-full space-y-10 overflow-hidden transform-style-3d ${isOpening ? 'animate-shatter-open' : 'animate-fly-in-center'}`}>
-                                    {/* Layers of Ambient Magic Dust */}
-                                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-amber-500/[0.03] blur-[150px] rounded-full animate-pulse-slow pointer-events-none" />
-                                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-3/4 h-3/4 bg-amber-600/[0.02] blur-[100px] rounded-full animate-pulse pointer-events-none" style={{ animationDelay: '1s' }} />
+                                    {/* Particle Focus Effect */}
+                                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full pointer-events-none">
+                                          <div className="absolute inset-0 bg-amber-500/10 blur-[60px] rounded-full animate-pulse-slow" />
+                                          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-1 h-32 bg-gradient-to-b from-transparent via-amber-500/20 to-transparent blur-sm" />
+                                          <div className="absolute top-1/2 left-0 -translate-y-1/2 h-1 w-full bg-gradient-to-r from-transparent via-amber-500/20 to-transparent blur-sm" />
+                                    </div>
 
-                                    {/* High-End Envelope Asset with Multi-Layered Glow */}
-                                    <div className="relative w-full aspect-[16/9] mx-auto z-10 animate-seal-pulse flex items-center justify-center scale-110">
+                                    {/* Envelope Asset */}
+                                    <div className="relative w-56 md:w-64 mx-auto mb-8 transition-transform duration-500 group-hover:scale-105 group-hover:-translate-y-2">
                                           <img
                                                 src="/assets/tarot/envelope.png"
                                                 alt="Destiny Envelope"
-                                                className="w-full h-full object-contain filter 
-                                                      drop-shadow-[0_0_20px_rgba(251,191,36,0.4)] 
-                                                      drop-shadow-[0_10px_40px_rgba(180,120,40,0.2)] 
-                                                      brightness-110 contrast-105"
+                                                className="w-full h-auto filter drop-shadow-[0_0_30px_rgba(251,191,36,0.2)] brightness-110"
                                           />
-                                          {/* Magic core pulse centered on the tree seal */}
-                                          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-24 h-24 bg-amber-400/20 blur-[50px] rounded-full animate-pulse pointer-events-none" />
+                                          {/* Seal Pulse */}
+                                          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-16 h-16 bg-amber-400/30 blur-[30px] rounded-full animate-pulse" />
                                     </div>
 
-                                    <div className="space-y-4 relative z-10 mt-4">
-                                          <h3 className="text-4xl font-serif text-transparent bg-clip-text bg-gradient-to-b from-amber-50 via-amber-300 to-amber-600 italic drop-shadow-[0_4px_8px_rgba(0,0,0,0.8)] tracking-tight">
-                                                운명의 메시지가 도착했습니다
+                                    <div className="space-y-3 relative z-10">
+                                          <h3 className="text-3xl md:text-4xl font-serif text-transparent bg-clip-text bg-gradient-to-b from-amber-100 via-amber-300 to-amber-600 italic drop-shadow-[0_4px_8px_rgba(0,0,0,0.8)]">
+                                                운명의 메시지 개봉
                                           </h3>
-                                          <p className="text-white/40 text-xs font-chakra tracking-widest leading-relaxed uppercase">
-                                                The wax seal is unbroken.<br />
-                                                Your destiny awaits within.
+                                          <p className="text-white/40 text-[10px] md:text-xs font-chakra tracking-[0.3em] uppercase group-hover:text-amber-400/80 transition-colors">
+                                                Click to reveal your destiny
                                           </p>
                                     </div>
 
-                                    <button
-                                          onClick={handleOpenResult}
-                                          disabled={isOpening}
-                                          className="group relative w-full py-4 rounded-xl font-bold font-chakra uppercase tracking-[0.2em] text-xs transition-all transform hover:scale-[1.02] active:scale-95 shadow-[0_0_30px_rgba(217,119,6,0.15)] hover:shadow-[0_0_50px_rgba(217,119,6,0.4)] overflow-hidden disabled:cursor-not-allowed"
-                                    >
-                                          <div className="absolute inset-0 bg-gradient-to-r from-amber-900 via-amber-700 to-amber-900 opacity-100 group-hover:opacity-90 transition-opacity" />
-                                          <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20" />
-                                          <div className="absolute inset-x-0 bottom-0 h-[1px] bg-gradient-to-r from-transparent via-amber-400 to-transparent opacity-50" />
-                                          <div className="absolute inset-x-0 top-0 h-[1px] bg-gradient-to-r from-transparent via-amber-400/30 to-transparent opacity-30" />
-
-                                          <span className="relative z-10 text-amber-100 group-hover:text-white flex items-center justify-center gap-2">
-                                                <i className="fas fa-magic text-amber-400/80 group-hover:text-amber-300 transition-transform group-hover:rotate-12"></i>
-                                                운명 봉인 해제
+                                    {/* Magic Button Visuals (Decoration) */}
+                                    <div className="mt-8 flex justify-center opacity-0 group-hover:opacity-100 transition-all duration-500 transform translate-y-4 group-hover:translate-y-0">
+                                          <span className="px-6 py-2 rounded-full border border-amber-500/30 text-amber-300 text-[10px] tracking-widest uppercase bg-amber-950/30">
+                                                봉인 해제
                                           </span>
-                                    </button>
-
-                                    {/* Shatter Flash Effect Overlay */}
-                                    {isOpening && (
-                                          <div className="absolute inset-0 bg-white z-50 animate-flash-white pointer-events-none" />
-                                    )}
+                                    </div>
                               </div>
                         </div>
                   )}
+
 
                   {isResultUnlocked && (
                         <div className="max-w-4xl mx-auto mt-12 animate-fade-in-up">
