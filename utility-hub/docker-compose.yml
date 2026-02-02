@@ -1,0 +1,16 @@
+version: '3.8'
+
+services:
+  backend :
+    build : ./backend
+    ports :
+      - "8080:8080"
+    container_name : utility-hub-backend
+    restart : always
+
+  frontend :
+    build : ./frontend
+    ports :
+      - "3000:80"
+    container_name : utility-hub-frontend
+    restart : always

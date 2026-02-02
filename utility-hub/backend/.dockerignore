@@ -1,0 +1,25 @@
+# 1. 빌드 결과물 (도커 내부에서 새로 빌드하거나 복사하므로 제외)
+#build/
+out/
+bin/
+
+# 2. Gradle/Maven 관련 설정 및 캐시
+.gradle/
+.mvn/
+target/
+
+# 3. 소스 제어 및 환경 설정
+.git
+.gitignore
+Dockerfile
+docker-compose.yml
+.dockerignore
+
+# 4. IDE 설정 파일
+.idea/
+.vscode/
+*.iml
+
+# 5. 민감한 정보 (로컬 DB 비번 등)
+*.env
+application-local.properties

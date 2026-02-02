@@ -5,9 +5,10 @@ interface GlassInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
       label?: string;
       error?: string;
       suffix?: React.ReactNode;
+      helperText?: string;
 }
 
-export const GlassInput: React.FC<GlassInputProps> = ({ label, error, suffix, className, ...props }) => {
+export const GlassInput: React.FC<GlassInputProps> = ({ label, error, suffix, className, helperText, ...props }) => {
       return (
             <div className="w-full">
                   {label && (
@@ -32,6 +33,9 @@ export const GlassInput: React.FC<GlassInputProps> = ({ label, error, suffix, cl
                               </div>
                         )}
                   </div>
+                  {helperText && !error && (
+                        <p className="mt-1 text-xs text-gray-500 dark:text-gray-400 ml-1">{helperText}</p>
+                  )}
                   {error && <p className="mt-1 text-xs text-red-500 ml-1">{error}</p>}
             </div>
       );
