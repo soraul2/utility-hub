@@ -35,10 +35,22 @@ public class TarotController {
             return ResponseEntity.ok(response);
       }
 
-      // 히스토리 조회를 위한 플레이스홀더 (추후 구현 예정)
-      @Operation(summary = "리딩 히스토리 조회 (미구현)", description = "사용자의 지난 타로 리딩 기록을 조회합니다.")
-      @GetMapping("/readings/history")
-      public ResponseEntity<String> getHistory() {
-            return ResponseEntity.ok("TODO: Implement History Logic");
+      @Operation(summary = "조수 리딩 생성", description = "기존 세션에 대해 특정 조수(페르소나)의 추가 해석을 생성합니다.")
+      @PostMapping("/readings/{sessionId}/assistants/{type}")
+      public ResponseEntity<TarotDTOs.AssistantReadingResponse> createAssistantReading(
+                  @PathVariable Long sessionId,
+                  @PathVariable TarotAssistantType type,
+                  @RequestParam(required = false, defaultValue = "false") boolean summary) {
+
+            // Note: This requires a method in TarotReadingService or a direct call to AI
+            // service
+            // For now, let's assume we need to add this logic to the service or a dedicated
+            // controller
+            // I'll add a temporary implementation calling the service if it exists, or
+            // suggest adding it.
+            // Since I saw generateAssistantReading in TarotReadingService, I should use it.
+            return ResponseEntity.ok(readingService.createAssistantReading(sessionId, type, summary));
       }
+
+      // 히스토리 조회를 위한 플레이스홀더 (추후 구현 예정)
 }

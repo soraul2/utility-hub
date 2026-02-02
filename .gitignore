@@ -36,3 +36,6 @@ __pycache__
 
 # Frontend specific
 .eslintcache
+
+# Database
+utility-hub/mysql_data/

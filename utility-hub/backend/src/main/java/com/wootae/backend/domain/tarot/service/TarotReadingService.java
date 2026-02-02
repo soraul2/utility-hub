@@ -1,6 +1,7 @@
 package com.wootae.backend.domain.tarot.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wootae.backend.domain.tarot.dto.TarotDTOs;
 import com.wootae.backend.domain.tarot.entity.TarotReadingSession;
@@ -123,5 +124,29 @@ public class TarotReadingService {
       @Transactional
       protected TarotReadingSession saveSession(TarotReadingSession session) {
             return readingRepository.save(session);
+      }
+
+      public TarotDTOs.AssistantReadingResponse createAssistantReading(Long sessionId, TarotAssistantType type,
+                  boolean summary) {
+            TarotReadingSession session = readingRepository.findById(sessionId)
+                        .orElseThrow(() -> new RuntimeException("Session not found with id: " + sessionId));
+
+            List<TarotDTOs.DrawnCardDto> cards;
+            try {
+                  cards = objectMapper.readValue(session.getDrawnCardsJson(),
+                              new TypeReference<List<TarotDTOs.DrawnCardDto>>() {
+                              });
+            } catch (JsonProcessingException e) {
+                  throw new RuntimeException("Failed to deserialize cards for assistant reading", e);
+            }
+
+            String aiReading = aiService.generateAssistantReading(session, cards, type, summary);
+
+            return TarotDTOs.AssistantReadingResponse.builder()
+                        .assistantType(type)
+                        .assistantName(type.getKoreanName())
+                        .assistantTitle(type.getDescription())
+                        .reading(aiReading)
+                        .build();
       }
 }

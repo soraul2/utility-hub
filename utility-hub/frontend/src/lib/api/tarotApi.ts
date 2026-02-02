@@ -1,15 +1,13 @@
 import type { AssistantReadingResponse, DailyCardResponse, TarotAssistantType, ThreeCardRequest, ThreeCardResponse } from '../tarot';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || `http://${window.location.hostname}:8080`;
-const API_PATH = import.meta.env.VITE_API_PATH || '/api/tarot';
-const BASE_URL = `${API_BASE_URL}${API_PATH}`;
+const BASE_URL = '/api/tarot';
 
 export const fetchDailyCard = async (userName?: string): Promise<DailyCardResponse> => {
       const params = userName ? `?userName=${encodeURIComponent(userName)}` : '';
       const response = await fetch(`${BASE_URL}/daily-card${params}`, {
             method: 'GET',
             headers: {
-                  'Content-Type': 'application/json; charset=UTF-8',
+                  'Content-Type': 'application/json',
             },
       });
 
@@ -25,7 +23,7 @@ export const createThreeCardReading = async (payload: ThreeCardRequest): Promise
       const response = await fetch(`${BASE_URL}/readings/three-cards`, {
             method: 'POST',
             headers: {
-                  'Content-Type': 'application/json; charset=UTF-8',
+                  'Content-Type': 'application/json',
             },
             body: JSON.stringify(payload),
       });
@@ -43,7 +41,7 @@ export const createAssistantReading = async (sessionId: number, type: TarotAssis
       const response = await fetch(`${BASE_URL}/readings/${sessionId}/assistants/${type}${query}`, {
             method: 'POST',
             headers: {
-                  'Content-Type': 'application/json; charset=UTF-8',
+                  'Content-Type': 'application/json',
             },
       });
 
