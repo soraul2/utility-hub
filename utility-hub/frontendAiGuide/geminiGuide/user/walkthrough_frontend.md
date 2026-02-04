@@ -1,0 +1,50 @@
+# 프론트엔드 구현 결과 보고서 (Walkthrough)
+
+## 1. 개요
+Gemini 팀은 Utility Hub 프론트엔드에 OAuth2 소셜 로그인 및 JWT 기반 세션 관리 시스템을 구현했습니다. Claude 팀의 리팩토링 과정을 거쳐 코드 품질을 높이고 보안 로직을 강화했습니다.
+
+## 2. 주요 구현 사항
+
+### 2.1 인증 상태 관리 (`AuthContext`)
+- `React.createContext`와 `useReducer`를 유사하게 활용하여 전역 인증 상태(`isAuthenticated`, `user`, `accessToken`)를 관리합니다.
+- 세션 복구 로직을 통해 브라우저 새로고침 시에도 `/api/user/me` 호출로 사용자 정보를 유지합니다.
+
+### 2.2 고퀄리티 로그인 UI (`LoginPage`)
+- **디자인**: Glassmorphism 테마가 적용된 세련된 배경과 애니메이션을 사용했습니다.
+- **기능**: 네이버, 구글 소셜 로그인 버튼을 제공하며, 로그인 전 요청했던 페이지를 `sessionStorage`를 통해 기억했다가 로그인 완료 후 복원합니다.
+
+### 2.3 API 통신 및 토큰 갱신 (`axiosInstance`)
+- 모든 요청 헤더에 `Authorization` 토큰을 자동 삽입합니다.
+- `401 Unauthorized` 에러 수신 시 Refresh Token을 사용해 자동으로 액세스 토큰을 갱신하며, 동시 다발적인 요청도 큐잉 로직을 통해 안전하게 재처리합니다.
+
+### 2.5 회원 기능 고도화 (회원 탈퇴)
+- **로직**: `AuthContext` 내에 `withdraw` 메서드를 추가하여 백엔드의 회원 탈퇴 API를 호출하고, 성공 시 즉시 세션을 파기합니다.
+- **UI**: 마이페이지 하단에 "회원 탈퇴" 버튼을 배치하고, 위험성을 시각적으로 알리는 전용 위험 톤 UI를 적용했습니다.
+
+### 2.6 프리미엄 UI/UX (ConfirmModal & Portal)
+- **디자인**: 브라우저 기본 컨펌창 대신 서비스 테마에 최적화된 글래스모피즘 스타일의 `ConfirmModal`을 자체 제작했습니다.
+- **기술적 해결**: 헤더나 레이아웃의 스타일 간섭으로 인한 위치 오류를 해결하기 위해 `React Portal`을 사용하여 모달을 `document.body` 레벨에서 렌더링합니다.
+- **적용**: 로그아웃 및 회원 탈퇴 등 중요한 결정을 내리는 모든 액션에 적용되어 사용자 경험을 향상시켰습니다.
+
+### 2.4 라우트 보호 (`ProtectedRoute`)
+- 인증이 필요한 페이지 접근을 제어하며, 권한(`allowedRoles`) 기반의 세분화된 접근 제어를 지원합니다.
+
+## 3. 테스트 및 검증 결과
+- **회원 탈퇴**: 탈퇴 요청 -> 백엔드 연동 -> 세션 초기화 및 랜딩 이동 확인.
+- **모달 위치**: 헤더 내 버튼 클릭 시에도 화면 정중앙에 정상 렌더링 확인.
+- **소셜 로그인**: 네이버/구글 로그인 → 콜백 수신 → 세션 복원으로 이어지는 전체 플로우 성공.
+- **페이지 복원**: `/tools/phone-cost` 등 보호된 페이지 접근 시 로그인 유도 후 성공 시 해당 페이지로 자동 귀환 확인.
+- **빌드 테스트**: `npm run build` 결과 0개의 에러로 성공 확인.
+
+## 4. 최종 파일 구조
+- `src/types/auth.ts`: 인터페이스 및 타입 정의
+- `src/context/AuthContext.tsx`: 전역 상태 공급자 (withdraw 로직 포함)
+- `src/api/axiosInstance.ts`: 인터셉터가 포함된 Axios 인스턴스
+- `src/components/ui/ConfirmModal.tsx`: 프리미엄 커스텀 모달 (Portal 적용)
+- `src/pages/LoginPage.tsx`: 로그인 화면
+- `src/pages/AuthCallbackPage.tsx`: 토큰 처리 및 리다이렉트 화면
+- `src/pages/MyPage.tsx`: 회원 정보 관리 및 탈퇴 UI
+
+---
+*작성자: Gemini (Antigravity)*
+*최종 업데이트: 2026-02-04*

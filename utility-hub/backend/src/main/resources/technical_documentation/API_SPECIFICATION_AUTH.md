@@ -145,11 +145,34 @@ curl -H "Authorization: Bearer {accessToken}" \
 | 401 | EXPIRED_REFRESH_TOKEN | Refresh Token 만료됨 |
 | 401 | INVALID_SIGNATURE | 토큰 서명 검증 실패 |
 
+     -d '{"refreshToken":"eyJ..."}'
+```
+
+---
+
+### 4. 회원 탈퇴 (Account Withdrawal)
+
+#### DELETE /api/user/me
+
+현재 인증된 사용자의 계정을 삭제하고 모든 정보를 폐기합니다.
+
+**요청 헤더**:
+```
+Authorization: Bearer {accessToken}
+```
+
+**응답 (204 No Content)**:
+- 성공적으로 탈퇴 처리됨. 응답 본문 없음.
+
+**오류 응답**:
+| 상태 | 오류 코드 | 설명 |
+|------|---------|------|
+| 401 | AUTH_UNAUTHORIZED | 인증 정보 없음 또는 유효하지 않은 토큰 |
+
 **예**:
 ```bash
-curl -X POST http://localhost:8080/api/auth/token/refresh \
-     -H "Content-Type: application/json" \
-     -d '{"refreshToken":"eyJ..."}'
+curl -X DELETE http://localhost:8080/api/user/me \
+     -H "Authorization: Bearer {accessToken}"
 ```
 
 ---

@@ -1,11 +1,14 @@
+import React, { useState } from 'react';
 import { useTheme } from '../context/ThemeContext';
 import { Link, useLocation } from 'react-router-dom';
 import classNames from 'classnames';
 import { useAuth } from '../hooks/useAuth';
+import { ConfirmModal } from '../components/ui/ConfirmModal';
 
 const Header = () => {
       const { theme, toggleTheme } = useTheme();
       const { isAuthenticated, user, logout } = useAuth();
+      const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
       const location = useLocation();
 
       const isHome = location.pathname === '/';
@@ -50,7 +53,7 @@ const Header = () => {
                                           </span>
                                     </Link>
                                     <button
-                                          onClick={logout}
+                                          onClick={() => setIsLogoutModalOpen(true)}
                                           className="text-sm text-gray-400 hover:text-red-500 transition-colors px-2 underline underline-offset-4"
                                     >
                                           로그아웃
@@ -76,6 +79,18 @@ const Header = () => {
                               {theme === 'light' ? <i className="fa-solid fa-moon"></i> : <i className="fa-solid fa-sun"></i>}
                         </button>
                   </div>
+
+                  {/* 로그아웃 확인 모달 */}
+                  <ConfirmModal
+                        isOpen={isLogoutModalOpen}
+                        onClose={() => setIsLogoutModalOpen(false)}
+                        onConfirm={logout}
+                        title="로그아웃 확인"
+                        message="정말로 로그아웃 하시겠습니까?"
+                        confirmText="로그아웃"
+                        cancelText="취소"
+                        variant="warning"
+                  />
             </header>
       );
 };

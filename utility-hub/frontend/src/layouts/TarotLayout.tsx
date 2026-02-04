@@ -1,9 +1,11 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Outlet, Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
+import { ConfirmModal } from '../components/ui/ConfirmModal';
 
 const TarotLayout: React.FC = () => {
       const { isAuthenticated, user, logout } = useAuth();
+      const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
       const location = useLocation();
 
       return (
@@ -30,7 +32,7 @@ const TarotLayout: React.FC = () => {
                                                             {user?.nickname}
                                                       </span>
                                                       <button
-                                                            onClick={logout}
+                                                            onClick={() => setIsLogoutModalOpen(true)}
                                                             className="text-sm text-slate-400 hover:text-red-400 transition-colors"
                                                       >
                                                             로그아웃
@@ -61,6 +63,18 @@ const TarotLayout: React.FC = () => {
                               <p className="text-xs mt-1 text-slate-600">이 리딩은 참고용 조언이며, 중요한 결정은 전문가와 상의하세요.</p>
                         </footer>
                   </div>
+
+                  {/* 로그아웃 확인 모달 */}
+                  <ConfirmModal
+                        isOpen={isLogoutModalOpen}
+                        onClose={() => setIsLogoutModalOpen(false)}
+                        onConfirm={logout}
+                        title="로그아웃 확인"
+                        message="정말로 로그아웃 하시겠습니까?"
+                        confirmText="로그아웃"
+                        cancelText="취소"
+                        variant="warning"
+                  />
             </div>
       );
 };

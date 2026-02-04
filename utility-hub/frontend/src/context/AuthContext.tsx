@@ -12,6 +12,7 @@ interface AuthContextType extends AuthState {
       error: AuthError | null;
       login: (accessToken: string, refreshToken: string, user: AuthUser) => void;
       logout: () => void;
+      withdraw: () => Promise<void>;
       restoreSession: () => Promise<void>;
       clearError: () => void;
 }
@@ -100,6 +101,21 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       }, []);
 
       /**
+       * 회원 탈퇴 처리 (백엔드 요청 후 세션 초기화)
+       */
+      const withdraw = useCallback(async () => {
+            try {
+                  await axiosInstance.delete('/user/me');
+                  logout();
+            } catch (err) {
+                  console.error('회원 탈퇴 실패:', err);
+                  const authError = mapErrorToAuthError(err);
+                  setError(authError);
+                  throw err;
+            }
+      }, [logout]);
+
+      /**
        * 저장된 토큰을 바탕으로 사용자 세션 복원
        */
       const restoreSession = useCallback(async () => {
@@ -142,10 +158,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
                   error,
                   login,
                   logout,
+                  withdraw,
                   restoreSession,
                   clearError,
             }),
-            [state, error, login, logout, restoreSession, clearError]
+            [state, error, login, logout, withdraw, restoreSession, clearError]
       );
 
       return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
