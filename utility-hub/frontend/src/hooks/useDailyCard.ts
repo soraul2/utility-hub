@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react';
 import { fetchDailyCard } from '../lib/api/tarotApi';
 import type { DailyCardResponse } from '../lib/tarot';
+import { ERROR_MESSAGES } from '../lib/constants/tarot';
 
 interface UseDailyCardReturn {
       data: DailyCardResponse | null;
@@ -22,7 +23,7 @@ export const useDailyCard = (): UseDailyCardReturn => {
                   const response = await fetchDailyCard(userName);
                   setData(response);
             } catch (err) {
-                  setError(err instanceof Error ? err.message : '알 수 없는 오류가 발생했습니다.');
+                  setError(err instanceof Error ? err.message : ERROR_MESSAGES.UNKNOWN);
             } finally {
                   setLoading(false);
             }

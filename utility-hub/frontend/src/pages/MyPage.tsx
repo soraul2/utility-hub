@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '../hooks/useAuth';
-import { ConfirmModal } from '../components/ui/ConfirmModal';
+import ConfirmModal from '../components/ui/ConfirmModal';
 
 /**
  * 사용자 프로필 및 계정 설정을 관리하는 페이지

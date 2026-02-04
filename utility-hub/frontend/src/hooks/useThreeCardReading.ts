@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react';
 import { createThreeCardReading } from '../lib/api/tarotApi';
 import type { ThreeCardRequest, ThreeCardResponse } from '../lib/tarot';
+import { ERROR_MESSAGES } from '../lib/constants/tarot';
 
 interface UseThreeCardReadingReturn {
       data: ThreeCardResponse | null;
@@ -22,7 +23,7 @@ export const useThreeCardReading = (): UseThreeCardReadingReturn => {
                   const response = await createThreeCardReading(payload);
                   setData(response);
             } catch (err) {
-                  setError(err instanceof Error ? err.message : '알 수 없는 오류가 발생했습니다.');
+                  setError(err instanceof Error ? err.message : ERROR_MESSAGES.UNKNOWN);
             } finally {
                   setLoading(false);
             }

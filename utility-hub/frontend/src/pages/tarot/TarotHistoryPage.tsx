@@ -1,8 +1,9 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getHistory, deleteReading } from '../../lib/api/tarotApi';
-import type { HistoryResponse, PageResponse } from '../../lib/tarot';
+import type { HistoryResponse, PageResponse, SpreadType } from '../../lib/tarot';
 import { useAuthStatus } from '../../hooks/useAuth';
+import { DEFAULT_PAGE_SIZE, SEARCH_DEBOUNCE_MS, ERROR_MESSAGES } from '../../lib/constants/tarot';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 import ErrorBanner from '../../components/common/ErrorBanner';
 import ShareModal from '../../components/ui/ShareModal';
@@ -15,7 +16,7 @@ const TarotHistoryPage: React.FC = () => {
       const [loading, setLoading] = useState(true);
       const [error, setError] = useState<string | null>(null);
       const [page, setPage] = useState(0);
-      const [selectedSpread, setSelectedSpread] = useState<string | undefined>(undefined);
+      const [selectedSpread, setSelectedSpread] = useState<SpreadType | undefined>(undefined);
       const [sortOrder, setSortOrder] = useState<'DESC' | 'ASC'>('DESC');
       const [searchTerm, setSearchTerm] = useState('');
       const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
@@ -27,18 +28,18 @@ const TarotHistoryPage: React.FC = () => {
       useEffect(() => {
             const timer = setTimeout(() => {
                   setDebouncedSearchTerm(searchTerm);
-            }, 500);
+            }, SEARCH_DEBOUNCE_MS);
             return () => clearTimeout(timer);
       }, [searchTerm]);
 
-      const fetchHistory = useCallback(async (pageNum: number, spread?: string, sort?: string, search?: string) => {
+      const fetchHistory = useCallback(async (pageNum: number, spread?: SpreadType, sort?: string, search?: string) => {
             setLoading(true);
             setError(null);
             try {
-                  const data = await getHistory(pageNum, 10, spread, sort, search);
+                  const data = await getHistory(pageNum, DEFAULT_PAGE_SIZE, spread, sort, search);
                   setHistory(data);
             } catch (err) {
-                  setError(err instanceof Error ? err.message : '기록을 불러오는데 실패했습니다.');
+                  setError(err instanceof Error ? err.message : ERROR_MESSAGES.UNKNOWN);
             } finally {
                   setLoading(false);
             }
@@ -68,8 +69,8 @@ const TarotHistoryPage: React.FC = () => {
                   // 단순화를 위해 현재 페이지 다시 불러오기
                   const sortParam = `createdAt,${sortOrder.toLowerCase()}`;
                   fetchHistory(page, selectedSpread, sortParam, debouncedSearchTerm);
-            } catch (err) {
-                  alert('기록 삭제에 실패했습니다.');
+            } catch {
+                  alert(ERROR_MESSAGES.DELETE_FAILED);
             }
       };
 
@@ -197,7 +198,7 @@ const TarotHistoryPage: React.FC = () => {
                               fetchHistory(page, selectedSpread, sortParam, debouncedSearchTerm);
                         }} />}
 
-                        {history?.content.length === 0 ? (
+                        {!history || history.content.length === 0 ? (
                               <div className="text-center py-20 bg-white/5 backdrop-blur-xl rounded-3xl border border-white/10">
                                     <i className="fas fa-scroll text-5xl text-slate-600 mb-6"></i>
                                     <p className="text-slate-400">
@@ -214,7 +215,7 @@ const TarotHistoryPage: React.FC = () => {
                               </div>
                         ) : (
                               <div className="space-y-6">
-                                    {history?.content.map((item) => (
+                                    {history?.content?.map((item) => (
                                           <div
                                                 key={item.sessionId}
                                                 onClick={() => navigate(`/tarot/share/${item.shareUuid}`)}

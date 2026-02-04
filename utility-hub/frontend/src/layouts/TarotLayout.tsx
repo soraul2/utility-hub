@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Outlet, Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { useTheme } from '../context/ThemeContext';
-import { ConfirmModal } from '../components/ui/ConfirmModal';
+import ConfirmModal from '../components/ui/ConfirmModal';
 
 const TarotLayout: React.FC = () => {
       const { isAuthenticated, user, logout } = useAuth();
@@ -85,16 +85,16 @@ const TarotLayout: React.FC = () => {
                         </footer>
                   </div>
 
-                  {/* 로그아웃 확인 모달 - Portal로 상위 레벨 렌더링되므로 레이아웃 영향 없음 */}
+                  {/* 로그아웃 확인 모달 */}
                   <ConfirmModal
                         isOpen={isLogoutModalOpen}
                         onClose={() => setIsLogoutModalOpen(false)}
                         onConfirm={logout}
                         title="로그아웃 확인"
                         message="정말로 로그아웃 하시겠습니까?"
-                        confirmText="로그아웃"
-                        cancelText="취소"
-                        variant="warning"
+                        confirmLabel="로그아웃"
+                        cancelLabel="취소"
+                        isDanger={false}
                   />
             </div>
       );

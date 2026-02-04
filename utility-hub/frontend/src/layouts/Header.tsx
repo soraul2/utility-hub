@@ -3,7 +3,7 @@ import { useTheme } from '../context/ThemeContext';
 import { Link, useLocation } from 'react-router-dom';
 import classNames from 'classnames';
 import { useAuth } from '../hooks/useAuth';
-import { ConfirmModal } from '../components/ui/ConfirmModal';
+import ConfirmModal from '../components/ui/ConfirmModal';
 
 const Header = () => {
       const { theme, toggleTheme } = useTheme();
@@ -87,9 +87,9 @@ const Header = () => {
                         onConfirm={logout}
                         title="로그아웃 확인"
                         message="정말로 로그아웃 하시겠습니까?"
-                        confirmText="로그아웃"
-                        cancelText="취소"
-                        variant="warning"
+                        confirmLabel="로그아웃"
+                        cancelLabel="취소"
+                        isDanger={false}
                   />
             </header>
       );

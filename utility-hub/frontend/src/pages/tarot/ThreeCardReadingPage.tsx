@@ -2,20 +2,25 @@ import React, { useState, useCallback, useEffect } from 'react';
 import { useThreeCardReading } from '../../hooks/useThreeCardReading';
 import { useGuestTarot } from '../../hooks/useGuestTarot';
 import { useAuthStatus } from '../../hooks/useAuth';
+import { useThreeCardForm } from '../../hooks/useThreeCardForm';
+import { useConfetti } from '../../hooks/useConfetti';
 import { ASSISTANTS, HIDDEN_ASSISTANT, type AssistantInfo } from '../../lib/tarot-assistants';
-import type { TarotTopic, UserGender, TarotAssistantType } from '../../lib/tarot';
+import { FORTUNA_PROBABILITY } from '../../lib/constants/tarot';
+import type { TarotAssistantType } from '../../lib/tarot';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 import ErrorBanner from '../../components/common/ErrorBanner';
 import InputFormStep from './components/InputFormStep';
 import CardSelectionStep from './components/CardSelectionStep';
 import LeaderSelectionStep from './components/LeaderSelectionStep';
 import ResultStep from './components/ResultStep';
-import confetti from 'canvas-confetti';
 
 const ThreeCardReadingPage: React.FC = () => {
   const { data, loading, error, createReading, reset } = useThreeCardReading();
   const { saveGuestSession } = useGuestTarot();
   const { isAuthenticated } = useAuthStatus();
+  const { triggerFortunaEffect } = useConfetti();
+  const form = useThreeCardForm();
+
   const [step, setStep] = useState<'input' | 'selection' | 'leader' | 'result'>('input');
   const [selectedLeader, setSelectedLeader] = useState<TarotAssistantType | null>(null);
 
@@ -29,13 +34,6 @@ const ThreeCardReadingPage: React.FC = () => {
   // Assistant State
   const [assistants, setAssistants] = useState<AssistantInfo[]>([]);
 
-  // Form State
-  const [question, setQuestion] = useState('');
-  const [topic, setTopic] = useState<TarotTopic>('GENERAL');
-  const [userName, setUserName] = useState('');
-  const [userAge, setUserAge] = useState('');
-  const [userGender, setUserGender] = useState<UserGender | ''>('');
-
   // Selection State
   const [selectedSlots, setSelectedSlots] = useState<(number | null)[]>([null, null, null]);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
@@ -45,35 +43,15 @@ const ThreeCardReadingPage: React.FC = () => {
   const [leaderPending, setLeaderPending] = useState<AssistantInfo | null>(null);
   const [showLeaderConfirmModal, setShowLeaderConfirmModal] = useState(false);
 
-  const triggerFortunaEffect = () => {
-    const duration = 3000;
-    const animationEnd = Date.now() + duration;
-    const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 0 };
-
-    const randomInRange = (min: number, max: number) => Math.random() * (max - min) + min;
-
-    const interval: ReturnType<typeof setInterval> = setInterval(function () {
-      const timeLeft = animationEnd - Date.now();
-
-      if (timeLeft <= 0) {
-        return clearInterval(interval);
-      }
-
-      const particleCount = 50 * (timeLeft / duration);
-      confetti({ ...defaults, particleCount, origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 } });
-      confetti({ ...defaults, particleCount, origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 } });
-    }, 250);
-  };
-
   const shuffleAssistants = useCallback(() => {
     const shuffled = [...ASSISTANTS].sort(() => 0.5 - Math.random()).slice(0, 3);
-    if (Math.random() < 0.01) {
+    if (Math.random() < FORTUNA_PROBABILITY) {
       const replaceIdx = Math.floor(Math.random() * 3);
       shuffled[replaceIdx] = HIDDEN_ASSISTANT;
       triggerFortunaEffect();
     }
     setAssistants(shuffled);
-  }, []);
+  }, [triggerFortunaEffect]);
 
   const handleProceedToSelection = useCallback(() => {
     setShowInputConfirmModal(false);
@@ -143,23 +121,23 @@ const ThreeCardReadingPage: React.FC = () => {
     if (leaderType === 'FORTUNA') triggerFortunaEffect();
 
     await createReading({
-      question,
-      topic,
-      userName: userName || undefined,
-      userAge: userAge ? parseInt(userAge, 10) : undefined,
-      userGender: userGender || undefined,
+      question: form.question,
+      topic: form.topic,
+      userName: form.userName || undefined,
+      userAge: form.userAge ? parseInt(form.userAge, 10) : undefined,
+      userGender: form.userGender || undefined,
       assistantType: leaderType
     });
     setStep('result');
-  }, [leaderPending, question, topic, userName, userAge, userGender, createReading]);
+  }, [leaderPending, form.question, form.topic, form.userName, form.userAge, form.userGender, createReading, triggerFortunaEffect]);
 
   const handleReset = useCallback(() => {
     reset();
     setStep('input');
-    setQuestion('');
+    form.resetForm();
     setSelectedSlots([null, null, null]);
     setSelectedLeader(null);
-  }, [reset]);
+  }, [reset, form]);
 
   if (loading) {
     const isFortuna = selectedLeader === 'FORTUNA';
@@ -212,16 +190,16 @@ const ThreeCardReadingPage: React.FC = () => {
   if (step === 'input') {
     return (
       <InputFormStep
-        question={question}
-        setQuestion={setQuestion}
-        topic={topic}
-        setTopic={setTopic}
-        userName={userName}
-        setUserName={setUserName}
-        userAge={userAge}
-        setUserAge={setUserAge}
-        userGender={userGender}
-        setUserGender={setUserGender}
+        question={form.question}
+        setQuestion={form.setQuestion}
+        topic={form.topic}
+        setTopic={form.setTopic}
+        userName={form.userName}
+        setUserName={form.setUserName}
+        userAge={form.userAge}
+        setUserAge={form.setUserAge}
+        userGender={form.userGender}
+        setUserGender={form.setUserGender}
         onProceed={handleProceedToSelection}
         showConfirmModal={showInputConfirmModal}
         setShowConfirmModal={setShowInputConfirmModal}
@@ -237,7 +215,7 @@ const ThreeCardReadingPage: React.FC = () => {
         onCardDeselect={handleCardDeselect}
         onConfirm={handleReveal}
         onBack={() => setStep('input')}
-        question={question}
+        question={form.question}
         showConfirmModal={showConfirmModal}
         setShowConfirmModal={setShowConfirmModal}
         onConfirmProceed={handleMoveToLeaderSelection}

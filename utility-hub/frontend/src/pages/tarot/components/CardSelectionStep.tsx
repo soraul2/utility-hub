@@ -1,6 +1,8 @@
 import React from 'react';
 import TarotCardView from '../../../components/tarot/TarotCardView';
+import ParticleEffect from '../../../components/effects/ParticleEffect';
 import { useDragScroll } from '../../../hooks/useDragScroll';
+import { TAROT_DECK_SIZE } from '../../../lib/constants/tarot';
 
 interface CardSelectionStepProps {
   selectedSlots: (number | null)[];
@@ -29,19 +31,7 @@ const CardSelectionStep: React.FC<CardSelectionStepProps> = ({
 
   return (
     <div className="relative py-4 px-4 flex flex-col items-center">
-      {/* Background Particles */}
-      <div className="bg-particles">
-        {[...Array(20)].map((_, i) => (
-          <div key={i} className="particle" style={{
-            left: `${Math.random() * 100}%`,
-            top: `${Math.random() * 100}%`,
-            width: `${Math.random() * 3 + 1}px`,
-            height: `${Math.random() * 3 + 1}px`,
-            animationDuration: `${Math.random() * 10 + 10}s`,
-            animationDelay: `${Math.random() * 5}s`
-          }} />
-        ))}
-      </div>
+      <ParticleEffect count={20} />
 
       <div className="relative z-20 w-full max-w-6xl mx-auto flex justify-start mb-8">
         <button onClick={onBack} className="group flex items-center gap-2 text-amber-500/60 hover:text-amber-400">
@@ -150,14 +140,15 @@ const CardSelectionStep: React.FC<CardSelectionStepProps> = ({
             <div ref={sliderRef} {...handlers}
               className="flex items-center justify-start overflow-x-auto pt-12 pb-20 md:pt-24 md:pb-24 w-full gold-scrollbar cursor-grab active:cursor-grabbing select-none mask-mystic pl-10 md:pl-0">
               <div className="flex items-center space-x-0 relative min-w-max px-32">
-                {[...Array(22)].map((_, i) => {
+                {[...Array(TAROT_DECK_SIZE)].map((_, i) => {
                   const isSelected = selectedSlots.includes(i);
-                  const rotation = (i - 10.5) * 3;
-                  const translateY = Math.abs(i - 10.5) * 6;
+                  const midPoint = (TAROT_DECK_SIZE - 1) / 2;
+                  const rotation = (i - midPoint) * 3;
+                  const translateY = Math.abs(i - midPoint) * 6;
                   return (
                     <button key={i} onClick={() => !isDragging && onCardSelect(i)}
                       className={`relative flex-shrink-0 w-28 h-44 md:w-44 md:h-64 transition-all duration-300 -ml-22 md:-ml-32 first:ml-0 ${isSelected ? 'opacity-0 scale-0' : 'group/deck-card'} hover:-translate-y-6 md:hover:-translate-y-10 hover:!z-[100] active:scale-105 active:-translate-y-6 active:!z-[100]`}
-                      style={{ zIndex: isSelected ? 0 : 22 - i, transform: `rotate(${rotation}deg) translateY(${translateY}px)` }}>
+                      style={{ zIndex: isSelected ? 0 : TAROT_DECK_SIZE - i, transform: `rotate(${rotation}deg) translateY(${translateY}px)` }}>
                       <div className="w-full h-full animate-chrarak-in" style={{ animationDelay: `${i * 50}ms` }}>
                         <TarotCardView isFaceDown={true} className="w-full h-full shadow-2xl rounded-xl border border-amber-500/20" />
                       </div>

@@ -4,11 +4,14 @@ import type {
       DailyCardResponse,
       HistoryResponse,
       PageResponse,
+      SpreadType,
       TarotAssistantType,
       ThreeCardRequest,
       ThreeCardResponse,
       ShareResponse
 } from '../tarot';
+import { cleanParams } from '../utils/api';
+import { DEFAULT_PAGE_SIZE } from '../constants/tarot';
 
 const BASE_URL = '/tarot';
 
@@ -39,13 +42,13 @@ export const createAssistantReading = async (
 
 export const getHistory = async (
       page: number = 0,
-      size: number = 10,
-      spreadType?: string,
+      size: number = DEFAULT_PAGE_SIZE,
+      spreadType?: SpreadType,
       sort?: string,
       search?: string
 ): Promise<PageResponse<HistoryResponse>> => {
       const response = await axiosInstance.get<PageResponse<HistoryResponse>>(`${BASE_URL}/history`, {
-            params: { page, size, spreadType, sort, search },
+            params: cleanParams({ page, size, spreadType, sort, search }),
       });
       return response.data;
 };

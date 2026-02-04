@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuthStatus } from '../../hooks/useAuth';
-import { ConfirmModal } from '../../components/ui/ConfirmModal';
+import ConfirmModal from '../../components/ui/ConfirmModal';
 
 const TarotHome: React.FC = () => {
       const { isAuthenticated } = useAuthStatus();

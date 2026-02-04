@@ -1,5 +1,7 @@
 export type TarotTopic = 'LOVE' | 'MONEY' | 'CAREER' | 'HEALTH' | 'GENERAL';
 export type UserGender = 'FEMALE' | 'MALE' | 'UNKNOWN';
+export type CardPosition = 'PAST' | 'PRESENT' | 'FUTURE' | 'DAILY';
+export type SpreadType = 'DAILY_ONE' | 'THREE_CARD';
 
 export interface TarotCard {
       id: string;
@@ -15,7 +17,7 @@ export interface TarotCard {
 }
 
 export interface DrawnCardDto {
-      position: string;
+      position: CardPosition;
       isReversed: boolean;
       cardInfo: TarotCard;
 }
@@ -46,7 +48,7 @@ export interface ThreeCardResponse {
 }
 
 export interface ShareResponse {
-      spreadType: 'DAILY_ONE' | 'THREE_CARD';
+      spreadType: SpreadType;
       question: string;
       userName: string;
       createdAt: string;
@@ -57,7 +59,7 @@ export interface ShareResponse {
 export interface HistoryResponse {
       sessionId: number;
       question: string;
-      spreadType: string;
+      spreadType: SpreadType;
       createdAt: string;
       shareUuid: string;
       summarySnippet: string;

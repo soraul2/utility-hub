@@ -1,6 +1,8 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import TarotCardView from '../../../components/tarot/TarotCardView';
+import ParticleEffect from '../../../components/effects/ParticleEffect';
 import { useDragScroll } from '../../../hooks/useDragScroll';
+import { DAILY_CARD_COUNT } from '../../../lib/constants/tarot';
 
 interface DailyCardSelectionViewProps {
   selectedCardIndex: number | null;
@@ -80,19 +82,7 @@ const DailyCardSelectionView: React.FC<DailyCardSelectionViewProps> = ({
 
   return (
     <>
-      {/* Background Particles */}
-      <div className="bg-particles hidden md:block">
-        {[...Array(20)].map((_, i) => (
-          <div key={i} className="particle" style={{
-            left: `${Math.random() * 100}%`,
-            top: `${Math.random() * 100}%`,
-            width: `${Math.random() * 3 + 1}px`,
-            height: `${Math.random() * 3 + 1}px`,
-            animationDuration: `${Math.random() * 10 + 10}s`,
-            animationDelay: `${Math.random() * 5}s`
-          }} />
-        ))}
-      </div>
+      <ParticleEffect count={20} className="bg-particles hidden md:block" />
 
       <div className="relative z-10 flex flex-col items-center justify-start min-h-[80vh] space-y-2 pt-0 pb-4 px-4 animate-fade-in-up">
         <div className="text-center space-y-4">
@@ -172,7 +162,7 @@ const DailyCardSelectionView: React.FC<DailyCardSelectionViewProps> = ({
               className="w-full overflow-x-auto scrollbar-none pt-20 pb-24 md:py-32 px-0 cursor-grab active:cursor-grabbing select-none mask-linear-both touch-pan-x flex items-center justify-start relative z-10 transform-gpu perspective-1000"
             >
               <div className="flex items-end justify-center px-[50vw] md:px-[calc(50vw-9rem)] relative min-w-max pb-4 md:pb-12">
-                {[...Array(10)].map((_, index) => {
+                {[...Array(DAILY_CARD_COUNT)].map((_, index) => {
                   const isSelected = selectedCardIndex === index;
                   const isSelectionActive = selectedCardIndex !== null;
 
