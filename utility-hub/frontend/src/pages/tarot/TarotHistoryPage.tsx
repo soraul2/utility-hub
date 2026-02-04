@@ -6,6 +6,7 @@ import { useAuthStatus } from '../../hooks/useAuth';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 import ErrorBanner from '../../components/common/ErrorBanner';
 import ShareModal from '../../components/ui/ShareModal';
+import ConfirmModal from '../../components/ui/ConfirmModal';
 
 const TarotHistoryPage: React.FC = () => {
       const navigate = useNavigate();
@@ -20,6 +21,7 @@ const TarotHistoryPage: React.FC = () => {
       const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
       const [isSearchVisible, setIsSearchVisible] = useState(false);
       const [shareModalData, setShareModalData] = useState<{ isOpen: boolean; url: string }>({ isOpen: false, url: '' });
+      const [deleteModalData, setDeleteModalData] = useState<{ isOpen: boolean; sessionId: number | null }>({ isOpen: false, sessionId: null });
 
       // Debounce logic
       useEffect(() => {
@@ -54,10 +56,14 @@ const TarotHistoryPage: React.FC = () => {
       }, [isAuthenticated, isAuthLoading, page, selectedSpread, sortOrder, debouncedSearchTerm, fetchHistory, navigate]);
 
       const handleDelete = async (sessionId: number) => {
-            if (!window.confirm('정말 이 기록을 삭제하시겠습니까?')) return;
+            setDeleteModalData({ isOpen: true, sessionId });
+      };
+
+      const executeDelete = async () => {
+            if (deleteModalData.sessionId === null) return;
 
             try {
-                  await deleteReading(sessionId);
+                  await deleteReading(deleteModalData.sessionId);
                   // 만약 현재 페이지의 마지막 아이템을 삭제했고, 현재 페이지가 0보다 크다면 이전 페이지로 이동 검토 필요
                   // 단순화를 위해 현재 페이지 다시 불러오기
                   const sortParam = `createdAt,${sortOrder.toLowerCase()}`;
@@ -304,6 +310,17 @@ const TarotHistoryPage: React.FC = () => {
                         isOpen={shareModalData.isOpen}
                         onClose={() => setShareModalData({ ...shareModalData, isOpen: false })}
                         shareUrl={shareModalData.url}
+                  />
+
+                  <ConfirmModal
+                        isOpen={deleteModalData.isOpen}
+                        onClose={() => setDeleteModalData({ isOpen: false, sessionId: null })}
+                        onConfirm={executeDelete}
+                        title="기록 삭제"
+                        message="정말 이 운명의 기록을 영구히 삭제하시겠습니까? 삭제된 기록은 복구할 수 없습니다."
+                        confirmLabel="삭제하기"
+                        cancelLabel="유지하기"
+                        isDanger={true}
                   />
             </div>
       );
