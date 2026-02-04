@@ -37,13 +37,18 @@ axiosInstance.interceptors.request.use(
  * 응답 인터셉터: 401 에러(만료된 토큰) 처리
  */
 let isRefreshing = false;
-let failedQueue: any[] = [];
 
-const processQueue = (error: any, token: string | null = null) => {
+interface QueueItem {
+      resolve: (token: string) => void;
+      reject: (error: unknown) => void;
+}
+let failedQueue: QueueItem[] = [];
+
+const processQueue = (error: unknown, token: string | null = null) => {
       failedQueue.forEach((prom) => {
             if (error) {
                   prom.reject(error);
-            } else {
+            } else if (token) {
                   prom.resolve(token);
             }
       });

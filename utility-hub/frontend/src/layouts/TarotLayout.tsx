@@ -1,7 +1,11 @@
 import React from 'react';
-import { Outlet, Link } from 'react-router-dom';
+import { Outlet, Link, useLocation } from 'react-router-dom';
+import { useAuth } from '../hooks/useAuth';
 
 const TarotLayout: React.FC = () => {
+      const { isAuthenticated, user, logout } = useAuth();
+      const location = useLocation();
+
       return (
             <div className="min-h-screen bg-[#050816] text-slate-100 relative overflow-hidden font-sans">
                   {/* Background Effects */}
@@ -9,7 +13,6 @@ const TarotLayout: React.FC = () => {
                         <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-indigo-900/40 via-[#050816] to-[#050816]"></div>
                         <div className="absolute top-[20%] left-[20%] w-72 h-72 bg-purple-600/10 rounded-full blur-[100px]"></div>
                         <div className="absolute bottom-[20%] right-[20%] w-96 h-96 bg-blue-600/10 rounded-full blur-[100px]"></div>
-                        {/* Stars (CSS or SVG can be added here, keeping it simple for now) */}
                   </div>
 
                   {/* Content */}
@@ -19,9 +22,33 @@ const TarotLayout: React.FC = () => {
                                     <Link to="/tarot" className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-200 to-blue-200" style={{ fontFamily: '"Chakra Petch", sans-serif' }}>
                                           Mystic Tarot
                                     </Link>
-                                    <Link to="/" className="text-sm text-slate-400 hover:text-white transition-colors">
-                                          <i className="fas fa-home mr-2"></i>메인으로
-                                    </Link>
+                                    <div className="flex items-center gap-4">
+                                          {isAuthenticated ? (
+                                                <>
+                                                      <span className="text-sm text-slate-300">
+                                                            <i className="fas fa-user mr-1"></i>
+                                                            {user?.nickname}
+                                                      </span>
+                                                      <button
+                                                            onClick={logout}
+                                                            className="text-sm text-slate-400 hover:text-red-400 transition-colors"
+                                                      >
+                                                            로그아웃
+                                                      </button>
+                                                </>
+                                          ) : (
+                                                <Link
+                                                      to="/login"
+                                                      state={{ from: location }}
+                                                      className="px-4 py-1.5 rounded-lg bg-purple-600/80 hover:bg-purple-600 text-white text-sm font-medium transition-colors"
+                                                >
+                                                      로그인
+                                                </Link>
+                                          )}
+                                          <Link to="/" className="text-sm text-slate-400 hover:text-white transition-colors">
+                                                <i className="fas fa-home mr-1"></i>메인으로
+                                          </Link>
+                                    </div>
                               </div>
                         </header>
 

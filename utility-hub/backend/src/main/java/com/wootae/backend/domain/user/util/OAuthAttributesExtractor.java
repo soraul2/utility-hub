@@ -46,26 +46,33 @@ public class OAuthAttributesExtractor {
        */
       private static UserProfile extractNaverProfile(Map<String, Object> attributes) {
             Map<String, Object> response = (Map<String, Object>) attributes.get("response");
-            
+
             // [개선] Naver 응답 검증
             if (response == null) {
                   throw new IllegalArgumentException("Naver OAuth2 응답이 올바르지 않습니다");
             }
-            
+
             String providerId = (String) response.get("id");
             String nickname = (String) response.get("nickname");
+            String name = (String) response.get("name");
             String email = (String) response.get("email");
-            
+
             // [개선] 필수 필드 검증
             if (providerId == null || providerId.isBlank()) {
                   throw new IllegalArgumentException("Naver providerId가 비어있거나 null입니다");
             }
-            if (nickname == null || nickname.isBlank()) {
-                  throw new IllegalArgumentException("Naver nickname이 비어있거나 null입니다");
+
+            // nickname이 없으면 name 사용, 둘 다 없으면 "네이버사용자" 기본값
+            String displayName = nickname;
+            if (displayName == null || displayName.isBlank()) {
+                  displayName = name;
             }
-            
+            if (displayName == null || displayName.isBlank()) {
+                  displayName = "네이버사용자";
+            }
+
             log.debug("Naver 사용자 프로필 추출 완료: providerId={}", providerId);
-            return new UserProfile(providerId, nickname, email, AuthProvider.NAVER);
+            return new UserProfile(providerId, displayName, email, AuthProvider.NAVER);
       }
 
       /**

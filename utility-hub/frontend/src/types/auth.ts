@@ -31,3 +31,33 @@ export interface TokenResponse {
       tokenType: string;
       expiresIn: number;
 }
+
+/**
+ * 인증 에러 인터페이스
+ */
+export interface AuthError {
+      code: AuthErrorCode;
+      message: string;
+      timestamp?: number;
+}
+
+/**
+ * 인증 에러 코드
+ */
+export type AuthErrorCode =
+      | 'INVALID_TOKEN'
+      | 'TOKEN_EXPIRED'
+      | 'REFRESH_FAILED'
+      | 'SESSION_RESTORE_FAILED'
+      | 'NETWORK_ERROR'
+      | 'UNAUTHORIZED'
+      | 'UNKNOWN';
+
+/**
+ * 리다이렉트 위치 상태
+ */
+export interface LocationState {
+      from?: {
+            pathname: string;
+      };
+}

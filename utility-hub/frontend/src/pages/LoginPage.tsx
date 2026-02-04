@@ -1,18 +1,22 @@
 import React from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { Navigate, useLocation } from 'react-router-dom';
+import type { LocationState } from '../types/auth';
+
+type SocialProvider = 'naver' | 'google';
 
 /**
  * 유틸리티 허브 프리미엄 로그인 페이지
- * 
+ *
  * - Glassmorphism UI 적용
  * - 네이버/구글 소셜 로그인 지원
  * - 반응형 디자인
  */
 const LoginPage: React.FC = () => {
-      const { isAuthenticated } = useAuth();
+      const { isAuthenticated, error, clearError } = useAuth();
       const location = useLocation();
-      const from = (location.state as any)?.from?.pathname || '/';
+      const state = location.state as LocationState | null;
+      const from = state?.from?.pathname || '/';
 
       // 이미 인증된 경우 요청했던 페이지로 리다이렉트
       if (isAuthenticated) {
@@ -23,7 +27,12 @@ const LoginPage: React.FC = () => {
        * 소셜 로그인 핸들러
        * 백엔드의 OAuth2 시작 엔드포인트로 리다이렉트합니다.
        */
-      const handleSocialLogin = (provider: 'naver' | 'google') => {
+      const handleSocialLogin = (provider: SocialProvider) => {
+            clearError();
+            // OAuth 완료 후 돌아올 경로를 sessionStorage에 저장
+            console.log('[LoginPage] from 경로:', from);
+            console.log('[LoginPage] location.state:', location.state);
+            sessionStorage.setItem('oauth_redirect_path', from);
             window.location.href = `/api/oauth2/authorization/${provider}`;
       };
 
@@ -31,7 +40,10 @@ const LoginPage: React.FC = () => {
             <div className="min-h-screen flex items-center justify-center bg-[#0f172a] relative overflow-hidden font-sans">
                   {/* 배경 장식 애니메이션 요소 */}
                   <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-blue-600/20 rounded-full blur-[120px] animate-pulse"></div>
-                  <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-indigo-600/20 rounded-full blur-[120px] animate-pulse" style={{ animationDelay: '2s' }}></div>
+                  <div
+                        className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-indigo-600/20 rounded-full blur-[120px] animate-pulse"
+                        style={{ animationDelay: '2s' }}
+                  ></div>
 
                   {/* 로그인 카드 */}
                   <div className="relative z-10 w-full max-w-md p-8 md:p-12 mx-4 bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl shadow-2xl">
@@ -44,6 +56,13 @@ const LoginPage: React.FC = () => {
                                     나만의 규칙과 기록을 <span className="text-blue-400 font-medium">안전하게</span> 관리하세요.
                               </p>
                         </div>
+
+                        {/* 에러 메시지 표시 */}
+                        {error && (
+                              <div className="mb-6 p-4 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-sm text-center">
+                                    {error.message}
+                              </div>
+                        )}
 
                         <div className="space-y-4">
                               {/* 네이버 로그인 버튼 */}

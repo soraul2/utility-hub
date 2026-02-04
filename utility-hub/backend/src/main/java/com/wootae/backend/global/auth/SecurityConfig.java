@@ -50,6 +50,9 @@ public class SecurityConfig {
                                     // Auth
                                     .requestMatchers("/api/auth/**").permitAll()
                                     .requestMatchers("/login/oauth2/**").permitAll()
+                                    // OAuth2 인증 엔드포인트 허용
+                                    .requestMatchers("/api/oauth2/authorization/**").permitAll()
+                                    .requestMatchers("/oauth2/authorization/**").permitAll()
                                     // Public
                                     .requestMatchers("/", "/css/**", "/images/**", "/js/**", "/favicon.ico").permitAll()
                                     // Features (Public for now)
@@ -60,6 +63,9 @@ public class SecurityConfig {
                                     .anyRequest().authenticated())
 
                         .oauth2Login(oauth2 -> oauth2
+                                    // OAuth2 인증 요청 경로 설정 (프론트엔드와 일치)
+                                    .authorizationEndpoint(authorization -> authorization
+                                                .baseUri("/api/oauth2/authorization"))
                                     .userInfoEndpoint(userInfo -> userInfo.userService(customOAuth2UserService))
                                     .successHandler(oAuth2AuthenticationSuccessHandler))
 

@@ -11,6 +11,7 @@ import DailyCardPage from './pages/tarot/DailyCardPage';
 import ThreeCardReadingPage from './pages/tarot/ThreeCardReadingPage';
 import LoginPage from './pages/LoginPage';
 import AuthCallbackPage from './pages/AuthCallbackPage';
+import MyPage from './pages/MyPage';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 
 function App() {
@@ -23,14 +24,15 @@ function App() {
 
         <Route path="/" element={<MainLayout />}>
           <Route index element={<Dashboard />} />
+          {/* 마이페이지 (로그인 필요) */}
+          <Route element={<ProtectedRoute />}>
+            <Route path="mypage" element={<MyPage />} />
+          </Route>
           <Route path="tools">
             <Route path="pomodoro" element={<Pomodoro />} />
             <Route path="mulching-film" element={<MulchingFilm />} />
             <Route path="text-to-md" element={<TextToMd />} />
-            {/* 보호된 라우트 예시: 폰 비용 계산기는 로그인 필요 */}
-            <Route element={<ProtectedRoute />}>
-              <Route path="phone-cost" element={<PhoneCost />} />
-            </Route>
+            <Route path="phone-cost" element={<PhoneCost />} />
           </Route>
           {/* Catch all */}
           <Route path="*" element={<Navigate to="/" replace />} />

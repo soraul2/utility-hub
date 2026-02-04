@@ -59,6 +59,7 @@ const Header = () => {
                         ) : (
                               <Link
                                     to="/login"
+                                    state={{ from: location }}
                                     className="px-4 py-2 rounded-xl bg-blue-500 hover:bg-blue-600 text-white text-sm font-bold transition-all shadow-md shadow-blue-500/20 active:scale-95"
                               >
                                     로그인
