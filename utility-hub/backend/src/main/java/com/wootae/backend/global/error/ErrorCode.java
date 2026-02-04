@@ -16,7 +16,22 @@ public enum ErrorCode {
 
       // AI Provider
       AI_PROVIDER_ERROR(HttpStatus.BAD_GATEWAY, "AI_001", "AI 서비스 연동 중 오류가 발생했습니다."),
-      AI_TIMEOUT(HttpStatus.GATEWAY_TIMEOUT, "AI_002", "AI 서비스 응답 시간이 초과되었습니다.");
+      AI_TIMEOUT(HttpStatus.GATEWAY_TIMEOUT, "AI_002", "AI 서비스 응답 시간이 초과되었습니다."),
+
+      // Auth
+      AUTH_UNSUPPORTED_PROVIDER(HttpStatus.BAD_REQUEST, "AUTH_001", "지원하지 않는 인증 공급자입니다."),
+      AUTH_USER_CREATE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "AUTH_002", "사용자 생성 중 오류가 발생했습니다."),
+      AUTH_UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "AUTH_003", "인증이 필요합니다."),
+
+      // OAuth2
+      OAUTH2_FAILED(HttpStatus.BAD_REQUEST, "OAUTH2_001", "소셜 로그인 중 오류가 발생했습니다."),
+
+      // Token
+      TOKEN_INVALID(HttpStatus.UNAUTHORIZED, "TOKEN_001", "유효하지 않은 토큰입니다."),
+      TOKEN_EXPIRED(HttpStatus.UNAUTHORIZED, "TOKEN_002", "만료된 토큰입니다."),
+
+      // System
+      INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "COMMON_500", "서버 내부 오류가 발생했습니다.");
 
       private final HttpStatus status;
       private final String code;

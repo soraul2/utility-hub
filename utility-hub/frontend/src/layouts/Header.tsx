@@ -1,9 +1,11 @@
 import { useTheme } from '../context/ThemeContext';
 import { Link, useLocation } from 'react-router-dom';
 import classNames from 'classnames';
+import { useAuth } from '../hooks/useAuth';
 
 const Header = () => {
       const { theme, toggleTheme } = useTheme();
+      const { isAuthenticated, user, logout } = useAuth();
       const location = useLocation();
 
       const isHome = location.pathname === '/';
@@ -33,7 +35,38 @@ const Header = () => {
                   </div>
 
                   {/* Right Actions */}
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-3">
+                        {isAuthenticated ? (
+                              <div className="flex items-center gap-2">
+                                    <Link
+                                          to="/mypage"
+                                          className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-gray-100 dark:bg-gray-700/50 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+                                    >
+                                          <div className="w-6 h-6 rounded-full bg-blue-500 flex items-center justify-center text-[10px] text-white font-bold">
+                                                {user?.nickname?.charAt(0)}
+                                          </div>
+                                          <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                                {user?.nickname}
+                                          </span>
+                                    </Link>
+                                    <button
+                                          onClick={logout}
+                                          className="text-sm text-gray-400 hover:text-red-500 transition-colors px-2 underline underline-offset-4"
+                                    >
+                                          로그아웃
+                                    </button>
+                              </div>
+                        ) : (
+                              <Link
+                                    to="/login"
+                                    className="px-4 py-2 rounded-xl bg-blue-500 hover:bg-blue-600 text-white text-sm font-bold transition-all shadow-md shadow-blue-500/20 active:scale-95"
+                              >
+                                    로그인
+                              </Link>
+                        )}
+
+                        <div className="w-px h-4 bg-gray-200 dark:bg-gray-700 mx-1"></div>
+
                         <button
                               onClick={toggleTheme}
                               className="w-10 h-10 rounded-xl flex items-center justify-center transition-all bg-gray-100 dark:bg-gray-700/50 text-gray-600 dark:text-yellow-300 hover:scale-105 active:scale-95"

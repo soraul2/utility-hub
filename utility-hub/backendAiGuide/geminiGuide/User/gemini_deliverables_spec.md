@@ -1,100 +1,65 @@
-# Gemini 팀 작업 명세 및 산출물 가이드 (Based on Perplexity Design)
+# Gemini 팀 작업 명세 및 산출물 가이드 (Utility Hub 설계 기준)
 
-이 문서는 `collaborationGuide`와 `perplexityGuide`의 산출물(`design_spec_backend.md`, `backend_checklist_dev.md`)을 바탕으로 **Gemini(Antigravity) 팀**이 수행해야 할 구체적인 작업 내용과 제출해야 할 산출물을 정의합니다.
-
----
-
-## 1. 개요 및 역할 (Role & Responsibility)
-
-*   **Role**: **Backend Main Builder (Spring Boot 구현 및 Spring AI 연동)**
-*   **책임**: Perplexity가 설계한 API 명세와 도메인 규칙을 바탕으로, 실제 동작하는 Spring Boot 애플리케이션을 구현하고 테스트합니다.
-*   **목표**: `design_spec_backend.md`의 스펙을 100% 준수하는 무결점 백엔드 코드 작성.
+이 문서는 Gemini 팀의 최종 산출물을 정의하며, Claude 팀의 리팩토링 결과물을 포함하여 **운영 수준(Production Ready)**의 품질을 보장합니다.
 
 ---
 
-## 2. 필수 산출물 (Deliverables)
+## 1. 개요 및 역할 (R&R)
 
-Gemini 팀은 작업 과정에서 다음 4가지 핵심 산출물을 반드시 생성하고 유지 관리해야 합니다.
+*   **역할**: **백엔드 메인 빌더 및 시스템 통합**
+*   **책임**: 소셜 로그인(OAuth2)과 JWT 인증 시스템의 핵심을 구현하고, 리팩토링 및 보안 강화 과정을 거쳐 최종 시스템을 완성합니다.
+*   **목표**: `design_spec_backend.md`의 스펙을 100% 준수하고, 보안/확장성이 확보된 기술 문서를 포함한 결과 제작.
 
-### 2.1. 구현 계획서 (`implementation_plan.md`)
-*   **위치**: `<appDataDir>/brain/<conversation-id>/implementation_plan.md` 또는 `geminiGuide/User/implementation_plan.md` (프로젝트 규칙에 따름)
-*   **내용**:
-    *   Perplexity의 `design_spec_backend.md` 분석 결과
-    *   생성할 패키지 및 클래스 목록 (Controller, Service, Repository, DTO 등)
-    *   작업 단계별 순서 (Scaffolding -> Domain -> Security -> API -> Test)
-    *   제약 사항 및 의존성 확인
+---
 
-### 2.2. 백엔드 소스 코드 (Source Code)
-*   **위치**: `backend/src/main/java/com/lottomarket/...` (지정된 패키지 구조)
-*   **내용**:
-    *   **Architecture**: Controller -> Service -> Repository 구조 준수
-    *   **Stack**: Spring Boot, Spring Security, Spring Data JPA, JWT Implementation
-    *   **Naming**: Class(PascalCase), Method(camelCase) 등 팀 컨벤션 준수
+## 2. 필수 산출물 (수정 및 보완)
 
-### 2.3. 테스트 코드 및 결과 (Tests)
+Gemini 팀은 작업 과정에서 다음 핵심 산출물을 생성 및 통합 관리합니다.
+
+### 2.1. 구현 계획서 및 보완 보고서 (`implementation_plan.md`)
+*   **내용**: 초기 구현 계획 및 Claude 팀의 리팩토링(Tier 1-3) 사항을 반영한 최종 통합 계획.
+
+### 2.2. 리팩토링된 백엔드 소스 코드
+*   **위치**: `backend/src/main/java/com/wootae/backend/`
+*   **핵심 개선 사항**:
+    *   보안 필터 예외 처리 강화
+    *   OAuth2 입력값 검증 (NPE 방지)
+    *   설정값 외부화 (@Value, Environment)
+    *   클래스 분리를 통한 단일 책임 원칙(SRP) 준수
+
+### 2.3. 테스트 코드 및 결과 (고도화됨)
 *   **위치**: `backend/src/test/java/...`
-*   **내용**:
-    *   **Unit Test**: Service 레이어 주요 비즈니스 로직 (AuthService, JwtTokenService 등)
-    *   **Integration Test**: Controller 레이어 API 테스트 (`@WebMvcTest` or `@SpringBootTest`)
-    *   **목표**: `mvn test` 통과 및 커버리지 확보 (권장 80%+)
+*   **범위**: JWT 필터, OAuth2 서비스, 성공 핸들러, 사용자 컨트롤러 (총 15개 이상의 시나리오 커버)
 
-### 2.4. 구현 결과 보고서 (`walkthrough_backend.md`)
-*   **위치**: `geminiGuide/User/walkthrough_backend.md` (또는 지정된 아티팩트 위치)
-*   **내용**:
-    *   구현된 기능 요약
-    *   테스트 실행 결과 (스크린샷 또는 로그 증빙)
-    *   API 동작 검증 (Postman/Curl 테스트 결과)
-    *   `design_spec_backend.md`와의 일치 여부 자가 점검 (Compliance Check)
+### 2.4. 통합 기술 문서 (technical_documentation/)
+*   **위치**: `backend/src/main/resources/technical_documentation/`
+*   1. **README_BACKEND_AUTH.md**: 아키텍처 및 설정 가이드
+*   2. **API_SPECIFICATION_AUTH.md**: 상세 API 명세 (Curl/JS 예제 포함)
+*   3. **SECURITY_GUIDELINES.md**: 보안 가이드 및 배포 체크리스트
+*   4. **DESIGN_VS_IMPLEMENTATION.md**: 설계 대비 구현 현황 분석
 
 ---
 
-## 3. 상세 작업 명세 (Work Specification)
+## 3. 상세 작업 명세 (최종 통합본)
 
-`design_spec_backend.md` (Auth v1)에 기반한 구체적인 구현 항목입니다.
+### 3.1. 도메인 레이어 (`com.wootae.backend.domain.user`)
+- [x] **User 엔티티 및 Repository**: `update` 메서드 및 Javadoc 추가로 완성도 향상.
 
-### 3.1. 도메인 및 DB 모델링 (`com.lottomarket.auth.domain`)
-- [ ] **User Entity 구현**:
-    - 필드: `id`, `email`, `nickname`, `provider`(Enum), `providerId`, `role`(Enum), `premium`, `premiumUntil`, timestamps
-    - 제약조건: `(provider, providerId)` 유니크 인덱스 설정
-- [ ] **Repository 구현**: `UserRepository` (findByProviderAndProviderId 등)
-- [ ] **Enums**: `AuthProvider(NAVER, GOOGLE)`, `UserRole(ROLE_USER, ROLE_ADMIN)`
+### 3.2. 보안 레이어 (`com.wootae.backend.global.auth`)
+- [x] **보안 강화 필터**: `JwtAuthenticationFilter`에 try-catch 및 로깅 적용.
+- [x] **OAuth2 로직 고도화**: `UserProfile` DTO와 `OAuthAttributesExtractor` 유틸리티로 로직 분리 및 검증 강화.
+- [x] **설정 외부화**: 토큰 시간, 콜백 URL, CORS 허용 도메인을 프로파일별로 관리.
 
-### 3.2. 보안 및 인증 (`com.lottomarket.auth.config` / `service`)
-- [ ] **Spring Security 설정**:
-    - Stateless Session 정책 설정
-    - CSRF Disable (JWT 사용)
-    - CORS 설정 (React 프론트엔드 허용)
-- [ ] **OAuth2/JWT 구현**:
-    - `CustomOAuth2UserService`: 소셜 로그인 후 유저 정보 매핑
-    - `JwtTokenService`: Access(1h)/Refresh(14d) 토큰 발급, 검증, 파싱 로직
-    - `JwtAuthenticationFilter`: 요청 헤더에서 JWT 추출 및 인증 처리
-
-### 3.3. API 구현 (`com.lottomarket.auth.controller`)
-- [ ] **POST /api/auth/oauth2/{provider}/login**
-    - 소셜 인증 코드/토큰 수신 -> User 생성/갱신 -> JWT 발급 및 반환
-- [ ] **GET /api/auth/me**
-    - `Authorization: Bearer {token}` 헤더 확인 -> 현재 내 정보 반환
-- [ ] **POST /api/auth/token/refresh**
-    - Refresh Token 검증 -> Access Token 재발급
-
-### 3.4. 예외 처리 및 표준 준수 (`com.lottomarket.global.error`)
-- [ ] **Global Exception Handler**: 모든 예외를 공통 JSON 포맷으로 반환
-- [ ] **Error Response Format**:
-    ```json
-    { "code": "AUTH_001", "message": "...", "details": null }
-    ```
-- [ ] **Error Codes**: `AUTH_001` (지원하지 않는 Provider), `TOKEN_001` (유효하지 않은 토큰) 등 Perplexity 스펙 준수
+### 3.3. API 및 예외 처리
+- [x] **Controller**: `@Slf4j` 기반 상세 로깅 추가 및 API 경로별 권한 설정 완료.
+- [x] **Error Handling**: 모든 예외 상황에 대한 표준 에러 응답 체계 확립.
 
 ---
 
-## 4. 작업 프로세스 (Workflow)
+## 4. 최종 확인 및 이수
 
-1.  **Planning**: `implementation_plan.md` 작성 후 사용자(Perplexity 대리) 승인 요청.
-2.  **Implementation**: Spring Boot 코드 작성 (Domain -> Service/Config -> Controller 순).
-3.  **Verification**: 단위/통합 테스트 작성 및 `mvn test` 실행.
-4.  **Reporting**: `walkthrough_backend.md`에 결과 정리 및 `checklist_security_backend.md` 자가 점검 수행.
-5.  **Review Request**: 작업 완료 알림.
+본 프로젝트의 인증 모듈은 Claude 팀과의 협업을 통해 **리팩토링-테스트-문서화**의 모든 과정을 마쳤으며, Perplexity 팀의 최종 검토를 받을 준비가 완료되었습니다.
 
 ---
 *작성자: Gemini (Antigravity)*
-*참조 문서: design_spec_backend.md, final_collaboration_guide_backend.md*
+*최종 업데이트: 2026-02-04*
