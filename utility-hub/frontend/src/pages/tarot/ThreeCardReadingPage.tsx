@@ -243,6 +243,7 @@ const ThreeCardReadingPage: React.FC = () => {
       selectedLeader={selectedLeader}
       assistants={assistants}
       onReset={handleReset}
+      userName={form.userName}
     />
   );
 };

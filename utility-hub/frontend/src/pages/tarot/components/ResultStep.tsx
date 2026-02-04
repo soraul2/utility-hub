@@ -2,14 +2,17 @@ import React, { useState, useEffect, useCallback } from 'react';
 import TarotCardView from '../../../components/tarot/TarotCardView';
 import MarkdownViewer from '../../../components/common/MarkdownViewer';
 import type { ThreeCardResponse, TarotAssistantType } from '../../../lib/tarot';
-import type { AssistantInfo } from '../../../lib/tarot-assistants';
+import { type AssistantInfo, ASSISTANTS, HIDDEN_ASSISTANT, MYSTIC_INFO } from '../../../lib/tarot-assistants';
 import ShareModal from '../../../components/ui/ShareModal';
+import TalismanModal from '../../../components/tarot/talisman/TalismanModal';
+import type { TalismanTheme } from '../../../components/tarot/talisman/TalismanCard';
 
 interface ResultStepProps {
   data: ThreeCardResponse | null;
   selectedLeader: TarotAssistantType | null;
   assistants: AssistantInfo[];
   onReset: () => void;
+  userName: string;
 }
 
 const ResultStep: React.FC<ResultStepProps> = ({
@@ -17,6 +20,7 @@ const ResultStep: React.FC<ResultStepProps> = ({
   selectedLeader,
   assistants,
   onReset,
+  userName,
 }) => {
   const [revealedCards, setRevealedCards] = useState<boolean[]>([false, false, false]);
   const [showResultRevealModal, setShowResultRevealModal] = useState(false);
@@ -24,6 +28,15 @@ const ResultStep: React.FC<ResultStepProps> = ({
   const [isOpening, setIsOpening] = useState(false);
   const [flippingIndex, setFlippingIndex] = useState<number | null>(null);
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
+  const [isTalismanModalOpen, setIsTalismanModalOpen] = useState(false);
+
+  // Determine Talisman Theme based on Selected Leader
+  const talismanTheme: TalismanTheme = selectedLeader && ['MYSTIC', 'ORION', 'LUNA', 'SYLVIA', 'NOCTIS', 'FORTUNA', 'ELARA', 'VANCE', 'KLAUS'].includes(selectedLeader)
+    ? (selectedLeader as TalismanTheme)
+    : 'MYSTIC';
+
+  // Extract a keyword for initial talisman text (e.g., from the 'Future' card)
+  const talismanKeyword = data?.cards[2]?.cardInfo?.nameKo || '운명';
 
   const handleOpenResult = useCallback(() => {
     setIsOpening(true);
@@ -137,7 +150,6 @@ const ResultStep: React.FC<ResultStepProps> = ({
                     <div className="relative group/keyword">
                       <div className="absolute inset-0 bg-amber-500/5 blur-xl rounded-full opacity-0 group-hover/keyword:opacity-100 transition-opacity" />
                       <p className="relative z-10 text-xs md:text-sm text-slate-600/80 dark:text-amber-200/60 italic font-light max-w-[220px] leading-relaxed break-keep px-4 mx-auto">
-
                         "{card.cardInfo.keywords}"
                       </p>
                     </div>
@@ -218,7 +230,20 @@ const ResultStep: React.FC<ResultStepProps> = ({
             </div>
 
             <div className="mt-12 flex flex-wrap justify-center gap-4">
+              {/* Other Buttons */}
               <button onClick={onReset} className="px-8 py-3 bg-amber-500 text-black font-bold font-chakra uppercase text-xs tracking-widest rounded transition-transform hover:scale-105 shadow-[0_0_15px_rgba(245,158,11,0.4)]">새로운 카드 뽑기</button>
+
+              {/* Talisman Button */}
+              <button
+                onClick={() => setIsTalismanModalOpen(true)}
+                className="group relative px-8 py-3 bg-slate-900 border border-amber-500/50 font-bold font-chakra uppercase text-xs tracking-widest rounded overflow-hidden transition-all hover:bg-slate-800 shadow-[0_0_15px_rgba(180,83,9,0.3)] hover:shadow-[0_0_25px_rgba(251,191,36,0.5)]"
+              >
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-amber-500/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
+                <span className="relative z-10 text-amber-400 group-hover:text-amber-200">
+                  <i className="fas fa-scroll mr-2"></i> 부적 봉인하기
+                </span>
+              </button>
+
               {data.shareUuid && (
                 <button
                   onClick={() => setIsShareModalOpen(true)}
@@ -237,6 +262,15 @@ const ResultStep: React.FC<ResultStepProps> = ({
         isOpen={isShareModalOpen}
         onClose={() => setIsShareModalOpen(false)}
         shareUrl={shareUrl}
+      />
+
+      <TalismanModal
+        isOpen={isTalismanModalOpen}
+        onClose={() => setIsTalismanModalOpen(false)}
+        userName={userName || '여행자'}
+        initialKeyword={talismanKeyword}
+        assistantType={talismanTheme}
+        cardImageUrl={[...ASSISTANTS, HIDDEN_ASSISTANT, MYSTIC_INFO].find(a => a.type === talismanTheme)?.image || MYSTIC_INFO.image}
       />
     </div>
   );

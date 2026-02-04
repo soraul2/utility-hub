@@ -3,6 +3,9 @@ import TarotCardView from '../../../components/tarot/TarotCardView';
 import MarkdownViewer from '../../../components/common/MarkdownViewer';
 import type { DailyCardResponse } from '../../../lib/tarot';
 import ShareModal from '../../../components/ui/ShareModal';
+import { useAuth } from '../../../hooks/useAuth';
+import TalismanModal from '../../../components/tarot/talisman/TalismanModal';
+import { MYSTIC_INFO } from '../../../lib/tarot-assistants';
 
 interface DailyCardResultViewProps {
   data: DailyCardResponse | null;
@@ -11,6 +14,8 @@ interface DailyCardResultViewProps {
 
 const DailyCardResultView: React.FC<DailyCardResultViewProps> = ({ data, onRetry }) => {
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
+  const [isTalismanModalOpen, setIsTalismanModalOpen] = useState(false);
+  const { user } = useAuth();
 
   if (!data?.card) {
     return (
@@ -22,6 +27,8 @@ const DailyCardResultView: React.FC<DailyCardResultViewProps> = ({ data, onRetry
   }
 
   const shareUrl = `${window.location.origin}/tarot/share/${data.shareUuid}`;
+  const userName = user?.nickname || '여행자';
+  const talismanKeyword = data.card.cardInfo.nameKo;
 
   return (
     <div className="w-full px-4 relative z-10 pb-20">
@@ -80,6 +87,18 @@ const DailyCardResultView: React.FC<DailyCardResultViewProps> = ({ data, onRetry
             >
               새로운 카드 뽑기
             </button>
+
+            {/* Talisman Button */}
+            <button
+              onClick={() => setIsTalismanModalOpen(true)}
+              className="group relative px-8 py-3 bg-slate-900 border border-amber-500/50 font-bold font-chakra uppercase text-xs tracking-widest rounded-full overflow-hidden transition-all hover:bg-slate-800 shadow-[0_0_15px_rgba(180,83,9,0.3)] hover:shadow-[0_0_25px_rgba(251,191,36,0.5)]"
+            >
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-amber-500/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
+              <span className="relative z-10 text-amber-400 group-hover:text-amber-200">
+                <i className="fas fa-scroll mr-2"></i> 부적 봉인하기
+              </span>
+            </button>
+
             {data.shareUuid && (
               <button
                 onClick={() => setIsShareModalOpen(true)}
@@ -117,6 +136,15 @@ const DailyCardResultView: React.FC<DailyCardResultViewProps> = ({ data, onRetry
         isOpen={isShareModalOpen}
         onClose={() => setIsShareModalOpen(false)}
         shareUrl={shareUrl}
+      />
+
+      <TalismanModal
+        isOpen={isTalismanModalOpen}
+        onClose={() => setIsTalismanModalOpen(false)}
+        userName={userName}
+        initialKeyword={talismanKeyword}
+        assistantType="MYSTIC"
+        cardImageUrl={MYSTIC_INFO.image}
       />
     </div>
   );
