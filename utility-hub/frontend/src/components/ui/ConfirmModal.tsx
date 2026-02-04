@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 
 interface ConfirmModalProps {
       isOpen: boolean;
@@ -21,10 +22,17 @@ const ConfirmModal: React.FC<ConfirmModalProps> = ({
       cancelLabel = '취소',
       isDanger = false
 }) => {
-      if (!isOpen) return null;
+      const [mounted, setMounted] = useState(false);
 
-      return (
-            <div className="fixed inset-0 z-[100] flex items-center justify-center px-4 overflow-hidden">
+      useEffect(() => {
+            setMounted(true);
+            return () => setMounted(false);
+      }, []);
+
+      if (!isOpen || !mounted) return null;
+
+      return createPortal(
+            <div className="fixed inset-0 z-[9999] flex items-center justify-center px-4 overflow-hidden font-sans">
                   {/* Backdrop */}
                   <div
                         className="absolute inset-0 bg-black/60 backdrop-blur-sm animate-fade-in"
@@ -54,8 +62,8 @@ const ConfirmModal: React.FC<ConfirmModalProps> = ({
                                           onClose();
                                     }}
                                     className={`flex-1 py-4 rounded-2xl font-bold transition-all shadow-lg active:scale-95 text-white ${isDanger
-                                                ? 'bg-red-600 hover:bg-red-700 shadow-red-500/20'
-                                                : 'bg-amber-600 hover:bg-amber-700 shadow-amber-500/20'
+                                          ? 'bg-red-600 hover:bg-red-700 shadow-red-500/20'
+                                          : 'bg-amber-600 hover:bg-amber-700 shadow-amber-500/20'
                                           }`}
                               >
                                     {confirmLabel}
@@ -66,7 +74,8 @@ const ConfirmModal: React.FC<ConfirmModalProps> = ({
                         <div className={`absolute -bottom-12 -right-12 w-32 h-32 ${isDanger ? 'bg-red-500/10' : 'bg-amber-500/10'} blur-3xl rounded-full -z-10`} />
                         <div className="absolute -top-12 -left-12 w-32 h-32 bg-purple-500/10 dark:bg-purple-500/5 blur-3xl rounded-full -z-10" />
                   </div>
-            </div>
+            </div>,
+            document.body
       );
 };
 

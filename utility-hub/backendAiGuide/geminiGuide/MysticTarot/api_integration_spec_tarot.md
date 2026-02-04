@@ -9,7 +9,12 @@
 
 ## 2. API 엔드포인트 상세
 
-### 2.1 오늘의 카드 생성
+### 2.1 주요 흐름
+- 비로그인: 로컬스토리지에 세션 저장 -> 회원가입 시 '/migrate'로 데이터 이관
+- 로그인: DB에 즉시 저장, 1일 100회 제한
+- 공유: UUID 기반 공개 링크 생성
+
+### 2.2 오늘의 카드 생성
 사용자의 이름을 입력받아 하루의 운세를 위한 단일 카드를 추출하고 AI 리딩을 생성합니다.
 - **Method**: `GET`
 - **Path**: `/daily-card`
@@ -38,7 +43,7 @@
 }
 ```
 
-### 2.2 3카드 스프레드 리딩 생성
+### 2.3 3카드 스프레드 리딩 생성
 과거, 현재, 미래를 상징하는 3장의 카드를 뽑고 종합적인 AI 상담 결과를 반환합니다.
 - **Method**: `POST`
 - **Path**: `/readings/three-cards`
@@ -70,7 +75,87 @@
 }
 ```
 
-### 2.3 지원되는 AI 조수 목록 (Assistant Types)
+### 2.4 조수(Assistant) 추가 리딩 생성
+기존 세션에 대해 특정 페르소나의 관점으로 추가 해석을 요청합니다.
+- **Method**: `POST`
+- **Path**: `/readings/{sessionId}/assistants/{type}`
+- **Path Variables**:
+  - `sessionId`: 리딩 세션 ID
+  - `type`: `SYLVIA`, `LUNA` 등 Assistant Type
+- **Query Params**:
+  - `summary` (boolean): true일 경우 요약 버전 반환 (기본값: false)
+- **Success Response (200 OK)**:
+```json
+{
+  "assistantType": "LUNA",
+  "assistantName": "루나",
+  "assistantTitle": "감성적 치유자",
+  "reading": "그 마음, 제가 잘 알아요..."
+}
+```
+
+### 2.5 타로 히스토리 조회
+로그인한 사용자의 과거 리딩 내역을 페이징하여 조회합니다.
+- **Method**: `GET`
+- **Path**: `/history`
+- **Query Params**:
+  - `page`: 페이지 번호 (0부터 시작)
+  - `size`: 페이지 크기 (기본 10)
+  - `spreadType`: `DAILY_ONE` 또는 `THREE_CARD` (선택)
+  - `search`: 질문 검색어 (선택)
+- **Success Response (200 OK)**:
+```json
+{
+  "content": [
+    {
+      "sessionId": 123,
+      "question": "연애운",
+      "spreadType": "THREE_CARD",
+      "createdAt": "2024-02-01T10:00:00",
+      "summarySnippet": "...",
+      "shareUuid": "uuid-string"
+    }
+  ],
+  "totalPages": 5,
+  "totalElements": 48
+}
+```
+
+### 2.6 타로 리딩 삭제
+특정 리딩 기록을 삭제합니다.
+- **Method**: `DELETE`
+- **Path**: `/history/{sessionId}`
+- **Success Response (200 OK)**: Empty Body
+
+### 2.7 공유된 리딩 조회
+공유 링크를 통해 타로 결과를 조회합니다. (로그인 불필요)
+- **Method**: `GET`
+- **Path**: `/share/{shareUuid}`
+- **Success Response (200 OK)**:
+```json
+{
+  "spreadType": "THREE_CARD",
+  "question": "내일의 운세",
+  "userName": "홍길동",
+  "createdAt": "2024-02-01T10:00:00",
+  "aiReading": "...",
+  "cards": [...]
+}
+```
+
+### 2.8 게스트 데이터 이관
+로컬 스토리지에 저장된 게스트 세션들을 로그인한 계정으로 연결합니다.
+- **Method**: `POST`
+- **Path**: `/migrate`
+- **Request Body**:
+```json
+{
+  "sessionIds": [123, 124, 125]
+}
+```
+- **Success Response (200 OK)**: Empty Body
+
+### 2.9 지원되는 AI 조수 목록 (Assistant Types)
 프론트엔드에서는 다음 Enum 값을 사용하여 사용자가 원하는 타로 리더 스타일을 선택하게 할 수 있습니다.
 
 | Code | 이름 (Name) | 칭호 (Title) | 특징 |

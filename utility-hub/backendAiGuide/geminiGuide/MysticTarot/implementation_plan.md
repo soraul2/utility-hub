@@ -30,6 +30,8 @@
 - [x] **오늘의 카드 구현**: 단일 카드 추출 및 전용 AI 해석 생성 로직 개발.
 - [x] **API 엔드포인트 추가**: `TarotController`에 오늘의 카드 API 구현 및 Swagger 문서화완료.
 - [x] **검증**: 단위 테스트(`TarotCardServiceTest`) 및 통합 테스트(`TarotControllerTest`) 수행 완료 (Swagger 명세 포함).
+- [x] **히스토리 및 공유**: 사용자별 기록 조회, UUID 기반 공유, 게스트 데이터 이관 기능 구현 완료 (v0.6).
+- [x] **사용량 제한**: 일일 100회 제한 로직 구현 완료.
 
 ## 4. 테스트 전략
 - `TarotCardService`: JSON 데이터 로딩 성공 여부 및 카드 추출 무작위성 검증.

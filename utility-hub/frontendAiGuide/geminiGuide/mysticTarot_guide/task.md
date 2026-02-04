@@ -4,23 +4,23 @@
     - [x] 기능 분석 및 제안 (게스트 연동, 공유, 기록) <!-- id: 1 -->
     - [x] 추가 요구사항 반영 (1일 100회 제한, Admin 예외) <!-- id: 22 -->
     - [x] 최종 구현 계획서 작성 및 Git 저장 <!-- id: 2 -->
-- [ ] 백엔드 구현 (Backend) <!-- id: 3 -->
-    - [ ] `TarotReadingSession` 엔티티 수정 (`memberId`, `shareUuid` 추가) <!-- id: 4 -->
-    - [ ] `TarotDTOs` 업데이트 (History, Share, MigrateRequest) <!-- id: 5 -->
-    - [ ] `TarotReadingService` 로직 구현 <!-- id: 6 -->
-        - [ ] **[NEW] 1일 100회 제한 (Admin 예외) 로직 구현** <!-- id: 23 -->
-        - [ ] 게스트 -> 회원 데이터 이관(`migrate`) 로직 <!-- id: 7 -->
-        - [ ] 기록 조회(`list`), 삭제(`delete`), 공유 조회(`getShare`) <!-- id: 8 -->
-    - [ ] `TarotController` 엔드포인트 연결 <!-- id: 9 -->
-- [ ] 프론트엔드 구현 (Frontend) <!-- id: 10 -->
-    - [ ] `tarotApi.ts` 신규 API 추가 (history, delete, share, migrate) <!-- id: 11 -->
-    - [ ] **게스트 연동 로직 구현** <!-- id: 12 -->
-        - [ ] `useGuestTarot` 훅 생성 (localStorage 관리) <!-- id: 13 -->
-        - [ ] `AuthCallbackPage` 로그인 직후 이관 로직 추가 <!-- id: 14 -->
-    - [ ] UI 페이지 구현 <!-- id: 15 -->
-        - [ ] `TarotHistoryPage.tsx` (리스트/삭제) <!-- id: 16 -->
-        - [ ] `TarotSharePage.tsx` (공유 뷰) <!-- id: 17 -->
-    - [ ] 기존 컴포넌트 업데이트 (버튼 추가, 헤더 링크, 에러 배너) <!-- id: 18 -->
-- [ ] 통합 검증 (Verification) <!-- id: 19 -->
-    - [ ] 시나리오 테스트: 제한(100회) 및 Admin 예외 확인 <!-- id: 24 -->
-    - [ ] 시나리오 테스트: 게스트 이관 및 공유 확인 <!-- id: 20 -->
+- [x] 백엔드 구현 (Backend) <!-- id: 3 -->
+    - [x] `TarotReadingSession` 엔티티 수정 (`memberId`, `shareUuid` 추가) <!-- id: 4 -->
+    - [x] `TarotDTOs` 업데이트 (History, Share, MigrateRequest) <!-- id: 5 -->
+    - [x] `TarotReadingService` 로직 구현 <!-- id: 6 -->
+        - [x] **[NEW] 1일 100회 제한 (Admin 예외) 로직 구현** <!-- id: 23 -->
+        - [x] 게스트 -> 회원 데이터 이관(`migrate`) 로직 <!-- id: 7 -->
+        - [x] 기록 조회(`list`), 삭제(`delete`), 공유 조회(`getShare`) <!-- id: 8 -->
+    - [x] `TarotController` 엔드포인트 연결 <!-- id: 9 -->
+- [x] 프론트엔드 구현 (Frontend) <!-- id: 10 -->
+    - [x] `tarotApi.ts` 신규 API 추가 (history, delete, share, migrate) <!-- id: 11 -->
+    - [x] **게스트 연동 로직 구현** <!-- id: 12 -->
+        - [x] `useGuestTarot` 훅 생성 (localStorage 관리) <!-- id: 13 -->
+        - [x] `AuthCallbackPage` 로그인 직후 이관 로직 추가 <!-- id: 14 -->
+    - [x] UI 페이지 구현 <!-- id: 15 -->
+        - [x] `TarotHistoryPage.tsx` (리스트/삭제) <!-- id: 16 -->
+        - [x] `TarotSharePage.tsx` (공유 뷰) <!-- id: 17 -->
+    - [x] 기존 컴포넌트 업데이트 (버튼 추가, 헤더 링크, 에러 배너) <!-- id: 18 -->
+- [x] 통합 검증 (Verification) <!-- id: 19 -->
+    - [x] 시나리오 테스트: 제한(100회) 및 Admin 예외 확인 <!-- id: 24 -->
+    - [x] 시나리오 테스트: 게스트 이관 및 공유 확인 <!-- id: 20 -->
