@@ -1,5 +1,7 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { useThreeCardReading } from '../../hooks/useThreeCardReading';
+import { useGuestTarot } from '../../hooks/useGuestTarot';
+import { useAuthStatus } from '../../hooks/useAuth';
 import { ASSISTANTS, HIDDEN_ASSISTANT, type AssistantInfo } from '../../lib/tarot-assistants';
 import type { TarotTopic, UserGender, TarotAssistantType } from '../../lib/tarot';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
@@ -12,8 +14,17 @@ import confetti from 'canvas-confetti';
 
 const ThreeCardReadingPage: React.FC = () => {
   const { data, loading, error, createReading, reset } = useThreeCardReading();
+  const { saveGuestSession } = useGuestTarot();
+  const { isAuthenticated } = useAuthStatus();
   const [step, setStep] = useState<'input' | 'selection' | 'leader' | 'result'>('input');
   const [selectedLeader, setSelectedLeader] = useState<TarotAssistantType | null>(null);
+
+  // 리딩 성공 시 게스트라면 세션 ID 저장
+  useEffect(() => {
+    if (data?.sessionId && !isAuthenticated) {
+      saveGuestSession(data.sessionId);
+    }
+  }, [data?.sessionId, isAuthenticated, saveGuestSession]);
 
   // Assistant State
   const [assistants, setAssistants] = useState<AssistantInfo[]>([]);

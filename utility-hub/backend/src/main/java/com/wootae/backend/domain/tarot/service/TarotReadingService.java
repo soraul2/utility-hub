@@ -12,7 +12,15 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 
 import com.wootae.backend.domain.tarot.enums.TarotAssistantType;
 
@@ -26,7 +34,12 @@ public class TarotReadingService {
       private final TarotReadingRepository readingRepository;
       private final ObjectMapper objectMapper;
 
-      public TarotDTOs.ThreeCardSpreadResponse createThreeCardReading(TarotDTOs.ThreeCardSpreadRequest request) {
+      public TarotDTOs.ThreeCardSpreadResponse createThreeCardReading(TarotDTOs.ThreeCardSpreadRequest request,
+                  Long memberId, boolean isAdmin) {
+            // 0. Rate Limiting Logic
+            if (memberId != null && !isAdmin) {
+                  checkDailyLimit(memberId);
+            }
             // (existing code...)
             List<TarotDTOs.DrawnCardDto> drawnCards;
             if (request.getAssistantType() == TarotAssistantType.FORTUNA) {
@@ -74,19 +87,25 @@ public class TarotReadingService {
                         .userGender(request.getUserGender())
                         .drawnCardsJson(cardsJson)
                         .aiReading(aiReading)
+                        .memberId(memberId)
                         .build();
 
             TarotReadingSession savedSession = saveSession(session);
 
             return TarotDTOs.ThreeCardSpreadResponse.builder()
                         .sessionId(savedSession.getId())
+                        .shareUuid(savedSession.getShareUuid()) // Share UUID 반환
                         .cards(positionedCards)
                         .aiReading(aiReading)
                         .createdAt(savedSession.getCreatedAt())
                         .build();
       }
 
-      public TarotDTOs.DailyCardResponse createDailyReading(String userName) {
+      public TarotDTOs.DailyCardResponse createDailyReading(String userName, Long memberId, boolean isAdmin) {
+            // 0. Rate Limiting Logic
+            if (memberId != null && !isAdmin) {
+                  checkDailyLimit(memberId);
+            }
             // (existing code...)
             List<TarotDTOs.DrawnCardDto> drawnCards = cardService.drawCards(1);
             TarotDTOs.DrawnCardDto dailyCard = drawnCards.get(0);
@@ -109,12 +128,14 @@ public class TarotReadingService {
                         .userName(userName)
                         .drawnCardsJson(cardsJson)
                         .aiReading(aiReading)
+                        .memberId(memberId)
                         .build();
 
             TarotReadingSession savedSession = saveSession(session);
 
             return TarotDTOs.DailyCardResponse.builder()
                         .sessionId(savedSession.getId())
+                        .shareUuid(savedSession.getShareUuid()) // Share UUID 반환
                         .card(dailyCard)
                         .aiReading(aiReading)
                         .createdAt(savedSession.getCreatedAt())
@@ -148,5 +169,95 @@ public class TarotReadingService {
                         .assistantTitle(type.getDescription())
                         .reading(aiReading)
                         .build();
+      }
+
+      private void checkDailyLimit(Long memberId) {
+            LocalDateTime startOfDay = LocalDateTime.of(LocalDate.now(), LocalTime.MIN);
+            LocalDateTime endOfDay = LocalDateTime.of(LocalDate.now(), LocalTime.MAX);
+            long count = readingRepository.countByMemberIdAndCreatedAtBetween(memberId, startOfDay, endOfDay);
+            if (count >= 100) {
+                  throw new RuntimeException("일일 사용 한도(100회)를 초과했습니다.");
+            }
+      }
+
+      @Transactional(readOnly = true)
+      public Page<TarotDTOs.HistoryResponse> getHistory(Long memberId, TarotSpread spreadType, String search,
+                  Pageable pageable) {
+            Page<TarotReadingSession> sessions;
+
+            boolean hasSearch = search != null && !search.trim().isEmpty();
+
+            if (spreadType == null) {
+                  if (hasSearch) {
+                        sessions = readingRepository.findAllByMemberIdAndQuestionContaining(memberId, search, pageable);
+                  } else {
+                        sessions = readingRepository.findAllByMemberId(memberId, pageable);
+                  }
+            } else {
+                  if (hasSearch) {
+                        sessions = readingRepository.findAllByMemberIdAndSpreadTypeAndQuestionContaining(memberId,
+                                    spreadType, search, pageable);
+                  } else {
+                        sessions = readingRepository.findAllByMemberIdAndSpreadType(memberId, spreadType, pageable);
+                  }
+            }
+
+            return sessions.map(session -> {
+                  String summary = session.getAiReading() != null ? session.getAiReading() : "";
+                  String spreadTypeName = session.getSpreadType() != null ? session.getSpreadType().name()
+                              : "UNKNOWN";
+
+                  return TarotDTOs.HistoryResponse.builder()
+                              .sessionId(session.getId())
+                              .question(session.getQuestion())
+                              .spreadType(spreadTypeName)
+                              .createdAt(session.getCreatedAt())
+                              .shareUuid(session.getShareUuid())
+                              .summarySnippet(summary.length() > 50
+                                          ? summary.substring(0, 50) + "..."
+                                          : summary)
+                              .build();
+            });
+      }
+
+      @Transactional
+      public void deleteReading(Long sessionId, Long memberId) {
+            TarotReadingSession session = readingRepository.findByIdAndMemberId(sessionId, memberId)
+                        .orElseThrow(() -> new RuntimeException("삭제할 수 없는 리딩입니다."));
+            readingRepository.delete(session);
+      }
+
+      @Transactional(readOnly = true)
+      public TarotDTOs.ShareResponse getShare(String shareUuid) {
+            TarotReadingSession session = readingRepository.findByShareUuid(shareUuid)
+                        .orElseThrow(() -> new RuntimeException("공유된 리딩을 찾을 수 없습니다."));
+
+            List<TarotDTOs.DrawnCardDto> cards;
+            try {
+                  cards = objectMapper.readValue(session.getDrawnCardsJson(),
+                              new TypeReference<List<TarotDTOs.DrawnCardDto>>() {
+                              });
+            } catch (JsonProcessingException e) {
+                  throw new RuntimeException("Card data error", e);
+            }
+
+            return TarotDTOs.ShareResponse.builder()
+                        .spreadType(session.getSpreadType().name())
+                        .question(session.getQuestion())
+                        .userName(session.getUserName())
+                        .createdAt(session.getCreatedAt())
+                        .aiReading(session.getAiReading())
+                        .cards(cards)
+                        .build();
+      }
+
+      @Transactional
+      public void migrateSessions(List<Long> sessionIds, Long memberId) {
+            List<TarotReadingSession> sessions = readingRepository.findAllById(sessionIds);
+            for (TarotReadingSession session : sessions) {
+                  if (session.getMemberId() == null) {
+                        session.assignMember(memberId);
+                  }
+            }
       }
 }

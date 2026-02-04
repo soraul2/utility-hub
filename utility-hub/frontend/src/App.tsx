@@ -9,6 +9,8 @@ import TarotLayout from './layouts/TarotLayout';
 import TarotHome from './pages/tarot/TarotHome';
 import DailyCardPage from './pages/tarot/DailyCardPage';
 import ThreeCardReadingPage from './pages/tarot/ThreeCardReadingPage';
+import TarotHistoryPage from './pages/tarot/TarotHistoryPage';
+import TarotSharePage from './pages/tarot/TarotSharePage';
 import LoginPage from './pages/LoginPage';
 import AuthCallbackPage from './pages/AuthCallbackPage';
 import MyPage from './pages/MyPage';
@@ -43,6 +45,8 @@ function App() {
           <Route index element={<TarotHome />} />
           <Route path="daily" element={<DailyCardPage />} />
           <Route path="three-cards" element={<ThreeCardReadingPage />} />
+          <Route path="history" element={<TarotHistoryPage />} />
+          <Route path="share/:shareUuid" element={<TarotSharePage />} />
           <Route path="*" element={<Navigate to="/tarot" replace />} />
         </Route>
       </Routes>

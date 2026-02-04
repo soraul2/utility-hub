@@ -3,6 +3,7 @@ import TarotCardView from '../../../components/tarot/TarotCardView';
 import MarkdownViewer from '../../../components/common/MarkdownViewer';
 import type { ThreeCardResponse, TarotAssistantType } from '../../../lib/tarot';
 import type { AssistantInfo } from '../../../lib/tarot-assistants';
+import ShareModal from '../../../components/ui/ShareModal';
 
 interface ResultStepProps {
   data: ThreeCardResponse | null;
@@ -22,6 +23,7 @@ const ResultStep: React.FC<ResultStepProps> = ({
   const [isResultUnlocked, setIsResultUnlocked] = useState(false);
   const [isOpening, setIsOpening] = useState(false);
   const [flippingIndex, setFlippingIndex] = useState<number | null>(null);
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
 
   const handleOpenResult = useCallback(() => {
     setIsOpening(true);
@@ -41,6 +43,8 @@ const ResultStep: React.FC<ResultStepProps> = ({
   }, [revealedCards, isResultUnlocked]);
 
   if (!data) return null;
+
+  const shareUrl = `${window.location.origin}/tarot/share/${data.shareUuid}`;
 
   return (
     <div className="max-w-6xl mx-auto space-y-16 animate-fade-in py-10">
@@ -86,8 +90,8 @@ const ResultStep: React.FC<ResultStepProps> = ({
               {/* Timeline Info */}
               <div className="text-center relative z-10 flex items-center justify-center mb-4">
                 <span className={`font-chakra font-bold uppercase tracking-[0.4em] transition-all duration-700 ${isRevealed
-                  ? 'text-xs md:text-sm text-amber-600/80 dark:text-amber-500/80 drop-shadow-[0_0_8px_rgba(245,158,11,0.3)]'
-                  : 'text-xl md:text-2xl text-amber-600/60 dark:text-amber-500/60 font-serif italic drop-shadow-[0_0_10px_rgba(245,158,11,0.4)] animate-pulse'
+                  ? 'text-xs md:text-sm text-amber-700 dark:text-amber-400 drop-shadow-[0_0_8px_rgba(245,158,11,0.2)]'
+                  : 'text-xl md:text-2xl text-amber-700/80 dark:text-amber-500/80 font-serif italic drop-shadow-[0_0_10px_rgba(245,158,11,0.3)] animate-pulse'
                   }`}>
                   {index === 0 ? '지나온 시간' : index === 1 ? '마주한 현실' : '다가올 운명'}
                 </span>
@@ -125,14 +129,15 @@ const ResultStep: React.FC<ResultStepProps> = ({
                       <h3 className="text-2xl md:text-3xl font-serif text-amber-600 dark:text-amber-400 drop-shadow-md tracking-tight leading-tight">
                         {card.cardInfo.nameEn}
                       </h3>
-                      <p className="text-sm font-chakra text-slate-500 dark:text-slate-400 font-medium tracking-wide">
+                      <p className="text-sm font-chakra text-slate-600 dark:text-slate-400 font-medium tracking-wide">
                         {card.cardInfo.nameKo}
                       </p>
                     </div>
 
                     <div className="relative group/keyword">
                       <div className="absolute inset-0 bg-amber-500/5 blur-xl rounded-full opacity-0 group-hover/keyword:opacity-100 transition-opacity" />
-                      <p className="relative z-10 text-xs md:text-sm text-amber-700/60 dark:text-amber-200/60 italic font-light max-w-[220px] leading-relaxed break-keep px-4 mx-auto">
+                      <p className="relative z-10 text-xs md:text-sm text-slate-600/80 dark:text-amber-200/60 italic font-light max-w-[220px] leading-relaxed break-keep px-4 mx-auto">
+
                         "{card.cardInfo.keywords}"
                       </p>
                     </div>
@@ -187,7 +192,7 @@ const ResultStep: React.FC<ResultStepProps> = ({
             </div>
 
             <div className="space-y-3 relative z-10">
-              <h3 className="text-3xl md:text-4xl font-serif text-transparent bg-clip-text bg-gradient-to-b from-amber-700 via-amber-800 to-amber-900 dark:from-amber-100 dark:via-amber-300 dark:to-amber-600 italic drop-shadow-[0_4px_8px_rgba(0,0,0,0.1)] dark:drop-shadow-[0_4px_8px_rgba(0,0,0,0.8)] transition-all">
+              <h3 className="text-3xl md:text-4xl font-serif text-transparent bg-clip-text bg-gradient-to-b from-amber-700 via-amber-800 to-amber-900 dark:from-amber-100 dark:via-amber-300 dark:to-amber-600 italic drop-shadow-[0_4px_8_rgba(0,0,0,0.1)] dark:drop-shadow-[0_4px_8px_rgba(0,0,0,0.8)] transition-all">
                 운명의 메시지 개봉
               </h3>
               <p className="text-slate-600 dark:text-white/40 text-[10px] md:text-xs font-chakra tracking-[0.3em] uppercase group-hover:text-amber-700 dark:group-hover:text-amber-400/80 transition-colors">
@@ -212,12 +217,27 @@ const ResultStep: React.FC<ResultStepProps> = ({
               <MarkdownViewer content={data.aiReading || ''} />
             </div>
 
-            <div className="mt-12 flex justify-center">
+            <div className="mt-12 flex flex-wrap justify-center gap-4">
               <button onClick={onReset} className="px-8 py-3 bg-amber-500 text-black font-bold font-chakra uppercase text-xs tracking-widest rounded transition-transform hover:scale-105 shadow-[0_0_15px_rgba(245,158,11,0.4)]">새로운 카드 뽑기</button>
+              {data.shareUuid && (
+                <button
+                  onClick={() => setIsShareModalOpen(true)}
+                  className="px-8 py-3 bg-white/5 dark:bg-white/10 text-slate-700 dark:text-white border border-slate-300 dark:border-white/20 font-bold font-chakra uppercase text-xs tracking-widest rounded transition-all hover:bg-slate-100 dark:hover:bg-white/20 shadow-sm dark:shadow-none"
+                >
+                  <i className="fas fa-share-alt mr-2"></i>
+                  결과 공유하기
+                </button>
+              )}
             </div>
           </div>
         </div>
       )}
+
+      <ShareModal
+        isOpen={isShareModalOpen}
+        onClose={() => setIsShareModalOpen(false)}
+        shareUrl={shareUrl}
+      />
     </div>
   );
 };

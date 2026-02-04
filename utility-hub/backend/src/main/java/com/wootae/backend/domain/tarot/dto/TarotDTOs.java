@@ -87,6 +87,9 @@ public class TarotDTOs {
 
             @Schema(description = "생성 일시")
             private LocalDateTime createdAt;
+
+            @Schema(description = "공유용 UUID")
+            private String shareUuid;
       }
 
       @Getter
@@ -108,6 +111,9 @@ public class TarotDTOs {
 
             @Schema(description = "리딩 요약 (첫 50자)")
             private String summarySnippet; // First 50 chars of reading
+
+            @Schema(description = "공유용 UUID")
+            private String shareUuid;
       }
 
       @Getter
@@ -126,5 +132,40 @@ public class TarotDTOs {
 
             @Schema(description = "생성 일시")
             private LocalDateTime createdAt;
+
+            @Schema(description = "공유용 UUID")
+            private String shareUuid;
+      }
+
+      @Getter
+      @Setter
+      @Builder
+      @Schema(description = "공유된 타로 리딩 응답 객체")
+      public static class ShareResponse {
+            @Schema(description = "스프레드 타입 (DAILY_ONE, THREE_CARD)")
+            private String spreadType;
+
+            @Schema(description = "사용자 질문")
+            private String question;
+
+            @Schema(description = "사용자 이름 (익명일 경우 'Mystic Guest')")
+            private String userName;
+
+            @Schema(description = "생성 일시")
+            private LocalDateTime createdAt;
+
+            @Schema(description = "AI 리딩 결과")
+            private String aiReading;
+
+            @Schema(description = "카드 목록")
+            private List<DrawnCardDto> cards;
+      }
+
+      @Getter
+      @Setter
+      @io.swagger.v3.oas.annotations.media.Schema(description = "게스트 데이터 이관 요청")
+      public static class MigrateRequest {
+            @io.swagger.v3.oas.annotations.media.Schema(description = "로컬 스토리지의 세션 ID 목록")
+            private List<Long> sessionIds;
       }
 }

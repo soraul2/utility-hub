@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useState } from 'react';
 import TarotCardView from '../../../components/tarot/TarotCardView';
 import MarkdownViewer from '../../../components/common/MarkdownViewer';
 import type { DailyCardResponse } from '../../../lib/tarot';
+import ShareModal from '../../../components/ui/ShareModal';
 
 interface DailyCardResultViewProps {
   data: DailyCardResponse | null;
@@ -9,6 +10,8 @@ interface DailyCardResultViewProps {
 }
 
 const DailyCardResultView: React.FC<DailyCardResultViewProps> = ({ data, onRetry }) => {
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
+
   if (!data?.card) {
     return (
       <div className="glass-card p-8 text-red-600 dark:text-red-300 rounded-2xl border-red-500/30 bg-white/50 dark:bg-black/20">
@@ -17,6 +20,8 @@ const DailyCardResultView: React.FC<DailyCardResultViewProps> = ({ data, onRetry
       </div>
     );
   }
+
+  const shareUrl = `${window.location.origin}/tarot/share/${data.shareUuid}`;
 
   return (
     <div className="w-full px-4 relative z-10 pb-20">
@@ -68,13 +73,22 @@ const DailyCardResultView: React.FC<DailyCardResultViewProps> = ({ data, onRetry
             )}
           </div>
 
-          <div className="mt-12 text-center animate-fade-in-up" style={{ animationDelay: '0.5s' }}>
+          <div className="mt-12 flex flex-wrap justify-center gap-4 animate-fade-in-up" style={{ animationDelay: '0.5s' }}>
             <button
               onClick={onRetry}
               className="px-8 py-3 rounded-full border border-purple-600/30 dark:border-purple-500/30 text-purple-700 dark:text-purple-300 text-xs font-chakra tracking-widest hover:bg-purple-50 dark:hover:bg-purple-500/10 hover:border-purple-600 dark:hover:border-purple-500 transition-all uppercase font-bold"
             >
               새로운 카드 뽑기
             </button>
+            {data.shareUuid && (
+              <button
+                onClick={() => setIsShareModalOpen(true)}
+                className="px-8 py-3 rounded-full bg-amber-600 hover:bg-amber-700 text-white text-xs font-chakra tracking-widest transition-all uppercase font-bold shadow-lg"
+              >
+                <i className="fas fa-share-alt mr-2"></i>
+                결과 공유하기
+              </button>
+            )}
           </div>
         </div>
 
@@ -98,6 +112,12 @@ const DailyCardResultView: React.FC<DailyCardResultViewProps> = ({ data, onRetry
           </div>
         </div>
       </div>
+
+      <ShareModal
+        isOpen={isShareModalOpen}
+        onClose={() => setIsShareModalOpen(false)}
+        shareUrl={shareUrl}
+      />
     </div>
   );
 };

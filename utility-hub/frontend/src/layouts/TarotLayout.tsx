@@ -15,13 +15,14 @@ const TarotLayout: React.FC = () => {
                   style={{ backgroundColor: 'var(--mystic-bg-primary)', color: 'var(--mystic-text-primary)' }}>
 
                   {/* Background Effects */}
+                  <div className="mystic-bg" />
                   <div className="absolute inset-0 z-0 pointer-events-none">
                         {/* Dynamic Gradient Background */}
-                        <div className="absolute top-0 left-0 w-full h-full transition-opacity duration-1000 opacity-100 dark:opacity-100 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-indigo-900/20 via-transparent to-transparent"></div>
+                        <div className="absolute top-0 left-0 w-full h-full transition-opacity duration-1000 opacity-100 dark:opacity-100 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-indigo-900/10 via-transparent to-transparent"></div>
 
                         {/* Sun/Moon Glow Effects */}
-                        <div className="absolute top-[20%] left-[20%] w-72 h-72 rounded-full blur-[100px] transition-colors duration-700 bg-amber-400/20 dark:bg-purple-600/10"></div>
-                        <div className="absolute bottom-[20%] right-[20%] w-96 h-96 rounded-full blur-[100px] transition-colors duration-700 bg-orange-300/20 dark:bg-blue-600/10"></div>
+                        <div className="absolute top-[20%] left-[20%] w-72 h-72 rounded-full blur-[100px] transition-colors duration-700 bg-amber-400/10 dark:bg-purple-600/10"></div>
+                        <div className="absolute bottom-[20%] right-[20%] w-96 h-96 rounded-full blur-[100px] transition-colors duration-700 bg-orange-300/10 dark:bg-blue-600/10"></div>
                   </div>
 
                   {/* Content */}
@@ -43,6 +44,10 @@ const TarotLayout: React.FC = () => {
 
                                           {isAuthenticated ? (
                                                 <>
+                                                      <Link to="/tarot/history" className="text-sm text-slate-600 dark:text-slate-300 hover:text-amber-600 dark:hover:text-amber-400 transition-colors mr-2">
+                                                            <i className="fas fa-history mr-1"></i>
+                                                            운명 기록
+                                                      </Link>
                                                       <span className="text-sm text-slate-600 dark:text-slate-300 transition-colors">
                                                             <i className="fas fa-user mr-1"></i>
                                                             {user?.nickname}

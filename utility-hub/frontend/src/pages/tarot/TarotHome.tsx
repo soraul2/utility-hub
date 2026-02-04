@@ -1,7 +1,19 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { useAuthStatus } from '../../hooks/useAuth';
+import { ConfirmModal } from '../../components/ui/ConfirmModal';
 
 const TarotHome: React.FC = () => {
+      const { isAuthenticated } = useAuthStatus();
+      const navigate = useNavigate();
+      const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
+
+      const handleHistoryClick = (e: React.MouseEvent) => {
+            if (!isAuthenticated) {
+                  e.preventDefault();
+                  setIsLoginModalOpen(true);
+            }
+      };
       return (
             <div className="flex flex-col items-center justify-center min-h-[70vh] text-center space-y-12">
                   <div className="space-y-4 animate-fade-in-up">
@@ -36,6 +48,28 @@ const TarotHome: React.FC = () => {
                               </div>
                         </Link>
                   </div>
+
+                  <div className="animate-fade-in" style={{ animationDelay: '0.5s' }}>
+                        <Link
+                              to="/tarot/history"
+                              onClick={handleHistoryClick}
+                              className="inline-flex items-center gap-2 px-6 py-2 rounded-full bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-400 hover:text-amber-600 dark:hover:text-amber-400 transition-all hover:bg-slate-200 dark:hover:bg-white/10"
+                        >
+                              <i className="fas fa-history text-xs"></i>
+                              <span className="text-sm font-chakra font-bold tracking-wider uppercase">운명의 기록 보기</span>
+                        </Link>
+                  </div>
+
+                  <ConfirmModal
+                        isOpen={isLoginModalOpen}
+                        onClose={() => setIsLoginModalOpen(false)}
+                        onConfirm={() => navigate('/login', { state: { from: { pathname: '/tarot/history' } } })}
+                        title="운명의 기록을 남기시겠습니까?"
+                        message="로그인하시면 당신이 마주한 신비로운 운명들을 기록 보관소에 소중히 간직할 수 있습니다. 지금 로그인하시겠습니까?"
+                        confirmText="로그인하러 가기"
+                        cancelText="나중에 할게요"
+                        variant="warning"
+                  />
             </div>
       );
 };

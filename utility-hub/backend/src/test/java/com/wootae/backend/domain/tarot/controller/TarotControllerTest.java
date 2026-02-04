@@ -4,18 +4,27 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wootae.backend.domain.tarot.dto.TarotDTOs;
 import com.wootae.backend.domain.tarot.enums.TarotAssistantType;
 import com.wootae.backend.domain.tarot.service.TarotReadingService;
+import com.wootae.backend.global.auth.JwtTokenService;
+import com.wootae.backend.domain.user.repository.UserRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.security.test.context.support.WithMockUser;
+import com.wootae.backend.global.auth.JwtAuthenticationFilter;
+import com.wootae.backend.domain.user.service.CustomOAuth2UserService;
+import com.wootae.backend.global.auth.OAuth2AuthenticationSuccessHandler;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -24,6 +33,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(TarotController.class)
+@AutoConfigureMockMvc(addFilters = false)
 class TarotControllerTest {
 
       @Autowired
@@ -33,13 +43,29 @@ class TarotControllerTest {
       private TarotReadingService readingService;
 
       @MockitoBean
+      private UserRepository userRepository;
+
+      @MockitoBean
       private org.springframework.data.jpa.mapping.JpaMetamodelMappingContext jpaMetamodelMappingContext;
+
+      @MockitoBean
+      private JwtAuthenticationFilter jwtAuthenticationFilter;
+
+      @MockitoBean
+      private CustomOAuth2UserService customOAuth2UserService;
+
+      @MockitoBean
+      private OAuth2AuthenticationSuccessHandler oAuth2AuthenticationSuccessHandler;
+
+      @MockitoBean
+      private JwtTokenService jwtTokenService;
 
       @Autowired
       private ObjectMapper objectMapper;
 
       @Test
       @DisplayName("3카드 스프레드 리딩 생성 성공 테스트")
+      @WithMockUser
       void createThreeCardReading_Success() throws Exception {
             // given
             TarotDTOs.ThreeCardSpreadRequest request = TarotDTOs.ThreeCardSpreadRequest.builder()
@@ -56,7 +82,8 @@ class TarotControllerTest {
                         .cards(List.of()) // Empty list for simplicity
                         .build();
 
-            given(readingService.createThreeCardReading(any(TarotDTOs.ThreeCardSpreadRequest.class)))
+            given(readingService.createThreeCardReading(any(TarotDTOs.ThreeCardSpreadRequest.class), any(),
+                        anyBoolean()))
                         .willReturn(response);
 
             // when & then
@@ -71,6 +98,7 @@ class TarotControllerTest {
 
       @Test
       @DisplayName("오늘의 카드 생성 성공 테스트")
+      @WithMockUser
       void getDailyCard_Success() throws Exception {
             // given
             String userName = "테스터";
@@ -80,7 +108,7 @@ class TarotControllerTest {
                         .createdAt(LocalDateTime.now())
                         .build();
 
-            given(readingService.createDailyReading(userName))
+            given(readingService.createDailyReading(eq(userName), any(), anyBoolean()))
                         .willReturn(response);
 
             // when & then

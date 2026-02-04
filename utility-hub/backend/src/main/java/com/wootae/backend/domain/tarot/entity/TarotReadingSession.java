@@ -8,7 +8,10 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "tarot_reading_sessions")
+@Table(name = "tarot_reading_sessions", indexes = {
+            @Index(name = "idx_tarot_session_member_id", columnList = "memberId"),
+            @Index(name = "idx_tarot_session_share_uuid", columnList = "shareUuid")
+})
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @EntityListeners(AuditingEntityListener.class)
@@ -39,10 +42,16 @@ public class TarotReadingSession {
       @CreatedDate
       private LocalDateTime createdAt;
 
+      @Column
+      private Long memberId;
+
+      @Column(unique = true)
+      private String shareUuid;
+
       @Builder
       public TarotReadingSession(String question, TarotSpread spreadType,
                   String userName, Integer userAge, String userGender,
-                  String drawnCardsJson, String aiReading) {
+                  String drawnCardsJson, String aiReading, Long memberId) {
             this.question = question;
             this.spreadType = spreadType;
             this.userName = userName;
@@ -50,5 +59,11 @@ public class TarotReadingSession {
             this.userGender = userGender;
             this.drawnCardsJson = drawnCardsJson;
             this.aiReading = aiReading;
+            this.memberId = memberId;
+            this.shareUuid = java.util.UUID.randomUUID().toString();
+      }
+
+      public void assignMember(Long memberId) {
+            this.memberId = memberId;
       }
 }

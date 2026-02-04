@@ -1,54 +1,64 @@
-import type { AssistantReadingResponse, DailyCardResponse, TarotAssistantType, ThreeCardRequest, ThreeCardResponse } from '../tarot';
+import axiosInstance from '../../api/axiosInstance';
+import type {
+      AssistantReadingResponse,
+      DailyCardResponse,
+      HistoryResponse,
+      PageResponse,
+      TarotAssistantType,
+      ThreeCardRequest,
+      ThreeCardResponse,
+      ShareResponse
+} from '../tarot';
 
-const BASE_URL = '/api/tarot';
+const BASE_URL = '/tarot';
 
 export const fetchDailyCard = async (userName?: string): Promise<DailyCardResponse> => {
-      const params = userName ? `?userName=${encodeURIComponent(userName)}` : '';
-      const response = await fetch(`${BASE_URL}/daily-card${params}`, {
-            method: 'GET',
-            headers: {
-                  'Content-Type': 'application/json',
-            },
+      const response = await axiosInstance.get<DailyCardResponse>(`${BASE_URL}/daily-card`, {
+            params: userName ? { userName } : {},
       });
-
-      if (!response.ok) {
-            const errorData = await response.json().catch(() => ({}));
-            throw new Error(errorData.message || '오늘의 카드를 불러오는데 실패했습니다.');
-      }
-
-      return response.json();
+      return response.data;
 };
 
 export const createThreeCardReading = async (payload: ThreeCardRequest): Promise<ThreeCardResponse> => {
-      const response = await fetch(`${BASE_URL}/readings/three-cards`, {
-            method: 'POST',
-            headers: {
-                  'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(payload),
-      });
-
-      if (!response.ok) {
-            const errorData = await response.json().catch(() => ({}));
-            throw new Error(errorData.message || '리딩을 생성하는데 실패했습니다.');
-      }
-
-      return response.json();
+      const response = await axiosInstance.post<ThreeCardResponse>(`${BASE_URL}/readings/three-cards`, payload);
+      return response.data;
 };
 
-export const createAssistantReading = async (sessionId: number, type: TarotAssistantType, summary: boolean = false): Promise<AssistantReadingResponse> => {
-      const query = summary ? '?summary=true' : '';
-      const response = await fetch(`${BASE_URL}/readings/${sessionId}/assistants/${type}${query}`, {
-            method: 'POST',
-            headers: {
-                  'Content-Type': 'application/json',
-            },
+export const createAssistantReading = async (
+      sessionId: number,
+      type: TarotAssistantType,
+      summary: boolean = false
+): Promise<AssistantReadingResponse> => {
+      const response = await axiosInstance.post<AssistantReadingResponse>(
+            `${BASE_URL}/readings/${sessionId}/assistants/${type}`,
+            null,
+            { params: summary ? { summary: true } : {} }
+      );
+      return response.data;
+};
+
+export const getHistory = async (
+      page: number = 0,
+      size: number = 10,
+      spreadType?: string,
+      sort?: string,
+      search?: string
+): Promise<PageResponse<HistoryResponse>> => {
+      const response = await axiosInstance.get<PageResponse<HistoryResponse>>(`${BASE_URL}/history`, {
+            params: { page, size, spreadType, sort, search },
       });
+      return response.data;
+};
 
-      if (!response.ok) {
-            const errorData = await response.json().catch(() => ({}));
-            throw new Error(errorData.message || '조수 리딩을 생성하는데 실패했습니다.');
-      }
+export const deleteReading = async (sessionId: number): Promise<void> => {
+      await axiosInstance.delete(`${BASE_URL}/history/${sessionId}`);
+};
 
-      return response.json();
+export const getShare = async (shareUuid: string): Promise<ShareResponse> => {
+      const response = await axiosInstance.get<ShareResponse>(`${BASE_URL}/share/${shareUuid}`);
+      return response.data;
+};
+
+export const migrateSessions = async (sessionIds: number[]): Promise<void> => {
+      await axiosInstance.post(`${BASE_URL}/migrate`, { sessionIds });
 };

@@ -1,5 +1,7 @@
 import React, { useState, useCallback } from 'react';
 import { useDailyCard } from '../../hooks/useDailyCard';
+import { useGuestTarot } from '../../hooks/useGuestTarot';
+import { useAuthStatus } from '../../hooks/useAuth';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
 import ErrorBanner from '../../components/common/ErrorBanner';
 import DailyCardSelectionView from './components/DailyCardSelectionView';
@@ -7,9 +9,18 @@ import DailyCardResultView from './components/DailyCardResultView';
 
 const DailyCardPage: React.FC = () => {
   const { data, loading, error, loadDailyCard } = useDailyCard();
+  const { saveGuestSession } = useGuestTarot();
+  const { isAuthenticated } = useAuthStatus();
   const [step, setStep] = useState<'selection' | 'result'>('selection');
   const [selectedCardIndex, setSelectedCardIndex] = useState<number | null>(null);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
+
+  // 리딩 성공 시 게스트라면 세션 ID 저장
+  React.useEffect(() => {
+    if (data?.sessionId && !isAuthenticated) {
+      saveGuestSession(data.sessionId);
+    }
+  }, [data?.sessionId, isAuthenticated, saveGuestSession]);
 
   const handleCardSelect = useCallback((index: number) => {
     if (loading || step === 'result' || selectedCardIndex !== null) return;
@@ -39,9 +50,9 @@ const DailyCardPage: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="relative min-h-screen flex items-center justify-center overflow-hidden">
-        <div className="mystic-bg" />
+      <div className="relative min-h-screen flex items-center justify-center">
         <div className="relative z-10 flex flex-col items-center">
+
           <div className="relative w-64 h-64 mb-8 flex items-center justify-center">
             <div className="absolute inset-0 border-4 border-amber-500/20 border-t-amber-500 rounded-full animate-spin" />
             <div className="absolute inset-4 border-4 border-amber-600/20 dark:border-amber-200/20 border-b-amber-600 dark:border-b-amber-200 rounded-full animate-spin-reverse" />
@@ -60,9 +71,9 @@ const DailyCardPage: React.FC = () => {
   }
 
   return (
-    <div className="relative min-h-screen overflow-hidden">
+    <div className="relative min-h-screen">
       {/* Mystic Background */}
-      <div className="mystic-bg" />
+
 
       {step === 'selection' ? (
         <DailyCardSelectionView

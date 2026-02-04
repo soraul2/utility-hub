@@ -25,6 +25,7 @@ export interface DailyCardResponse {
       card: DrawnCardDto;
       aiReading: string;
       createdAt: string;
+      shareUuid?: string;
 }
 
 export interface ThreeCardRequest {
@@ -41,6 +42,54 @@ export interface ThreeCardResponse {
       cards: DrawnCardDto[];
       aiReading: string;
       createdAt: string;
+      shareUuid?: string;
+}
+
+export interface ShareResponse {
+      spreadType: 'DAILY_ONE' | 'THREE_CARD';
+      question: string;
+      userName: string;
+      createdAt: string;
+      aiReading: string;
+      cards: DrawnCardDto[];
+}
+
+export interface HistoryResponse {
+      sessionId: number;
+      question: string;
+      spreadType: string;
+      createdAt: string;
+      shareUuid: string;
+      summarySnippet: string;
+}
+
+export interface PageResponse<T> {
+      content: T[];
+      pageable: {
+            pageNumber: number;
+            pageSize: number;
+            sort: {
+                  empty: boolean;
+                  sorted: boolean;
+                  unsorted: boolean;
+            };
+            offset: number;
+            paged: boolean;
+            unpaged: boolean;
+      };
+      last: boolean;
+      totalElements: number;
+      totalPages: number;
+      size: number;
+      number: number;
+      sort: {
+            empty: boolean;
+            sorted: boolean;
+            unsorted: boolean;
+      };
+      first: boolean;
+      numberOfElements: number;
+      empty: boolean;
 }
 
 export const TAROT_TOPICS: { value: TarotTopic; label: string }[] = [
