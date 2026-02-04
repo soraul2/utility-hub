@@ -3,6 +3,7 @@ package com.wootae.backend.domain.user.controller;
 import com.wootae.backend.domain.user.dto.AuthDto;
 import com.wootae.backend.domain.user.entity.User;
 import com.wootae.backend.domain.user.repository.UserRepository;
+import com.wootae.backend.domain.user.service.UserService;
 import com.wootae.backend.global.error.BusinessException;
 import com.wootae.backend.global.error.ErrorCode;
 import lombok.RequiredArgsConstructor;
@@ -10,6 +11,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -26,6 +28,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class UserController {
 
       private final UserRepository userRepository;
+      private final UserService userService;
 
       /**
        * 현재 로그인한 사용자의 정보 조회
@@ -55,5 +58,27 @@ public class UserController {
             // [개선] 조회 성공 로깅
             log.debug("사용자 정보 조회 성공: userId={}, nickname={}", userId, user.getNickname());
             return ResponseEntity.ok(AuthDto.UserResponse.from(user));
+      }
+
+      /**
+       * 회원 탈퇴
+       * 
+       * @param userDetails JWT 토큰에서 추출한 사용자 정보
+       * @return 성공 응답 (204 No Content)
+       */
+      @DeleteMapping("/me")
+      public ResponseEntity<Void> withdraw(@AuthenticationPrincipal UserDetails userDetails) {
+            if (userDetails == null) {
+                  log.warn("회원 탈퇴 요청: 인증 정보 없음");
+                  throw new BusinessException(ErrorCode.AUTH_UNAUTHORIZED);
+            }
+
+            Long userId = Long.valueOf(userDetails.getUsername());
+            log.debug("회원 탈퇴 요청: userId={}", userId);
+
+            userService.withdraw(userId);
+
+            log.info("회원 탈퇴 성공: userId={}", userId);
+            return ResponseEntity.noContent().build();
       }
 }

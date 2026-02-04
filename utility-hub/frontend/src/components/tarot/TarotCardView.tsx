@@ -26,7 +26,7 @@ const TarotCardView: React.FC<TarotCardViewProps> = ({
                   <div className={`flex flex-col items-center ${className}`} onClick={onClick}>
                         <div className="relative w-full h-full transition-transform duration-500 ease-out transform hover:scale-[1.02] cursor-pointer group perspective-1000">
                               {/* Card Container with Premium Border */}
-                              <div className="w-full h-full rounded-xl bg-[#0a0a0f] relative overflow-hidden shadow-2xl border-[3px] border-amber-900/50 flex items-center justify-center">
+                              <div className="w-full h-full rounded-xl bg-slate-50 dark:bg-[#0a0a0f] relative overflow-hidden shadow-2xl border-[3px] border-amber-200 dark:border-amber-900/50 flex items-center justify-center transition-colors duration-500">
                                     {/* Paper Texture Overlay (Requirement 3: Material) */}
                                     <div className="paper-texture" />
 
@@ -34,14 +34,14 @@ const TarotCardView: React.FC<TarotCardViewProps> = ({
                                     <div className="absolute inset-0 opacity-20 pointer-events-none">
                                           <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_#b8860b22_0%,_transparent_70%)]" />
                                           {/* Symmetrical Grid lines */}
-                                          <div className="absolute inset-x-0 top-1/2 h-[1px] bg-amber-500/20" />
-                                          <div className="absolute inset-y-0 left-1/2 w-[1px] bg-amber-500/20" />
-                                          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-48 border border-amber-500/10 rounded-full" />
+                                          <div className="absolute inset-x-0 top-1/2 h-[1px] bg-amber-500/20 dark:bg-amber-500/20" />
+                                          <div className="absolute inset-y-0 left-1/2 w-[1px] bg-amber-500/20 dark:bg-amber-500/20" />
+                                          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-48 border border-amber-500/10 dark:border-amber-500/10 rounded-full" />
                                     </div>
 
                                     {/* Premium Double Border (Material Feel) - Using Gold Foil */}
                                     <div className="absolute inset-1.5 border-[1.5px] border-transparent gold-foil-border rounded-[10px] z-10 opacity-70" />
-                                    <div className="absolute inset-2 border border-amber-900/40 rounded-[9px] z-10" />
+                                    <div className="absolute inset-2 border border-amber-900/10 dark:border-amber-900/40 rounded-[9px] z-10" />
 
                                     {/* Perfect Symmetry: Corner Accents (Vintage Overlay) */}
                                     {[
@@ -52,14 +52,14 @@ const TarotCardView: React.FC<TarotCardViewProps> = ({
                                     ].map((pos, i) => (
                                           <div key={i} className={`absolute ${pos} w-6 h-6 z-20`}>
                                                 <div className={`absolute inset-0 border-transparent gold-foil-border ${pos.includes('top') ? 'border-t-2' : 'border-b-2'} ${pos.includes('left') ? 'border-l-2' : 'border-r-2'} rounded-sm opacity-80`} />
-                                                <div className="absolute inset-[3px] border border-amber-900/40 opacity-50" />
+                                                <div className="absolute inset-[3px] border border-amber-900/10 dark:border-amber-900/40 opacity-50" />
                                           </div>
                                     ))}
 
                                     {/* Symmetrical Middle Icons (Requirement 1: Secretive Symmetry) */}
                                     <div className="absolute inset-y-8 left-1/2 -translate-x-1/2 flex flex-col justify-between items-center z-20 opacity-40">
-                                          <i className="fas fa-star text-[8px] text-amber-500"></i>
-                                          <i className="fas fa-star text-[8px] text-amber-500"></i>
+                                          <i className="fas fa-star text-[8px] text-amber-500 dark:text-amber-500"></i>
+                                          <i className="fas fa-star text-[8px] text-amber-500 dark:text-amber-500"></i>
                                     </div>
 
                                     {/* Central Mandala (Main Esoteric Pattern) */}

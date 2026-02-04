@@ -41,29 +41,29 @@ const InputFormStep: React.FC<InputFormStepProps> = ({
   return (
     <div className="max-w-2xl mx-auto space-y-8 animate-fade-in-up py-10">
       <div className="text-center space-y-2">
-        <h1 className="text-3xl md:text-4xl font-bold text-white font-chakra tracking-tight leading-tight">
+        <h1 className="text-3xl md:text-4xl font-bold text-slate-900 dark:text-white font-chakra tracking-tight leading-tight transition-colors duration-500">
           카드는 당신의 마음을 비추는 거울입니다
         </h1>
-        <p className="text-amber-200/60 font-light text-sm md:text-base tracking-wide max-w-md mx-auto">
+        <p className="text-slate-700 dark:text-amber-200/60 font-light text-sm md:text-base tracking-wide max-w-md mx-auto transition-colors duration-500">
           상황이 구체적일수록, 해석의 선명도가 높아집니다.<br />
           당신의 이야기를 조금 더 들려주시겠어요?
         </p>
       </div>
 
-      <form onSubmit={handleSubmit} className="glass-card p-8 md:p-10 rounded-3xl border-amber-500/10 shadow-2xl space-y-6 relative overflow-visible">
+      <form onSubmit={handleSubmit} className="glass-card p-8 md:p-10 rounded-3xl border-amber-500/10 shadow-lg dark:shadow-2xl space-y-6 relative overflow-visible transition-colors duration-500">
         <div className="space-y-3">
-          <label className="text-amber-200/80 font-medium font-chakra tracking-wide text-xs uppercase ml-1 italic">질문을 구체적으로 기입해 주세요</label>
+          <label className="text-slate-700 dark:text-amber-200/80 font-bold font-chakra tracking-wide text-xs uppercase ml-1 italic transition-colors">질문을 구체적으로 기입해 주세요</label>
           <textarea
             value={question}
             onChange={(e) => setQuestion(e.target.value)}
             placeholder="예: '지금 짝사랑하는 사람과 3개월 안에 연인이 될 수 있을까요?' 처럼 구체적으로 물어보세요."
-            className="w-full h-32 bg-[#050505]/50 border border-white/10 rounded-xl p-5 text-amber-50 focus:border-amber-500/50 focus:ring-1 focus:ring-amber-500/50 outline-none resize-none transition-all placeholder-white/20 mystic-scrollbar text-base"
+            className="w-full h-32 bg-white/60 dark:bg-[#050505]/50 border border-slate-200 dark:border-white/10 rounded-xl p-5 text-slate-800 dark:text-amber-50 focus:border-amber-500/50 focus:ring-1 focus:ring-amber-500/50 outline-none resize-none transition-all placeholder-slate-500 dark:placeholder-white/20 mystic-scrollbar text-base font-medium"
             required
           />
         </div>
 
         <div className="space-y-3">
-          <label className="text-amber-200/80 font-medium font-chakra tracking-wide text-xs uppercase ml-1">주제 선택</label>
+          <label className="text-slate-700 dark:text-amber-200/80 font-bold font-chakra tracking-wide text-xs uppercase ml-1 transition-colors">주제 선택</label>
           <div className="grid grid-cols-2 gap-4">
             {TAROT_TOPICS.filter(t => t.value !== 'GENERAL').map((t) => {
               let icon = 'fa-sparkles';
@@ -81,18 +81,18 @@ const InputFormStep: React.FC<InputFormStepProps> = ({
                   onClick={() => setTopic(t.value as TarotTopic)}
                   className={`relative p-6 rounded-2xl border transition-all duration-300 group overflow-hidden ${topic === t.value
                     ? 'bg-amber-500/10 border-amber-500 shadow-[0_0_20px_rgba(217,119,6,0.2)]'
-                    : 'bg-[#0a0a0f]/60 border-white/5 hover:border-amber-500/50 hover:bg-[#0a0a0f]'
+                    : 'bg-white/60 dark:bg-[#0a0a0f]/60 border-slate-200 dark:border-white/5 hover:border-amber-500/50 hover:bg-white/80 dark:hover:bg-[#0a0a0f]'
                     }`}
                 >
-                  <div className={`w-12 h-12 rounded-full flex items-center justify-center mb-3 mx-auto transition-colors ${topic === t.value ? 'bg-amber-500/20 text-amber-500' : 'bg-white/5 text-slate-400 group-hover:text-amber-500'
+                  <div className={`w-12 h-12 rounded-full flex items-center justify-center mb-3 mx-auto transition-colors ${topic === t.value ? 'bg-amber-500/20 text-amber-700 dark:text-amber-500' : 'bg-slate-100 dark:bg-white/5 text-slate-500 dark:text-slate-400 group-hover:text-amber-600 dark:group-hover:text-amber-500'
                     }`}>
                     <i className={`fas ${icon} text-xl`}></i>
                   </div>
                   <div className="text-center space-y-1 relative z-10">
-                    <div className={`font-chakra font-bold text-sm tracking-wide ${topic === t.value ? 'text-white' : 'text-slate-300 group-hover:text-white'}`}>
+                    <div className={`font-chakra font-bold text-sm tracking-wide transition-colors ${topic === t.value ? 'text-slate-900 dark:text-white' : 'text-slate-600 dark:text-slate-300 group-hover:text-slate-900 dark:group-hover:text-white'}`}>
                       {label}
                     </div>
-                    <div className="text-[10px] text-slate-500 uppercase tracking-wider font-light">
+                    <div className="text-[10px] text-slate-500 dark:text-slate-500 uppercase tracking-wider font-medium">
                       {subtext}
                     </div>
                   </div>
@@ -103,9 +103,9 @@ const InputFormStep: React.FC<InputFormStepProps> = ({
         </div>
 
         <div className="space-y-4 pt-2">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-white/5 p-4 rounded-xl border border-white/10">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-white/40 dark:bg-white/5 p-4 rounded-xl border border-slate-200 dark:border-white/10 transition-colors">
             <div className="space-y-2">
-              <label className="text-amber-200/80 text-[10px] font-chakra uppercase ml-1">성별</label>
+              <label className="text-slate-700 dark:text-amber-200/80 text-[10px] font-chakra font-bold uppercase ml-1 transition-colors">성별</label>
               <div className="flex gap-2">
                 {['MALE', 'FEMALE'].map((g) => (
                   <button
@@ -113,8 +113,8 @@ const InputFormStep: React.FC<InputFormStepProps> = ({
                     type="button"
                     onClick={() => setUserGender(g as UserGender)}
                     className={`flex-1 py-2 rounded-lg text-xs font-bold transition-all border ${userGender === g
-                      ? 'bg-amber-500 text-black border-amber-500'
-                      : 'bg-transparent text-slate-400 border-white/10 hover:border-amber-500/50'
+                      ? 'bg-amber-500 text-white dark:text-black border-amber-500'
+                      : 'bg-transparent text-slate-500 dark:text-slate-400 border-slate-200 dark:border-white/10 hover:border-amber-500/50 hover:text-slate-800 dark:hover:text-white'
                       }`}
                   >
                     {g === 'MALE' ? '남성' : '여성'}
@@ -124,23 +124,23 @@ const InputFormStep: React.FC<InputFormStepProps> = ({
             </div>
             <div className="flex gap-4">
               <div className="space-y-2 flex-1">
-                <label className="text-amber-200/80 text-[10px] font-chakra uppercase ml-1">나이</label>
+                <label className="text-slate-700 dark:text-amber-200/80 text-[10px] font-chakra font-bold uppercase ml-1 transition-colors">나이</label>
                 <input
                   type="number"
                   value={userAge}
                   onChange={(e) => setUserAge(e.target.value)}
                   placeholder="23"
-                  className="w-full bg-[#050505] border border-white/10 rounded-lg p-2 text-amber-50 focus:border-amber-500/50 outline-none text-center font-chakra"
+                  className="w-full bg-white/60 dark:bg-[#050505] border border-slate-200 dark:border-white/10 rounded-lg p-2 text-slate-800 dark:text-amber-50 focus:border-amber-500/50 outline-none text-center font-chakra transition-colors placeholder-slate-400 font-medium"
                 />
               </div>
               <div className="space-y-2 flex-[2]">
-                <label className="text-amber-200/80 text-[10px] font-chakra uppercase ml-1">이름</label>
+                <label className="text-slate-700 dark:text-amber-200/80 text-[10px] font-chakra font-bold uppercase ml-1 transition-colors">이름</label>
                 <input
                   type="text"
                   value={userName}
                   onChange={(e) => setUserName(e.target.value)}
                   placeholder="김서윤"
-                  className="w-full bg-[#050505] border border-white/10 rounded-lg p-2 text-amber-50 focus:border-amber-500/50 outline-none"
+                  className="w-full bg-white/60 dark:bg-[#050505] border border-slate-200 dark:border-white/10 rounded-lg p-2 text-slate-800 dark:text-amber-50 focus:border-amber-500/50 outline-none transition-colors placeholder-slate-400 font-medium"
                 />
               </div>
             </div>
@@ -158,20 +158,20 @@ const InputFormStep: React.FC<InputFormStepProps> = ({
 
       {showConfirmModal && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center px-4 overflow-hidden">
-          <div className="absolute inset-0 bg-black/80 backdrop-blur-md animate-fade-in" onClick={() => setShowConfirmModal(false)} />
-          <div className="relative w-full max-w-lg bg-[#15100d]/90 border border-amber-500/30 rounded-2xl p-8 md:p-12 shadow-[0_0_100px_rgba(217,119,6,0.2)] animate-scale-in overflow-hidden text-center space-y-8">
+          <div className="absolute inset-0 bg-black/60 dark:bg-black/80 backdrop-blur-md animate-fade-in transition-colors" onClick={() => setShowConfirmModal(false)} />
+          <div className="relative w-full max-w-lg bg-white/90 dark:bg-[#15100d]/90 border border-amber-500/30 rounded-2xl p-8 md:p-12 shadow-[0_0_100px_rgba(217,119,6,0.2)] animate-scale-in overflow-hidden text-center space-y-8 transition-colors">
             <div className="space-y-4">
-              <h2 className="text-xl md:text-2xl font-bold text-amber-100 font-chakra">리딩을 준비하시겠습니까?</h2>
+              <h2 className="text-xl md:text-2xl font-bold text-slate-800 dark:text-amber-100 font-chakra transition-colors">리딩을 준비하시겠습니까?</h2>
               <div className="w-16 h-[1px] bg-amber-500/50 mx-auto" />
             </div>
-            <p className="text-slate-300 text-sm md:text-base font-light leading-relaxed break-keep">
+            <p className="text-slate-600 dark:text-slate-300 text-sm md:text-base font-light leading-relaxed break-keep transition-colors">
               "충분히 집중하셨나요? 입력하신 질문은 당신의 운명을 비추는 시작점이 됩니다."
             </p>
             <div className="flex flex-col md:flex-row gap-4 pt-2">
-              <button onClick={() => setShowConfirmModal(false)} className="flex-1 px-6 py-4 rounded-xl border border-white/10 text-slate-400 hover:text-white hover:bg-white/5 transition-all font-chakra text-xs uppercase tracking-widest font-bold">
+              <button onClick={() => setShowConfirmModal(false)} className="flex-1 px-6 py-4 rounded-xl border border-black/10 dark:border-white/10 text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/5 transition-all font-chakra text-xs uppercase tracking-widest font-bold">
                 다시 생각하기
               </button>
-              <button onClick={onProceed} className="flex-1 px-8 py-4 rounded-xl bg-gradient-to-r from-amber-700 to-amber-600 text-white font-chakra text-xs uppercase tracking-[0.2em] font-bold shadow-[0_0_20px_rgba(217,119,6,0.3)] hover:shadow-[0_0_30px_rgba(217,119,6,0.5)] transition-all">
+              <button onClick={onProceed} className="flex-1 px-8 py-4 rounded-xl bg-gradient-to-r from-amber-600 to-amber-700 dark:from-amber-700 dark:to-amber-600 text-white font-chakra text-xs uppercase tracking-[0.2em] font-bold shadow-[0_0_20px_rgba(217,119,6,0.3)] hover:shadow-[0_0_30px_rgba(217,119,6,0.5)] transition-all">
                 준비되었습니다
               </button>
             </div>

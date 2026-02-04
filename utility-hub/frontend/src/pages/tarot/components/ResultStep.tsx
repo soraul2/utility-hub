@@ -44,24 +44,24 @@ const ResultStep: React.FC<ResultStepProps> = ({
 
   return (
     <div className="max-w-6xl mx-auto space-y-16 animate-fade-in py-10">
-      <div className="flex items-center justify-between border-b border-white/5 pb-6">
-        <button onClick={onReset} className="group flex items-center gap-2 text-amber-500/60 hover:text-amber-400">
+      <div className="flex items-center justify-between border-b border-black/5 dark:border-white/5 pb-6 transition-colors">
+        <button onClick={onReset} className="group flex items-center gap-2 text-amber-600/60 dark:text-amber-500/60 hover:text-amber-500 dark:hover:text-amber-400 transition-colors">
           <i className="fas fa-arrow-left text-xs"></i>
           <span className="text-xs font-chakra tracking-[0.2em] uppercase">돌아가기</span>
         </button>
         <div className="text-center">
-          <h2 className="text-4xl md:text-5xl font-serif font-bold italic text-transparent bg-clip-text bg-gradient-to-b from-amber-200 via-amber-400 to-amber-600 tracking-[0.1em] drop-shadow-[0_0_15px_rgba(245,158,11,0.5)] animate-pulse-slow">
+          <h2 className="text-4xl md:text-5xl font-serif font-bold italic text-transparent bg-clip-text bg-gradient-to-b from-amber-600 via-amber-700 to-amber-900 dark:from-amber-200 dark:via-amber-400 dark:to-amber-600 tracking-[0.1em] drop-shadow-[0_0_15px_rgba(245,158,11,0.2)] dark:drop-shadow-[0_0_15px_rgba(245,158,11,0.5)] animate-pulse-slow transition-all">
             운명의 계시
           </h2>
           {selectedLeader ? (
-            <p className="text-sm font-chakra text-white/50 mt-2 uppercase tracking-widest">
-              Reading by <span className={selectedLeader === 'FORTUNA' ? 'text-amber-400 font-bold' : 'text-slate-300'}>
+            <p className="text-sm font-chakra text-slate-600 dark:text-white/50 mt-2 uppercase tracking-widest transition-colors">
+              Reading by <span className={selectedLeader === 'FORTUNA' ? 'text-amber-600 dark:text-amber-400 font-bold' : 'text-slate-700 dark:text-slate-300'}>
                 {assistants.find(a => a.type === selectedLeader)?.name || 'Unknown'}
               </span>
             </p>
           ) : (
-            <p className="text-sm font-chakra text-white/50 mt-2 uppercase tracking-widest">
-              Reading by <span className="text-amber-500 font-bold">Mystic</span>
+            <p className="text-sm font-chakra text-slate-600 dark:text-white/50 mt-2 uppercase tracking-widest transition-colors">
+              Reading by <span className="text-amber-700 dark:text-amber-500 font-bold">Mystic</span>
             </p>
           )}
         </div>
@@ -86,8 +86,8 @@ const ResultStep: React.FC<ResultStepProps> = ({
               {/* Timeline Info */}
               <div className="text-center relative z-10 flex items-center justify-center mb-4">
                 <span className={`font-chakra font-bold uppercase tracking-[0.4em] transition-all duration-700 ${isRevealed
-                  ? 'text-xs md:text-sm text-amber-500/80 drop-shadow-[0_0_8px_rgba(245,158,11,0.3)]'
-                  : 'text-xl md:text-2xl text-amber-500/60 font-serif italic drop-shadow-[0_0_10px_rgba(245,158,11,0.4)] animate-pulse'
+                  ? 'text-xs md:text-sm text-amber-600/80 dark:text-amber-500/80 drop-shadow-[0_0_8px_rgba(245,158,11,0.3)]'
+                  : 'text-xl md:text-2xl text-amber-600/60 dark:text-amber-500/60 font-serif italic drop-shadow-[0_0_10px_rgba(245,158,11,0.4)] animate-pulse'
                   }`}>
                   {index === 0 ? '지나온 시간' : index === 1 ? '마주한 현실' : '다가올 운명'}
                 </span>
@@ -109,7 +109,7 @@ const ResultStep: React.FC<ResultStepProps> = ({
                     <TarotCardView isFaceDown={true} className={`w-full h-full shadow-2xl transition-all ${flippingIndex === index ? 'scale-105 blur-sm' : ''}`} />
                     {flippingIndex === index && (
                       <div className="absolute inset-0 flex items-center justify-center z-30 animate-pulse">
-                        <p className="text-amber-500 font-chakra font-bold">나의 운명은...?</p>
+                        <p className="text-amber-600 dark:text-amber-500 font-chakra font-bold">나의 운명은...?</p>
                       </div>
                     )}
                   </div>
@@ -122,17 +122,17 @@ const ResultStep: React.FC<ResultStepProps> = ({
                 {isRevealed && (
                   <div className="animate-fade-in-up flex flex-col items-center space-y-6">
                     <div className="space-y-2">
-                      <h3 className="text-2xl md:text-3xl font-serif text-amber-400 drop-shadow-md tracking-tight leading-tight">
+                      <h3 className="text-2xl md:text-3xl font-serif text-amber-600 dark:text-amber-400 drop-shadow-md tracking-tight leading-tight">
                         {card.cardInfo.nameEn}
                       </h3>
-                      <p className="text-sm font-chakra text-slate-400 font-medium tracking-wide">
+                      <p className="text-sm font-chakra text-slate-500 dark:text-slate-400 font-medium tracking-wide">
                         {card.cardInfo.nameKo}
                       </p>
                     </div>
 
                     <div className="relative group/keyword">
                       <div className="absolute inset-0 bg-amber-500/5 blur-xl rounded-full opacity-0 group-hover/keyword:opacity-100 transition-opacity" />
-                      <p className="relative z-10 text-xs md:text-sm text-amber-200/60 italic font-light max-w-[220px] leading-relaxed break-keep px-4 mx-auto">
+                      <p className="relative z-10 text-xs md:text-sm text-amber-700/60 dark:text-amber-200/60 italic font-light max-w-[220px] leading-relaxed break-keep px-4 mx-auto">
                         "{card.cardInfo.keywords}"
                       </p>
                     </div>
@@ -147,8 +147,8 @@ const ResultStep: React.FC<ResultStepProps> = ({
       {/* Scroll Hint */}
       {showResultRevealModal && !isResultUnlocked && (
         <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-40 text-center pointer-events-none animate-fade-in transition-opacity duration-500" style={{ animationDelay: '0.5s' }}>
-          <p className="text-[10px] text-amber-200/50 uppercase tracking-[0.2em] mb-2 animate-pulse">운명이 도착했습니다</p>
-          <i className="fas fa-chevron-down text-amber-500 text-xl animate-bounce"></i>
+          <p className="text-[10px] text-amber-700/50 dark:text-amber-200/50 uppercase tracking-[0.2em] mb-2 animate-pulse">운명이 도착했습니다</p>
+          <i className="fas fa-chevron-down text-amber-600 dark:text-amber-500 text-xl animate-bounce"></i>
         </div>
       )}
 
@@ -187,16 +187,16 @@ const ResultStep: React.FC<ResultStepProps> = ({
             </div>
 
             <div className="space-y-3 relative z-10">
-              <h3 className="text-3xl md:text-4xl font-serif text-transparent bg-clip-text bg-gradient-to-b from-amber-100 via-amber-300 to-amber-600 italic drop-shadow-[0_4px_8px_rgba(0,0,0,0.8)]">
+              <h3 className="text-3xl md:text-4xl font-serif text-transparent bg-clip-text bg-gradient-to-b from-amber-700 via-amber-800 to-amber-900 dark:from-amber-100 dark:via-amber-300 dark:to-amber-600 italic drop-shadow-[0_4px_8px_rgba(0,0,0,0.1)] dark:drop-shadow-[0_4px_8px_rgba(0,0,0,0.8)] transition-all">
                 운명의 메시지 개봉
               </h3>
-              <p className="text-white/40 text-[10px] md:text-xs font-chakra tracking-[0.3em] uppercase group-hover:text-amber-400/80 transition-colors">
+              <p className="text-slate-600 dark:text-white/40 text-[10px] md:text-xs font-chakra tracking-[0.3em] uppercase group-hover:text-amber-700 dark:group-hover:text-amber-400/80 transition-colors">
                 Click to reveal your destiny
               </p>
             </div>
 
             <div className="mt-8 flex justify-center opacity-0 group-hover:opacity-100 transition-all duration-500 transform translate-y-4 group-hover:translate-y-0">
-              <span className="px-6 py-2 rounded-full border border-amber-500/30 text-amber-300 text-[10px] tracking-widest uppercase bg-amber-950/30">
+              <span className="px-6 py-2 rounded-full border border-amber-500/30 text-amber-600 dark:text-amber-300 text-[10px] tracking-widest uppercase bg-white/50 dark:bg-amber-950/30 transition-colors">
                 봉인 해제
               </span>
             </div>

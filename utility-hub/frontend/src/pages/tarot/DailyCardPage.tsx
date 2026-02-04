@@ -44,14 +44,14 @@ const DailyCardPage: React.FC = () => {
         <div className="relative z-10 flex flex-col items-center">
           <div className="relative w-64 h-64 mb-8 flex items-center justify-center">
             <div className="absolute inset-0 border-4 border-amber-500/20 border-t-amber-500 rounded-full animate-spin" />
-            <div className="absolute inset-4 border-4 border-amber-200/20 border-b-amber-200 rounded-full animate-spin-reverse" />
-            <div className="absolute w-48 h-48 border border-purple-500/30 rounded-full animate-[spin_10s_linear_infinite]" />
-            <div className="relative z-10 w-24 h-36 bg-gradient-to-br from-purple-900/50 to-indigo-900/50 rounded-lg border border-purple-400/30 shadow-[0_0_50px_rgba(168,85,247,0.6)] animate-pulse flex items-center justify-center">
-              <i className="fas fa-eye text-4xl text-purple-200/80 animate-bounce"></i>
+            <div className="absolute inset-4 border-4 border-amber-600/20 dark:border-amber-200/20 border-b-amber-600 dark:border-b-amber-200 rounded-full animate-spin-reverse" />
+            <div className="absolute w-48 h-48 border border-amber-500/30 dark:border-purple-500/30 rounded-full animate-[spin_10s_linear_infinite]" />
+            <div className="relative z-10 w-24 h-36 bg-gradient-to-br from-white/90 to-amber-100/90 dark:from-purple-900/50 dark:to-indigo-900/50 rounded-lg border border-amber-400/30 dark:border-purple-400/30 shadow-[0_0_50px_rgba(245,158,11,0.4)] dark:shadow-[0_0_50px_rgba(168,85,247,0.6)] animate-pulse flex items-center justify-center">
+              <i className="fas fa-eye text-4xl text-amber-600 dark:text-purple-200/80 animate-bounce"></i>
             </div>
           </div>
           <LoadingSpinner message="Reading the stars..." />
-          <p className="mt-6 text-purple-200/50 text-xs font-light tracking-wider animate-pulse">
+          <p className="mt-6 text-slate-500 dark:text-purple-200/50 text-xs font-light tracking-wider animate-pulse transition-colors duration-500">
             "같은 질문을 반복하면 카드의 목소리가 흐려집니다."
           </p>
         </div>
@@ -80,9 +80,9 @@ const DailyCardPage: React.FC = () => {
             <div className="text-center space-y-4">
               <div className="space-y-2">
                 <h1 className="text-4xl md:text-5xl font-bold font-chakra tracking-tighter drop-shadow-sm py-2 leading-relaxed">
-                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-200 via-blue-100 to-purple-200">오늘의 카드</span>
+                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-600 via-amber-800 to-amber-600 dark:from-purple-200 dark:via-blue-100 dark:to-purple-200 transition-all duration-500">오늘의 카드</span>
                 </h1>
-                <p className="text-slate-400 font-light tracking-widest uppercase text-xs md:text-sm">
+                <p className="text-slate-500 dark:text-slate-400 font-light tracking-widest uppercase text-xs md:text-sm transition-colors duration-500">
                   우주가 당신에게 전하는 메시지
                 </p>
               </div>

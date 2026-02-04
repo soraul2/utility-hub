@@ -99,21 +99,21 @@ const DailyCardSelectionView: React.FC<DailyCardSelectionViewProps> = ({
           <div className="space-y-2">
             <h1 className="text-4xl md:text-5xl font-bold font-chakra tracking-tighter drop-shadow-sm py-2 leading-relaxed">
               {selectedCardIndex !== null
-                ? <span className="gold-foil-text font-serif italic">운명의 문이 열렸습니다</span>
-                : <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-200 via-blue-100 to-purple-200">오늘의 카드</span>
+                ? <span className="gold-foil-text font-serif italic text-amber-600 dark:text-amber-500">운명의 문이 열렸습니다</span>
+                : <span className="text-transparent bg-clip-text bg-gradient-to-r from-slate-900 via-slate-700 to-slate-900 dark:from-purple-200 dark:via-blue-100 dark:to-purple-200 transition-all">오늘의 카드</span>
               }
             </h1>
-            <p className="text-slate-400 font-light tracking-widest uppercase text-xs md:text-sm">
+            <p className="text-slate-600 dark:text-slate-400 font-medium tracking-widest uppercase text-xs md:text-sm transition-colors">
               10장의 카드 중 당신의 운명을 선택하세요
             </p>
           </div>
           {selectedCardIndex !== null && (
-            <p className="text-amber-400 font-bold text-sm tracking-[0.2em] uppercase font-chakra drop-shadow-[0_0_10px_rgba(217,119,6,0.5)] px-4 animate-fade-in">
+            <p className="text-amber-600 dark:text-amber-400 font-bold text-sm tracking-[0.2em] uppercase font-chakra drop-shadow-[0_0_10px_rgba(217,119,6,0.3)] px-4 animate-fade-in transition-colors">
               선택된 카드를 누르면 취소됩니다
             </p>
           )}
           {selectedCardIndex === null && (
-            <p className="text-purple-200/70 text-base md:text-lg font-light max-w-2xl mx-auto animate-fade-in px-4 leading-relaxed" style={{ animationDelay: '0.2s' }}>
+            <p className="text-slate-600 dark:text-purple-200/70 text-base md:text-lg font-light max-w-2xl mx-auto animate-fade-in px-4 leading-relaxed transition-colors" style={{ animationDelay: '0.2s' }}>
               복잡한 생각은 잠시 내려놓고, 지금 이 순간 가장 마음이 가는 카드를 선택하세요.
             </p>
           )}
@@ -194,8 +194,7 @@ const DailyCardSelectionView: React.FC<DailyCardSelectionViewProps> = ({
                         animationDelay: `${index * 0.2}s`
                       }}
                     >
-                      <div className="w-full h-full transition-all duration-300 ease-out transform-gpu group-hover:scale-105"
-                        style={{ background: 'linear-gradient(to bottom right, #1a1a2e, #0d0d15)' }}
+                      <div className="w-full h-full transition-all duration-300 ease-out transform-gpu group-hover:scale-105 bg-gradient-to-br from-slate-100 to-slate-200 dark:from-[#1a1a2e] dark:to-[#0d0d15] rounded-xl"
                       >
                         <TarotCardView isFaceDown={true} className="w-full h-full shadow-2xl rounded-xl border border-amber-500/20 group-hover:border-amber-400 group-hover:shadow-[0_0_30px_rgba(251,191,36,0.6)] transition-all duration-300" />
                       </div>
@@ -231,19 +230,19 @@ const DailyCardSelectionView: React.FC<DailyCardSelectionViewProps> = ({
             onClick={() => setShowConfirmModal(false)}
           />
 
-          <div className="relative w-full max-w-lg bg-[#0d0d15]/90 border border-amber-500/30 rounded-2xl p-8 md:p-12 shadow-[0_0_100px_rgba(217,119,6,0.2)] animate-scale-in overflow-hidden">
+          <div className="relative w-full max-w-lg bg-white/95 dark:bg-[#0d0d15]/90 border border-amber-500/30 rounded-2xl p-8 md:p-12 shadow-[0_0_100px_rgba(217,119,6,0.2)] animate-scale-in overflow-hidden transition-colors">
             <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-amber-500 to-transparent" />
             <div className="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-amber-500 to-transparent" />
 
             <div className="relative z-10 text-center space-y-8">
               <div className="space-y-4">
-                <h2 className="text-2xl md:text-3xl font-chakra text-amber-100 tracking-[0.2em] font-bold uppercase">
+                <h2 className="text-2xl md:text-3xl font-chakra text-amber-600 dark:text-amber-100 tracking-[0.2em] font-bold uppercase transition-colors">
                   선택을 확정하시겠습니까?
                 </h2>
                 <div className="w-16 h-[1px] bg-amber-500/50 mx-auto" />
               </div>
 
-              <p className="text-slate-300 text-base md:text-lg font-light leading-relaxed break-keep">
+              <p className="text-slate-600 dark:text-slate-300 text-base md:text-lg font-light leading-relaxed break-keep transition-colors">
                 "우연처럼 보이지만, 당신의 무의식이 이 카드를 선택했습니다.<br />
                 마음의 흔들림이 없다면 결과를 확인하세요."
               </p>
@@ -251,13 +250,13 @@ const DailyCardSelectionView: React.FC<DailyCardSelectionViewProps> = ({
               <div className="flex flex-col md:flex-row gap-4 pt-4">
                 <button
                   onClick={() => setShowConfirmModal(false)}
-                  className="flex-1 px-6 py-4 rounded-xl border border-white/10 text-slate-400 hover:text-white hover:bg-white/5 transition-all font-chakra text-sm uppercase tracking-widest"
+                  className="flex-1 px-6 py-4 rounded-xl border border-slate-300 dark:border-white/10 text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/5 transition-all font-chakra text-sm uppercase tracking-widest font-bold"
                 >
                   아직 고민 중입니다
                 </button>
                 <button
                   onClick={onFinalConfirm}
-                  className="flex-1 px-8 py-4 rounded-xl bg-gradient-to-r from-amber-900 to-amber-700 text-white font-chakra text-sm uppercase tracking-[0.2em] font-bold shadow-[0_0_20px_rgba(217,119,6,0.3)] hover:shadow-[0_0_30px_rgba(217,119,6,0.5)] transition-all animate-pulse-slow"
+                  className="flex-1 px-8 py-4 rounded-xl bg-gradient-to-r from-amber-600 to-amber-800 dark:from-amber-900 dark:to-amber-700 text-white font-chakra text-sm uppercase tracking-[0.2em] font-bold shadow-[0_0_20px_rgba(217,119,6,0.3)] hover:shadow-[0_0_30px_rgba(217,119,6,0.5)] transition-all animate-pulse-slow"
                 >
                   네, 확인하겠습니다
                 </button>

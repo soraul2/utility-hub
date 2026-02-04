@@ -25,6 +25,20 @@ export interface AuthState {
   isLoading: boolean;
   user: AuthUser | null;
   accessToken: string | null;
+  error: AuthError | null; // 추가
+}
+
+export interface AuthError {
+  code: AuthErrorCode;
+  message: string;
+}
+
+export type AuthErrorCode = 
+  | 'INVALID_TOKEN' | 'TOKEN_EXPIRED' | 'REFRESH_FAILED' 
+  | 'SESSION_RESTORE_FAILED' | 'NETWORK_ERROR' | 'UNAUTHORIZED';
+
+export interface LocationState {
+  from?: { pathname: string };
 }
 ```
 
@@ -40,6 +54,11 @@ export interface AuthState {
 - **Header**: `Authorization: Bearer {accessToken}`
 - **Success**: `AuthUser` 데이터 반환
 
+### 2.3 회원 탈퇴 (Withdrawal)
+- **Endpoint**: `DELETE /api/user/me`
+- **Header**: `Authorization: Bearer {accessToken}`
+- **Success**: 탈퇴 완료 (200 OK or 204 No Content)
+
 ## 3. 에러 처리 가이드
 
 인증 관련 에러는 다음 코드를 기반으로 사용자에게 알림을 제공합니다.
@@ -54,10 +73,16 @@ export interface AuthState {
 ## 4. 컴포넌트 사용 가이드
 
 ### 4.1 로그인 보호 (`ProtectedRoute`)
-로그인이 필요한 페이지 라우트를 이 컴포넌트로 감싸 관리합니다.
+인증 여부 및 권한(Role)에 따라 페이지 접근을 제한합니다.
 ```tsx
+// 일반 인증 보호
 <Route element={<ProtectedRoute />}>
   <Route path="/mypage" element={<MyPage />} />
+</Route>
+
+// 관리자 권한 보호
+<Route element={<ProtectedRoute allowedRoles={['ROLE_ADMIN']} />}>
+  <Route path="/admin" element={<AdminDashboard />} />
 </Route>
 ```
 

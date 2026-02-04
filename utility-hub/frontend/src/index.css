@@ -6,8 +6,64 @@
 @tailwind utilities;
 
 @layer base {
+  :root {
+    /* Semantic Color System */
+
+    /* Backgrounds */
+    --mystic-bg-primary: #f8f9fa;
+    /* Celestial Cream/White */
+    --mystic-bg-secondary: #ffffff;
+    --mystic-bg-card: rgba(255, 255, 255, 0.6);
+    --mystic-border: rgba(0, 0, 0, 0.05);
+
+    /* Text */
+    --mystic-text-primary: #1e293b;
+    /* Slate 800 */
+    --mystic-text-secondary: #475569;
+    /* Slate 600 */
+    --mystic-text-muted: #94a3b8;
+    /* Slate 400 */
+
+    /* Accents */
+    --mystic-accent: #b45309;
+    /* Bronze/Amber 700 */
+    --mystic-accent-light: #f59e0b;
+    /* Amber 500 */
+
+    /* Gradients */
+    --mystic-gradient-text: linear-gradient(to right, #b45309, #d97706, #b45309);
+  }
+
+  .dark {
+    /* Abyss (Dark) Mode Overrides */
+
+    /* Backgrounds */
+    --mystic-bg-primary: #050816;
+    /* Deep Space */
+    --mystic-bg-secondary: #0f172a;
+    --mystic-bg-card: rgba(18, 18, 22, 0.8);
+    --mystic-border: rgba(255, 255, 255, 0.1);
+
+    /* Text */
+    --mystic-text-primary: #f8fafc;
+    /* Slate 50 */
+    --mystic-text-secondary: #cbd5e1;
+    /* Slate 300 */
+    --mystic-text-muted: #64748b;
+    /* Slate 500 */
+
+    /* Accents */
+    --mystic-accent: #fbbf24;
+    /* Amber 400 */
+    --mystic-accent-light: #fcd34d;
+    /* Amber 300 */
+
+    /* Gradients */
+    --mystic-gradient-text: linear-gradient(to right, #bf953f, #fcf6ba, #b38728, #fbf5b7);
+  }
+
   body {
-    @apply antialiased text-slate-900 bg-slate-950 text-slate-100 transition-colors duration-300;
+    @apply antialiased transition-colors duration-500 bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100;
     font-family: 'Inter', -apple-system, sans-serif;
   }
 }
@@ -20,31 +76,43 @@
 
   /* Premium Glassmorphism & Gold Theme */
   .glass-card {
-    @apply bg-[#121216]/80 backdrop-blur-xl border border-white/10;
+    @apply bg-white/60 dark:bg-[#121216]/80 backdrop-blur-xl border border-black/5 dark:border-white/10;
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.1);
+  }
+
+  .dark .glass-card {
     box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5);
   }
 
   .gold-border {
     border: 1px solid transparent;
-    background: linear-gradient(#121216, #121216) padding-box,
-      linear-gradient(135deg, #bf953f, #fcf6ba, #b38728, #fbf5b7, #aa771c) border-box;
+    background: linear-gradient(var(--mystic-bg-primary), var(--mystic-bg-primary)) padding-box,
+      linear-gradient(135deg, var(--mystic-accent), #fcf6ba, var(--mystic-accent-light), #fbf5b7, var(--mystic-accent)) border-box;
   }
 
   .text-gradient-gold {
-    background: linear-gradient(to right, #bf953f, #fcf6ba, #b38728, #fbf5b7);
+    background: linear-gradient(to right, var(--mystic-accent), #d97706, var(--mystic-accent-light), #fbf5b7);
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
   }
 
+  .dark .text-gradient-gold {
+    background: linear-gradient(to right, #bf953f, #fcf6ba, #b38728, #fbf5b7);
+  }
+
   .glass-panel {
-    @apply bg-[#0a0a0a]/90 backdrop-blur-2xl border-t border-white/5 shadow-2xl;
+    @apply bg-white/80 dark:bg-[#0a0a0a]/90 backdrop-blur-2xl border-t border-black/5 dark:border-white/5 shadow-2xl;
   }
 
   .mystic-panel {
-    @apply relative bg-[#08080c] border border-amber-500/20 rounded-[2rem] p-8 md:p-[30px_24px] overflow-hidden;
-    box-shadow: 0 0 100px rgba(0, 0, 0, 0.8);
+    @apply relative bg-white/40 dark:bg-[#08080c] border border-amber-500/20 rounded-[2rem] p-8 md:p-[30px_24px] overflow-hidden transition-colors duration-500;
+    box-shadow: 0 0 40px rgba(180, 83, 9, 0.1);
     line-height: 1.6;
+  }
+
+  .dark .mystic-panel {
+    box-shadow: 0 0 100px rgba(0, 0, 0, 0.8);
   }
 
   .mystic-panel::before {
@@ -63,7 +131,7 @@
   }
 
   .mystic-scrollbar::-webkit-scrollbar-track {
-    @apply bg-white/5 rounded-full;
+    @apply bg-black/5 dark:bg-white/5 rounded-full;
   }
 
   .mystic-scrollbar::-webkit-scrollbar-thumb {
@@ -79,6 +147,17 @@
   width: 100%;
   height: 100%;
   z-index: -1;
+  background-color: var(--mystic-bg-primary);
+  /* Light Mode Clouds/Dawn Effect */
+  background-image:
+    radial-gradient(circle at 50% 0%, rgba(251, 191, 36, 0.1) 0%, transparent 60%),
+    radial-gradient(circle at 85% 30%, rgba(59, 130, 246, 0.05) 0%, transparent 50%),
+    radial-gradient(circle at 15% 70%, rgba(244, 63, 94, 0.05) 0%, transparent 50%);
+  transition: background-color 0.5s ease;
+}
+
+.dark .mystic-bg {
+  /* Dark Mode Space/Abyss Effect */
   background-color: #050505;
   background-image:
     radial-gradient(circle at 50% 0%, rgba(191, 149, 63, 0.15) 0%, transparent 50%),
@@ -347,7 +426,7 @@
 /* AI Reading Text Enhancements */
 /* AI Reading Text Enhancements - V2 Clean & Organized */
 .prose-mystic {
-  @apply text-amber-50/90 leading-relaxed tracking-wide text-lg relative;
+  @apply text-slate-700 dark:text-amber-50/90 leading-relaxed tracking-wide text-lg relative transition-colors duration-300;
 }
 
 .prose-mystic>*+* {
@@ -376,12 +455,12 @@
 
 /* Content Blocks */
 .prose-mystic p {
-  @apply text-[1.05rem] leading-8 text-slate-300 font-light text-justify mb-6;
+  @apply text-[1.05rem] leading-8 text-slate-600 dark:text-slate-300 font-light text-justify mb-6 transition-colors duration-300;
 }
 
 /* Emphasis & Highlights */
 .prose-mystic strong {
-  @apply font-bold text-amber-200 relative z-10 mx-1;
+  @apply font-bold text-amber-700 dark:text-amber-200 relative z-10 mx-1 transition-colors duration-300;
 }
 
 .prose-mystic strong::after {
@@ -395,29 +474,29 @@
 }
 
 .prose-mystic li {
-  @apply relative pl-5 py-3 pr-4 bg-white/5 border border-white/5 rounded-xl transition-all hover:bg-white/10 hover:border-amber-500/30;
+  @apply relative pl-5 py-3 pr-4 bg-white/40 dark:bg-white/5 border border-amber-500/10 dark:border-white/5 rounded-xl transition-all hover:bg-white/60 dark:hover:bg-white/10 hover:border-amber-500/30;
 }
 
 .prose-mystic li::before {
   content: "✦";
-  @apply absolute left-4 text-amber-500 text-xs top-5;
+  @apply absolute left-4 text-amber-600 dark:text-amber-500 text-xs top-5;
   left: 1rem;
 }
 
 /* Blockquotes as Feature Cards */
 .prose-mystic blockquote {
-  @apply relative p-6 md:p-8 my-10 rounded-2xl bg-gradient-to-br from-amber-950/30 to-purple-900/20 border border-amber-500/20 shadow-lg backdrop-blur-sm;
+  @apply relative p-6 md:p-8 my-10 rounded-2xl bg-gradient-to-br from-amber-50/50 to-purple-50/50 dark:from-amber-950/30 dark:to-purple-900/20 border border-amber-500/20 shadow-lg backdrop-blur-sm transition-colors duration-300;
 }
 
 .prose-mystic blockquote::before {
   content: "\f10d";
   font-family: "Font Awesome 6 Free";
   font-weight: 900;
-  @apply absolute -top-4 left-6 text-3xl text-amber-500/40 bg-[#0a0a0f] px-2;
+  @apply absolute -top-4 left-6 text-3xl text-amber-500/40 bg-white dark:bg-[#0a0a0f] px-2 transition-colors duration-300;
 }
 
 .prose-mystic blockquote p {
-  @apply text-amber-100/90 italic text-xl leading-relaxed text-center m-0;
+  @apply text-amber-900/90 dark:text-amber-100/90 italic text-xl leading-relaxed text-center m-0 transition-colors duration-300;
 }
 
 .prose-mystic hr {

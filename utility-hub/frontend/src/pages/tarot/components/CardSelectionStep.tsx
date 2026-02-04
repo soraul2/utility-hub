@@ -51,30 +51,30 @@ const CardSelectionStep: React.FC<CardSelectionStepProps> = ({
       </div>
 
       <div className="text-center space-y-4 mb-8">
-        <h2 className="text-4xl md:text-5xl font-bold font-chakra tracking-tighter py-2 leading-relaxed drop-shadow-sm">
+        <h2 className="text-4xl md:text-5xl font-bold font-chakra tracking-tighter py-2 leading-relaxed drop-shadow-sm transition-colors">
           {selectedSlots.filter(s => s !== null).length === 3
             ? <span className="gold-foil-text font-serif italic">모든 운명의 문이 열렸습니다</span>
-            : <span className="text-white">당신의 운명을 선택하세요</span>
+            : <span className="text-slate-900 dark:text-white transition-colors">당신의 운명을 선택하세요</span>
           }
         </h2>
         {(() => {
           const count = selectedSlots.filter(s => s !== null).length;
           if (count === 3) {
             return (
-              <p className="text-amber-400 font-bold text-sm tracking-[0.2em] uppercase font-chakra drop-shadow-[0_0_10px_rgba(217,119,6,0.5)]">
+              <p className="text-amber-600 dark:text-amber-400 font-bold text-sm tracking-[0.2em] uppercase font-chakra drop-shadow-[0_0_10px_rgba(217,119,6,0.5)]">
                 선택된 카드를 누르면 취소됩니다
               </p>
             );
           }
           if (count > 0) {
             return (
-              <p className="text-amber-200/80 text-sm tracking-[0.1em] font-chakra">
+              <p className="text-amber-700 dark:text-amber-200/80 text-sm tracking-[0.1em] font-chakra font-bold">
                 선택된 카드를 눌러 취소할 수 있습니다 ({count} / 3)
               </p>
             );
           }
           return (
-            <p className="text-amber-200/60 text-sm tracking-[0.2em] uppercase font-chakra">
+            <p className="text-amber-700/80 dark:text-amber-200/60 text-sm tracking-[0.2em] uppercase font-chakra font-bold">
               0 / 3 카드가 선택되었습니다
             </p>
           );
@@ -172,28 +172,28 @@ const CardSelectionStep: React.FC<CardSelectionStepProps> = ({
 
       {showConfirmModal && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center px-4 overflow-hidden">
-          <div className="absolute inset-0 bg-black/80 backdrop-blur-md animate-fade-in" onClick={() => setShowConfirmModal(false)} />
-          <div className="relative w-full max-w-lg bg-[#0d0d15]/95 border border-amber-500/30 rounded-2xl p-8 md:p-12 shadow-[0_0_100px_rgba(217,119,6,0.3)] animate-scale-in overflow-hidden">
+          <div className="absolute inset-0 bg-black/60 dark:bg-black/80 backdrop-blur-md animate-fade-in transition-colors" onClick={() => setShowConfirmModal(false)} />
+          <div className="relative w-full max-w-lg bg-white/95 dark:bg-[#0d0d15]/95 border border-amber-500/30 rounded-2xl p-8 md:p-12 shadow-[0_0_100px_rgba(217,119,6,0.3)] animate-scale-in overflow-hidden transition-colors">
             <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-amber-500/50 to-transparent" />
             <div className="absolute bottom-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-amber-500/50 to-transparent" />
 
             <div className="relative z-10 text-center space-y-8">
               <div className="space-y-4">
-                <h2 className="text-2xl md:text-3xl font-chakra text-amber-100 tracking-[0.2em] font-bold uppercase">
+                <h2 className="text-2xl md:text-3xl font-chakra text-slate-800 dark:text-amber-100 tracking-[0.2em] font-bold uppercase transition-colors">
                   운명의 서사 확인
                 </h2>
                 <div className="w-16 h-[1px] bg-amber-500/50 mx-auto" />
               </div>
 
               <div className="space-y-6">
-                <div className="bg-amber-950/20 border border-amber-500/10 rounded-xl p-6 space-y-3">
-                  <p className="text-amber-500/50 text-[10px] uppercase tracking-[0.3em] font-chakra">당신의 질문</p>
-                  <p className="text-amber-100 text-lg md:text-xl font-serif italic leading-relaxed break-keep">
+                <div className="bg-amber-50/50 dark:bg-amber-950/20 border border-amber-500/10 rounded-xl p-6 space-y-3 transition-colors">
+                  <p className="text-amber-600/70 dark:text-amber-500/50 text-[10px] uppercase tracking-[0.3em] font-chakra transition-colors">당신의 질문</p>
+                  <p className="text-slate-800 dark:text-amber-100 text-lg md:text-xl font-serif italic leading-relaxed break-keep transition-colors">
                     "{question}"
                   </p>
                 </div>
 
-                <p className="text-slate-400 text-sm md:text-base font-light leading-relaxed break-keep">
+                <p className="text-slate-600 dark:text-slate-400 text-sm md:text-base font-light leading-relaxed break-keep transition-colors">
                   "선택된 세 개의 카드가 당신의 질문에 답할 준비를 마쳤습니다.<br />
                   질문에 충분히 집중하셨나요? 마음이 확고하다면 진행하세요."
                 </p>
@@ -202,13 +202,13 @@ const CardSelectionStep: React.FC<CardSelectionStepProps> = ({
               <div className="flex flex-col md:flex-row gap-4 pt-4">
                 <button
                   onClick={() => setShowConfirmModal(false)}
-                  className="flex-1 px-6 py-4 rounded-xl border border-white/10 text-slate-400 hover:text-white hover:bg-white/5 transition-all font-chakra text-sm uppercase tracking-widest"
+                  className="flex-1 px-6 py-4 rounded-xl border border-black/10 dark:border-white/10 text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/5 transition-all font-chakra text-sm uppercase tracking-widest"
                 >
                   잠시 더 생각하기
                 </button>
                 <button
                   onClick={onConfirmProceed}
-                  className="flex-1 px-8 py-4 rounded-xl bg-gradient-to-r from-amber-900 to-amber-700 text-white font-chakra text-sm uppercase tracking-[0.2em] font-bold shadow-[0_0_20px_rgba(217,119,6,0.3)] hover:shadow-[0_0_30px_rgba(217,119,6,0.5)] transition-all animate-pulse-slow"
+                  className="flex-1 px-8 py-4 rounded-xl bg-gradient-to-r from-amber-600 to-amber-700 dark:from-amber-900 dark:to-amber-700 text-white font-chakra text-sm uppercase tracking-[0.2em] font-bold shadow-[0_0_20px_rgba(217,119,6,0.3)] hover:shadow-[0_0_30px_rgba(217,119,6,0.5)] transition-all animate-pulse-slow"
                 >
                   운명의 리더 선택하기
                 </button>

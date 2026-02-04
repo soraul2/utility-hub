@@ -11,9 +11,9 @@ interface DailyCardResultViewProps {
 const DailyCardResultView: React.FC<DailyCardResultViewProps> = ({ data, onRetry }) => {
   if (!data?.card) {
     return (
-      <div className="glass-card p-8 text-red-300 rounded-2xl border-red-500/30">
+      <div className="glass-card p-8 text-red-600 dark:text-red-300 rounded-2xl border-red-500/30 bg-white/50 dark:bg-black/20">
         데이터를 불러오지 못했습니다. 다시 시도해주세요.
-        <button onClick={onRetry} className="block mt-4 text-white underline">다시 시도</button>
+        <button onClick={onRetry} className="block mt-4 text-slate-800 dark:text-white underline font-bold">다시 시도</button>
       </div>
     );
   }
@@ -25,15 +25,15 @@ const DailyCardResultView: React.FC<DailyCardResultViewProps> = ({ data, onRetry
         <div className="flex flex-col items-center justify-center perspective-1000 w-full">
           <div className="relative w-64 md:w-80 animate-flip-in perspective-1000 group">
             {/* Supercharged Aura & Particle Scattering */}
-            <div className="absolute -inset-12 bg-purple-600/30 blur-[80px] rounded-full opacity-80 animate-pulse" />
-            <div className="absolute -inset-16 bg-indigo-500/20 blur-[60px] rounded-full animate-ping opacity-40" style={{ animationDuration: '4s' }} />
-            <div className="absolute -inset-4 bg-gradient-to-r from-purple-500/20 via-transparent to-indigo-500/20 blur-xl rounded-full opacity-50" />
+            <div className="absolute -inset-12 bg-purple-600/20 dark:bg-purple-600/30 blur-[80px] rounded-full opacity-60 dark:opacity-80 animate-pulse" />
+            <div className="absolute -inset-16 bg-indigo-500/10 dark:bg-indigo-500/20 blur-[60px] rounded-full animate-ping opacity-30 dark:opacity-40" style={{ animationDuration: '4s' }} />
+            <div className="absolute -inset-4 bg-gradient-to-r from-purple-500/10 via-transparent to-indigo-500/10 dark:from-purple-500/20 dark:to-indigo-500/20 blur-xl rounded-full opacity-50" />
 
             {/* Scattering Mystic Particles */}
             {[...Array(24)].map((_, i) => (
               <div
                 key={i}
-                className="absolute w-1.5 h-1.5 bg-purple-300 rounded-full blur-[1px] shadow-[0_0_10px_rgba(168,85,247,0.8)] animate-mystic-float pointer-events-none"
+                className="absolute w-1.5 h-1.5 bg-purple-400 dark:bg-purple-300 rounded-full blur-[1px] shadow-[0_0_10px_rgba(168,85,247,0.8)] animate-mystic-float pointer-events-none"
                 style={{
                   top: `${Math.random() * 120 - 10}%`,
                   left: `${Math.random() * 120 - 10}%`,
@@ -48,21 +48,21 @@ const DailyCardResultView: React.FC<DailyCardResultViewProps> = ({ data, onRetry
               card={data.card.cardInfo}
               isReversed={data.card.isReversed}
               position={data.card.position}
-              className="relative z-10"
+              className="relative z-10 shadow-2xl"
               showName={false}
             />
           </div>
 
           {/* Card Info Text */}
           <div className="mt-8 text-center space-y-2 animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
-            <h3 className="text-2xl font-bold text-amber-100 font-chakra tracking-wider">
+            <h3 className="text-2xl font-bold text-slate-800 dark:text-amber-100 font-chakra tracking-wider transition-colors">
               {data.card.cardInfo.nameKo}
             </h3>
-            <div className="text-amber-400/60 text-sm font-light uppercase tracking-[0.2em]">
+            <div className="text-amber-600 dark:text-amber-400/60 text-sm font-light uppercase tracking-[0.2em] transition-colors">
               {data.card.cardInfo.nameEn} • {data.card.isReversed ? 'Reversed' : 'Upright'}
             </div>
             {Array.isArray((data.card.cardInfo as any).keywords) && (data.card.cardInfo as any).keywords.length > 0 && (
-              <p className="text-slate-400 text-sm mt-2 font-light">
+              <p className="text-slate-600 dark:text-slate-400 text-sm mt-2 font-medium transition-colors">
                 {(data.card.cardInfo as any).keywords.slice(0, 3).join(" • ")}
               </p>
             )}
@@ -71,7 +71,7 @@ const DailyCardResultView: React.FC<DailyCardResultViewProps> = ({ data, onRetry
           <div className="mt-12 text-center animate-fade-in-up" style={{ animationDelay: '0.5s' }}>
             <button
               onClick={onRetry}
-              className="px-8 py-3 rounded-full border border-purple-500/30 text-purple-300 text-xs font-chakra tracking-widest hover:bg-purple-500/10 hover:border-purple-500 transition-all uppercase"
+              className="px-8 py-3 rounded-full border border-purple-600/30 dark:border-purple-500/30 text-purple-700 dark:text-purple-300 text-xs font-chakra tracking-widest hover:bg-purple-50 dark:hover:bg-purple-500/10 hover:border-purple-600 dark:hover:border-purple-500 transition-all uppercase font-bold"
             >
               새로운 카드 뽑기
             </button>
@@ -80,19 +80,19 @@ const DailyCardResultView: React.FC<DailyCardResultViewProps> = ({ data, onRetry
 
         {/* Interpretation Text */}
         <div className="w-full">
-          <div className="glass-card p-6 md:p-10 rounded-3xl border-purple-500/20 shadow-2xl animate-fade-in-up" style={{ animationDelay: '0.3s' }}>
-            <div className="mb-8 border-b border-purple-500/20 pb-6 text-center">
-              <h2 className="text-3xl md:text-4xl font-bold text-white mb-3 font-chakra">
+          <div className="bg-white/80 dark:glass-card p-6 md:p-10 rounded-3xl border border-slate-200 dark:border-purple-500/20 shadow-xl dark:shadow-2xl animate-fade-in-up transition-colors" style={{ animationDelay: '0.3s' }}>
+            <div className="mb-8 border-b border-slate-200 dark:border-purple-500/20 pb-6 text-center transition-colors">
+              <h2 className="text-3xl md:text-4xl font-bold text-slate-900 dark:text-white mb-3 font-chakra transition-colors">
                 {data.card.cardInfo.nameKo}
               </h2>
-              <div className="flex items-center justify-center gap-3 text-purple-300/60 text-sm font-light uppercase tracking-widest">
+              <div className="flex items-center justify-center gap-3 text-slate-500 dark:text-purple-300/60 text-sm font-light uppercase tracking-widest transition-colors">
                 <span>{data.card.cardInfo.nameEn}</span>
-                <span className="w-1 h-1 rounded-full bg-purple-500/50" />
+                <span className="w-1 h-1 rounded-full bg-slate-400 dark:bg-purple-500/50" />
                 <span>{data.card.isReversed ? 'Reversed' : 'Upright'}</span>
               </div>
             </div>
 
-            <div className="prose-mystic w-full">
+            <div className="prose-mystic w-full text-slate-700 dark:text-slate-300">
               <MarkdownViewer content={data.aiReading} />
             </div>
           </div>

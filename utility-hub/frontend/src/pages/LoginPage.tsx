@@ -19,7 +19,6 @@ const LoginPage: React.FC = () => {
       const navigate = useNavigate();
       const state = location.state as LocationState | null;
       const from = state?.from?.pathname || '/';
-      const isFromTarot = from.startsWith('/tarot');
 
       // 이미 인증된 경우 요청했던 페이지로 리다이렉트
       if (isAuthenticated) {
@@ -42,7 +41,7 @@ const LoginPage: React.FC = () => {
       return (
             <div className={classNames(
                   "min-h-screen flex items-center justify-center transition-colors duration-500 relative overflow-hidden font-sans",
-                  isFromTarot ? "bg-[#0f172a] dark" : "bg-slate-50 dark:bg-[#0f172a]"
+                  "bg-slate-50 dark:bg-[#0f172a]"
             )}>
                   {/* 뒤로가기 버튼 */}
                   <button
