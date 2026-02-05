@@ -1,157 +1,125 @@
-# 🚀 Routine MVP - Utility Hub 통합 최종 구현 계획
+# 🚀 Routine MVP V2 - Utility Hub 디자인 고도화 구현 계획
 
-**기준**: 제미나이팀 문서 + Claude 검토/개선안 + 이전 보완 가이드 통합
-**목표**: Utility Hub에 Routine 모듈을 완전 통합하여 운영 가능한 MVP 완성
-
----
-
-## Phase 0️⃣: 사전 분석 (1-2일) ⭐ 필수
-
-### 0-1. 기존 Utility Hub 구조 완전 파악
-
-**Frontend 분석 항목**:
-*   `src/` 폴더 내 `pages/`, `components/` 구조 확인
-*   `App.tsx`에서 라우팅 패턴 (React Router v6 설정) 확인
-*   상태 관리 방식 확인 (Context API? Zustand?)
-*   API Base URL 및 호출 패턴 (`useTop` or `axios` 인스턴스 위치)
-*   스타일 시스템 (Tailwind 설정, 공통 UI 컴포넌트)
-*   로그인 및 사용자 세션 관리 방식
-
-**Backend 분석 항목**:
-*   `com.wootae.backend` 패키지 구조 및 User/Auth 패키지 위치
-*   Spring Security 설정 및 CORS 설정 위치
-*   Database 스키마 (User 테이블 구조)
-*   JPA 설정 및 BaseEntity/BaseController 패턴 존재 여부
-*   Exception Handling 및 ApiResponse 패턴
-
-**산출물**: `UTILITY_HUB_STRUCTURE.md` (구조 분석 보고서)
+**목표**: 사용자 제공 디자인(FocusFlow 스타일)을 반영하여 단순 리스트 형태의 MVP를 타임라인 기반의 고도화된 루틴 관리 도구로 업그레이드.
 
 ---
 
-## Phase 1️⃣: API 명세 작성 (1-2일)
+## Phase 1️⃣: 백엔드 모델 확장 (Domain Expansion)
 
-### 1-1. REST API 완전 정의
+### 1-1. Entity 업데이트 및 DB 마이그레이션
+기존 엔티티에 디자인 요구사항 속성을 추가하고, **DB 스키마 마이그레이션을 선행**합니다.
 
-**Daily Plan API**:
-*   `GET /api/v1/routine/daily-plans/today`: 오늘 계획 조회 (없으면 생성)
-*   `GET /api/v1/routine/daily-plans/{date}`: 특정 날짜 계획 조회
-*   `POST /api/v1/routine/daily-plans`: 새 계획 생성
-*   `PUT /api/v1/routine/daily-plans/{id}`: 계획 수정
-*   `DELETE /api/v1/routine/daily-plans/{id}`: 계획 삭제
+*   **Task (태스크) 테이블 확장 (`routine_tasks`)**
+    *   `category` (VARCHAR): `WORK`, `PERSONAL`, `HEALTH`, `STUDY`
+    *   `start_time` (TIME): 시작 시간
+    *   `end_time` (TIME): 종료 시간
+    *   `description` (TEXT): 상세 노트
+    *   `priority` (VARCHAR): `HIGH`, `MEDIUM`, `LOW`
+    *   *SQL*:
+        ```sql
+        ALTER TABLE routine_tasks 
+        ADD COLUMN category VARCHAR(50),
+        ADD COLUMN start_time TIME,
+        ADD COLUMN end_time TIME,
+        ADD COLUMN description TEXT,
+        ADD COLUMN priority VARCHAR(20);
+        ```
 
-**Task API**:
-*   `POST /api/v1/routine/daily-plans/{planId}/tasks`: 태스크 추가
-*   `PUT /api/v1/routine/tasks/{id}`: 태스크 수정
-*   `DELETE /api/v1/routine/tasks/{id}`: 태스크 삭제
-*   `PATCH /api/v1/routine/tasks/{id}/toggle`: 태스크 완료 토글
+*   **Reflection (회고) 테이블 확장 (`routine_reflections`)**
+    *   `energy_level` (INT): 1~5 수준
+    *   `morning_goal` (VARCHAR): 아침 목표
+    *   *SQL*:
+        ```sql
+        ALTER TABLE routine_reflections
+        ADD COLUMN energy_level INT,
+        ADD COLUMN morning_goal VARCHAR(255);
+        ```
 
-**Reflection API**:
-*   `POST /api/v1/routine/reflections`: 회고 저장
-*   `GET /api/v1/routine/reflections/{planId}`: 회고 조회
-*   `GET /api/v1/routine/reflections/archive`: 아카이브 조회 (페이징)
-
-### 1-2. Swagger 설정
-*   `springdoc-openapi-starter-webmvc-ui` 의존성 확인/추가
-*   Routine API 그룹 설정
-
----
-
-## Phase 2️⃣: Frontend 통합 설정 (1-2일)
-
-### 2-1. 환경 구성
-*   **디렉토리 생성**:
-    *   `src/components/routine/{DailyPlan,Reflection,Layout}`
-    *   `src/pages/routine`
-    *   `src/stores`
-    *   `src/services/routine`
-    *   `src/types`
-*   **의존성 설치**: `npm install zustand date-fns lucide-react` (axios는 기존 확인 후)
-
-### 2-2. 라우팅 및 설정
-*   `App.tsx`: `/routine` 라우트 및 하위 라우트(`daily`, `reflection`, `archive`) 추가
-*   `src/services/api.ts`: Axios 인스턴스 및 Interceptor 설정 (Auth Token 처리)
-
-### 2-3. 상태 관리 (Zustand)
-*   `src/stores/useRoutineStore.ts` 구현
-    *   State: `today`, `reflections`, `isLoading`, `error`
-    *   Actions: `loadToday`, `addTask`, `toggleTask`, `saveReflection` 등
-    *   Persist Middleware 활용 고려
-
----
-
-## Phase 3️⃣: Backend 도메인 구현 (2-3일)
-
-### 3-1. Entity 구현 (`com.wootae.backend.routine.domain`)
-*   `DailyPlan`: User(ManyToOne), planDate, keyTasks, timeBlocks
-*   `Task`: DailyPlan(ManyToOne), title, completed, order
-*   `TimeBlock`: DailyPlan(ManyToOne), period, label, timeRange
-*   `Reflection`: DailyPlan(OneToOne), rating, mood, questions
-
-### 3-2. Repository 구현 (`com.wootae.backend.routine.repository`)
-*   `DailyPlanRepository`: `findByUserIdAndPlanDate`, `findByUserIdOrderByPlanDateDesc`
-*   `TaskRepository`, `ReflectionRepository`, `TimeBlockRepository`
-
-### 3-3. Service 구현 (`com.wootae.backend.routine.service`)
-*   `DailyPlanService`: 오늘 계획 조회(없으면 생성 로직), 계획 수정
-*   `RoutineTaskService`: 태스크 추가/삭제/토글
-*   `ReflectionService`: 회고 저장, 아카이브 조회
+### 1-2. DTO 및 API 응답 구조 변경
+*   **DailyPlanResponse (확장)**:
+    ```json
+    {
+      "id": 1,
+      "keyTasks": [
+        {
+          "id": 101,
+          "title": "회의 준비",
+          "category": "WORK",
+          "startTime": "09:00:00",
+          "endTime": "10:00:00",
+          "priority": "HIGH",
+          "description": "자료 준비 필수",
+          "completed": false
+        }
+      ],
+      "reflection": {
+        "energyLevel": 4,
+        "morningGoal": "MVP 완성"
+      }
+    }
+    ```
+*   **Stats API (신규)**: `GET /api/v1/routine/stats/weekly`
+    *   Response: `{ "weeklyRate": 85, "dailyCompletion": { "MON": 100, "TUE": 66, ... } }`
 
 ---
 
-## Phase 4️⃣: API 구현 및 통합 (2-3일)
+## Phase 2️⃣: 프론트엔드 UI/UX 전면 개편
 
-### 4-1. Controller 및 DTO
-*   `RoutineController`: DailyPlan/Task 관련 엔드포인트 구현
-*   `ReflectionController`: Reflection 관련 엔드포인트 구현
-*   DTO (`DailyPlanDto`, `TaskDto`, `ReflectionDto`) 및 Mapper 구현
+### 2-1. 공통 컴포넌트 (`components/routine/ui`)
+*   **`TaskCategoryBadge`**: 카테고리별 색상/라벨 뱃지.
+*   **`TimelineItem`**: 시간축에 따른 태스크 카드 (Hover 효과 포함).
+*   **`WeekProgress`**: 주간 진행바 및 요일별 상태 표시기.
+*   **`AddTaskModal`**: 상세 입력(시간, 카테고리, 노트)을 위한 모달.
 
-### 4-2. Frontend-Backend 연동
-*   Frontend `useRoutineStore`에서 Mock Data 대신 실제 API 호출로 전환
-*   CORS 설정 및 인증 토큰 전달 확인
-
----
-
-## Phase 5️⃣: UI 고도화 및 테스트 (2-3일)
-
-### 5-1. UI Polish
-*   **Glassmorphism**: 투명도, 블러 효과 적용 (`backdrop-blur-md`, `bg-white/10`)
-*   **Animation**: 태스크 완료 시 마이크로 인터랙션
-*   **Mobile Response**: 모바일 뷰 최적화 (타임라인 스크롤 등)
-
-### 5-2. 테스트
-*   **Frontend**: Daily Plan 생성 -> Task 추가 -> Reflection 작성 -> Archive 확인 흐름 검증
-*   **Backend**: Service 단위 테스트 및 API 통합 테스트
-*   **데이터 검증**: User별 데이터 격리 확인
+### 2-2. 페이지별 구현 (`pages/routine`)
+*   **`DailyPlanPage` (Timeline View)**:
+    *   좌측: 타임라인 (08:00 AM ~ ) 리스트 렌더링.
+    *   우측 패널:
+        *   **Quick Reflection**: 아침 목표 및 에너지 레벨.
+        *   **Pro Tip**: 동기 부여 카드.
+        *   **3 Key Tasks**: 우선순위 상위 3개 별도 강조.
+*   **`WeeklyReviewPage` (New)**:
+    *   주간 완료율 그래프.
+    *   요일별 성공/실패 마커.
+    *   남은 과제(Pending Tasks) 리스트 및 스케줄링 버튼.
+*   **`ArchivePage` (Enhanced)**:
+    *   단순 그리드 -> 썸네일/카드 스타일 리스트 (디자인 레퍼런스 반영).
+    *   상세 회고 보기 모달/페이지 연결.
 
 ---
 
-## 6. 📂 디렉토리 구조 (최종)
+## Phase 3️⃣: 로직 및 통합
 
-### Frontend
+### 3-1. 타임라인 로직
+*   시간 순 정렬 및 "Unassigned Slot" 시각화 로직 구현.
+*   Drag & Drop (Optional): 태스크 시간 변경 (우선순위 낮음, 추후 고려).
+
+### 3-2. 데이터 연동 및 상태 관리 (Zustand 확장)
+*   **Store 구조 복잡도 증가 대응**:
+    *   기존: `today`, `reflections`, `isLoading`
+    *   **확장**:
+        ```typescript
+        interface RoutineState {
+          today: DailyPlanV2 | null; // 확장된 타입
+          weeklyStats: WeeklyStats | null; // 주간 데이터
+          categories: CategoryFilter[]; // 필터링 상태
+          selectedDate: Date; // 날짜 네비게이션
+          viewMode: 'TIMELINE' | 'LIST'; // 뷰 설정
+          // Actions...
+        }
+        ```
+*   **Data Fetching**:
+    *   `loadToday()`: 오늘 플랜 + 확장된 태스크 정보
+    *   `loadWeeklyStats(startDate)`: 주간 통계 별도 호출 (Dashboard 용)
+
+---
+
+## 4. 📂 구조 변경 (Frontend)
 ```
 src/
-├── components/
-│   ├── common/ (기존)
-│   └── routine/
-│       ├── DailyPlan/ (KeyTaskInput, TimeBlockSection)
-│       ├── Reflection/ (ReflectionForm, ReflectionCard)
-│       └── Layout/ (RoutineLayout)
-├── pages/
-│   └── routine/ (DailyPlanPage, ReflectionPage, ArchivePage)
-├── stores/
-│   └── useRoutineStore.ts
-├── services/
-│   └── routine/ (api calls)
-└── types/
-    └── routine.d.ts
-```
-
-### Backend
-```
-com.wootae.backend.routine/
-├── controller/
-├── service/
-├── repository/
-├── domain/ (Entity)
-└── dto/
+├── components/routine/
+│   ├── ui/ (Badge, Card, Progress...)
+│   ├── timeline/ (DailyTimeline, TimeSlot...)
+│   ├── modal/ (AddTaskModal...)
+│   └── stats/ (WeeklyChart...)
 ```

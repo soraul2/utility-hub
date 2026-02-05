@@ -71,13 +71,29 @@ const Header = () => {
 
                         <div className="w-px h-4 bg-gray-200 dark:bg-gray-700 mx-1"></div>
 
-                        <button
-                              onClick={toggleTheme}
-                              className="w-10 h-10 rounded-xl flex items-center justify-center transition-all bg-gray-100 dark:bg-gray-700/50 text-gray-600 dark:text-yellow-300 hover:scale-105 active:scale-95"
-                              aria-label="Toggle Theme"
-                        >
-                              {theme === 'light' ? <i className="fa-solid fa-moon"></i> : <i className="fa-solid fa-sun"></i>}
-                        </button>
+                        {/* Theme Toggle Segmented Control */}
+                        <div className="flex items-center bg-gray-100 dark:bg-gray-800 rounded-xl p-1 gap-1 border border-gray-200 dark:border-gray-700">
+                              <button
+                                    onClick={() => theme === 'dark' && toggleTheme()}
+                                    className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all ${theme === 'light'
+                                          ? 'bg-white shadow-sm text-amber-500 scale-100'
+                                          : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-300'
+                                          }`}
+                                    aria-label="Light Mode"
+                              >
+                                    <i className="fa-solid fa-sun"></i>
+                              </button>
+                              <button
+                                    onClick={() => theme === 'light' && toggleTheme()}
+                                    className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all ${theme === 'dark'
+                                          ? 'bg-gray-700 shadow-sm text-yellow-300 scale-100'
+                                          : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-300'
+                                          }`}
+                                    aria-label="Dark Mode"
+                              >
+                                    <i className="fa-solid fa-moon"></i>
+                              </button>
+                        </div>
                   </div>
 
                   {/* 로그아웃 확인 모달 */}

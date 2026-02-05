@@ -1,0 +1,104 @@
+// Enum Types
+export type Category = 'WORK' | 'PERSONAL' | 'HEALTH' | 'STUDY';
+export type Priority = 'HIGH' | 'MEDIUM' | 'LOW';
+
+export interface WeeklyStats {
+      weeklyRate: number;
+      dailyCompletion: Record<string, number>; // "MON": 80, "TUE": 100
+}
+
+export interface Task {
+      id: number;
+      title: string;
+      completed: boolean;
+      taskOrder: number;
+      // V2 Fields
+      category?: Category;
+      startTime?: string; // HH:mm:ss
+      endTime?: string; // HH:mm:ss
+      durationMinutes?: number; // [V2 Kinetic] Expected duration in minutes
+      description?: string;
+      priority?: Priority;
+
+      createdAt?: string;
+      updatedAt?: string;
+}
+
+export interface TimeBlock {
+      id: number;
+      period: string; // 'morning' | 'midday' | 'afternoon' | 'evening'
+      label: string;
+      startHour: number;
+      endHour: number;
+      assignedTaskId?: number | null;
+}
+
+export interface Reflection {
+      id: number;
+      planId?: number;
+      rating: number; // 1-5
+      mood: string;
+      whatWentWell?: string;
+      whatDidntGoWell?: string;
+      tomorrowFocus?: string;
+
+      // V2 Fields
+      energyLevel?: number; // 1-5
+      morningGoal?: string;
+
+      createdAt?: string;
+}
+
+export interface DailyPlan {
+      id: number;
+      userId: number;
+      planDate: string; // YYYY-MM-DD
+      status: 'PLANNING' | 'CONFIRMED';
+      keyTasks: Task[];
+      timeBlocks: TimeBlock[];
+      reflection: Reflection | null;
+      createdAt?: string;
+      updatedAt?: string;
+}
+
+export interface DailyPlanDto {
+      planDate: string;
+}
+
+export interface TaskDto {
+      title: string;
+      category?: Category;
+      startTime?: string;
+      endTime?: string;
+      durationMinutes?: number;
+      description?: string;
+      priority?: Priority;
+}
+
+export interface ReflectionDto {
+      planId: number;
+      rating: number;
+      mood: string;
+      whatWentWell: string;
+      whatDidntGoWell: string;
+      tomorrowFocus: string;
+      energyLevel?: number;
+      morningGoal?: string;
+}
+
+export interface WeeklyReview {
+      id: number;
+      weekStart: string; // YYYY-MM-DD
+      achievement: string;
+      improvement: string;
+      nextGoal: string;
+      createdAt?: string;
+      updatedAt?: string;
+}
+
+export interface WeeklyReviewDto {
+      weekStart: string;
+      achievement: string;
+      improvement: string;
+      nextGoal: string;
+}

@@ -53,6 +53,14 @@ const tools: Tool[] = [
             icon: 'fa-solid fa-moon',
             to: '/tarot',
             color: 'from-fuchsia-500 to-purple-600'
+      },
+      {
+            id: 'routine-hub',
+            name: '루틴 허브',
+            description: '계획과 회고로 완성하는 나만의 루틴',
+            icon: 'fa-solid fa-calendar-check',
+            to: '/routine',
+            color: 'from-teal-400 to-cyan-600'
       }
 ];
 

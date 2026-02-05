@@ -23,6 +23,15 @@ public enum ErrorCode {
       AUTH_USER_CREATE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "AUTH_002", "사용자 생성 중 오류가 발생했습니다."),
       AUTH_UNAUTHORIZED(HttpStatus.UNAUTHORIZED, "AUTH_003", "인증이 필요합니다."),
 
+      // User
+      USER_NOT_FOUND(HttpStatus.NOT_FOUND, "USER_001", "사용자를 찾을 수 없습니다."),
+
+      // Routine
+      PLAN_NOT_FOUND(HttpStatus.NOT_FOUND, "ROUTINE_001", "루틴 계획을 찾을 수 없습니다."),
+      TASK_NOT_FOUND(HttpStatus.NOT_FOUND, "ROUTINE_002", "태스크를 찾을 수 없습니다."),
+      REFLECTION_ALREADY_EXISTS(HttpStatus.CONFLICT, "ROUTINE_003", "이미 회고가 존재합니다."),
+      UNAUTHORIZED_ACCESS(HttpStatus.FORBIDDEN, "ROUTINE_004", "해당 리소스에 대한 접근 권한이 없습니다."),
+
       // OAuth2
       OAUTH2_FAILED(HttpStatus.BAD_REQUEST, "OAUTH2_001", "소셜 로그인 중 오류가 발생했습니다."),
 

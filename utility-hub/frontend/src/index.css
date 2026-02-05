@@ -242,6 +242,62 @@
   animation: flip-in 0.8s cubic-bezier(0.4, 0, 0.2, 1) forwards;
 }
 
+/* Routine Sidebar Layout */
+.routine-sidebar-layout {
+  display: flex;
+  height: calc(100vh - 80px);
+  /* Adjust for header */
+  width: 100vw;
+  position: absolute;
+  left: 0;
+  top: 80px;
+  background: white;
+}
+
+.inventory-sidebar {
+  width: 320px;
+  border-right: 1px solid rgba(0, 0, 0, 0.05);
+  display: flex;
+  flex-direction: column;
+  background: #fcfcfd;
+  flex-shrink: 0;
+}
+
+.timeline-workspace {
+  flex: 1;
+  overflow-y: auto;
+  position: relative;
+  background: #ffffff;
+}
+
+.vertical-timeline-grid {
+  position: relative;
+  width: 100%;
+}
+
+.hour-row {
+  height: 120px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.03);
+  display: flex;
+  align-items: flex-start;
+}
+
+.hour-label {
+  width: 60px;
+  padding: 10px;
+  font-size: 0.75rem;
+  color: #94a3b8;
+  font-weight: 600;
+  border-right: 1px solid rgba(0, 0, 0, 0.03);
+  text-align: right;
+  flex-shrink: 0;
+}
+
+.task-slot-container {
+  flex: 1;
+  position: relative;
+}
+
 @keyframes fade-in-up {
   from {
     transform: translateY(20px);

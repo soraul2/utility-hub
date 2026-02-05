@@ -15,6 +15,11 @@ import LoginPage from './pages/LoginPage';
 import AuthCallbackPage from './pages/AuthCallbackPage';
 import MyPage from './pages/MyPage';
 import ProtectedRoute from './components/auth/ProtectedRoute';
+import RoutineLayout from './pages/routine/RoutineLayout';
+import DailyPlanPage from './pages/routine/DailyPlanPage';
+import { WeeklyReviewPage } from './pages/routine/WeeklyReviewPage'; // Updated
+import ReflectionPage from './pages/routine/ReflectionPage';
+import ArchivePage from './pages/routine/ArchivePage';
 
 function App() {
   return (
@@ -48,6 +53,18 @@ function App() {
           <Route path="history" element={<TarotHistoryPage />} />
           <Route path="share/:shareUuid" element={<TarotSharePage />} />
           <Route path="*" element={<Navigate to="/tarot" replace />} />
+        </Route>
+
+        {/* Routine Routes (Protected) */}
+        <Route element={<ProtectedRoute />}>
+          <Route path="/routine" element={<RoutineLayout />}>
+            <Route index element={<Navigate to="daily-plan" replace />} />
+            <Route path="daily-plan" element={<DailyPlanPage />} />
+            <Route path="daily-plan/:date" element={<DailyPlanPage />} /> {/* Added for history view */}
+            <Route path="weekly" element={<WeeklyReviewPage />} />
+            <Route path="reflection" element={<ReflectionPage />} />
+            <Route path="archive" element={<ArchivePage />} />
+          </Route>
         </Route>
       </Routes>
     </BrowserRouter>
