@@ -181,10 +181,9 @@ export const FocusCard: React.FC<FocusCardProps> = ({ tasks, onToggleTask }) => 
                                                             currentTask.category === 'STUDY' ? '📚 Study' :
                                                                   currentTask.category === 'PERSONAL' ? '🏠 Personal' : '🏷️ General'}
                                           </span>
-                                          <span className={`px-2 py-1 rounded-md font-bold ${
-                                                currentTask.priority === 'HIGH' ? 'bg-red-500/30' :
-                                                      currentTask.priority === 'MEDIUM' ? 'bg-amber-500/30' : 'bg-blue-500/30'
-                                          }`}>
+                                          <span className={`px-2 py-1 rounded-md font-bold ${currentTask.priority === 'HIGH' ? 'bg-red-500/30' :
+                                                currentTask.priority === 'MEDIUM' ? 'bg-amber-500/30' : 'bg-blue-500/30'
+                                                }`}>
                                                 {currentTask.priority}
                                           </span>
                                     </div>
