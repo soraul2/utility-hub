@@ -1,39 +1,35 @@
-# 📝 Task List - Routine MVP
+# 📝 Task List - Routine MVP (Integration)
 
-## 1. 🛠️ Project Setup
-- [ ] **Initial Setup and Config**
-  - [ ] Initialize Vite project (React + TS) <!-- id: 0 -->
-  - [ ] Install dependencies (Tailwind, Router, Zustand, icons) <!-- id: 1 -->
-  - [ ] Configure `tailwind.config.js` and `index.css` (Design System) <!-- id: 2 -->
-  - [ ] Set up directory structure (components, pages, store, types) <!-- id: 3 -->
+## 1. 🛠️ Frontend Setup & Structure
+- [ ] **Integration Setup**
+  - [ ] Install dependencies (`zustand`, `date-fns`, `lucide-react`) at `frontend/` <!-- id: 0 -->
+  - [ ] Create directory structure (`pages/routine`, `components/routine`, `stores`, `types`) <!-- id: 1 -->
+  - [ ] Define `Routine` types in `types/routine.d.ts` <!-- id: 2 -->
+  - [ ] Create `RoutineLayout.tsx` and update `App.tsx` routing <!-- id: 3 -->
 
-## 2. 🧩 State & Logic
-- [ ] **Core Data Layer**
-  - [ ] Define TypeScript interfaces in `types/routine.d.ts` <!-- id: 4 -->
-  - [ ] Implement `storage.ts` utility for localStorage <!-- id: 5 -->
-  - [ ] Create `useRoutineStore.ts` with Zustand <!-- id: 6 -->
-  - [ ] Implement actions: `addTask`, `updateTimeBlock`, `saveReflection` <!-- id: 7 -->
+## 2. 🧩 Frontend Logic & UI (MVP)
+- [ ] **State & Logic**
+  - [ ] Implement `useRoutineStore.ts` with mock data/localStorage support <!-- id: 4 -->
+- [ ] **Daily Plan Page**
+  - [ ] Implement `KeyTaskInput` (Max 3 tasks) <!-- id: 5 -->
+  - [ ] Implement `TimeBlockSection` (Visual timeline) <!-- id: 6 -->
+  - [ ] Assemble `HomePage.tsx` <!-- id: 7 -->
+- [ ] **Reflection Page**
+  - [ ] Implement `ReflectionForm` <!-- id: 8 -->
+  - [ ] Assemble `ReflectionPage.tsx` <!-- id: 9 -->
+- [ ] **Archive & Polish**
+  - [ ] Implement `ArchivePage.tsx` (List view) <!-- id: 10 -->
+  - [ ] Apply specific styling (Glassmorphism) <!-- id: 11 -->
 
-## 3. 🖥️ UI Implementation
-- [ ] **Layout & Common**
-  - [ ] Create `Layout` component (Sidebar + Main Content area) <!-- id: 8 -->
-  - [ ] Create `Sidebar` navigation logic <!-- id: 9 -->
-- [ ] **Home Page (Daily Plan)**
-  - [ ] Implement `KeyTaskInput` component <!-- id: 10 -->
-  - [ ] Implement `TimeBlock` and Timeline view <!-- id: 11 -->
-  - [ ] Connect Drag & Drop logic <!-- id: 12 -->
-- [ ] **Tasks Page**
-  - [ ] Create Task list view (Pending tasks) <!-- id: 13 -->
-- [ ] **Reflection & Archive**
-  - [ ] Implement `ReflectionForm` <!-- id: 14 -->
-  - [ ] Implement `ArchiveList` view <!-- id: 15 -->
-- [ ] **Calendar**
-  - [ ] Implement simple Calendar grid view <!-- id: 16 -->
+## 3. 🛡️ Backend Domain (Spring Boot)
+- [ ] **Domain Model**
+  - [ ] Create `DailyPlan`, `Task`, `TimeBlock`, `Reflection` Entities in `com.wootae.backend.routine` <!-- id: 12 -->
+  - [ ] Create JpaRepositories (`DailyPlanRepository` etc.) <!-- id: 13 -->
+- [ ] **Business Logic**
+  - [ ] Create `RoutineService` (CRUD logic) <!-- id: 14 -->
+  - [ ] Create `RoutineController` (API Endpoints) <!-- id: 15 -->
 
-## 4. 🎨 Polish & Verify
-- [ ] **Refinement**
-  - [ ] Apply specific design details (Glassmorphism, Animations) <!-- id: 17 -->
-  - [ ] Verify Mobile responsiveness <!-- id: 18 -->
-- [ ] **Testing**
-  - [ ] Manual test of full user flow (Morning -> Evening) <!-- id: 19 -->
-  - [ ] Verify data persistence <!-- id: 20 -->
+## 4. 🔗 Integration
+- [ ] **API Connection**
+  - [ ] Update `useRoutineStore` to fetch from API instead of localStorage <!-- id: 16 -->
+  - [ ] Test full flow (FE -> BE -> DB) <!-- id: 17 -->

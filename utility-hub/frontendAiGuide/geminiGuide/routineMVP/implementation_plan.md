@@ -1,88 +1,112 @@
-# 📋 Implementation Plan - Routine MVP
+# 📋 Implementation Plan - Routine MVP (Utility Hub Integration)
 
 ## 1. 🎯 목표 (Goal)
-Perplexity 팀의 `design_spec.md`를 바탕으로 "하루 5분 루틴 관리"를 위한 **Routine MVP** 웹 애플리케이션을 구현합니다.
-사용자가 직관적으로 하루를 계획하고 회고할 수 있는 **React 기반의 Single Page Application(SPA)**을 구축하며, `localStorage`를 활용하여 데이터 영속성을 보장합니다.
+기존 **Utility Hub** 프로젝트에 **Routine MVP (하루 5분 루틴 관리)** 기능을 통합 구현합니다.
+기존 Frontend(React)와 Backend(Spring Boot) 아키텍처를 준수하며, 새로운 기능 모듈로써 `Routine` 기능을 추가합니다.
 
 ## 2. 🏗️ 기술 스택 및 아키텍처 (Tech Stack)
-*   **Core**: React 18, TypeScript, Vite
-*   **Styling**: TailwindCSS (Design System & Utils)
-*   **Routing**: React Router v6
-*   **State Management**: Zustand (Context API보다 직관적인 전역 상태 관리) - *Spec의 "State: useState → Zustand 전환 준비" 반영하여 초기부터 도입 권장*
-*   **Utility**:
-    *   `date-fns` (날짜 처리)
-    *   `react-beautiful-dnd` or `@dnd-kit/core` (Task Drag & Drop)
-    *   `framer-motion` (UI 인터랙션 및 화면 전환 애니메이션)
-    *   `lucide-react` (아이콘)
-*   **Data Persistence**: `localStorage` (Key: `routine-daily`, `routine-archive`)
 
-## 3. 🧩 디렉토리 구조 (Directory Structure)
+### Frontend (`utility-hub/frontend`)
+*   **Core**: React 18, TypeScript, Vite
+*   **Styling**: TailwindCSS (기존 설정 활용)
+*   **Routing**: React Router v6 (`App.tsx`에 하위 라우트 추가)
+*   **State Management**: **Zustand** (신규 도입 - `routine` 전용 스토어)
+*   **Dependencies to Add**:
+    *   `zustand`: 전역 상태 관리
+    *   `date-fns`: 날짜 처리
+    *   `lucide-react`: 아이콘 (또는 기존 FontAwesome 사용 고려, 하지만 lucide 권장)
+    *   `clsx`, `tailwind-merge`: 스타일 유틸리티
+
+### Backend (`utility-hub/backend`)
+*   **Framework**: Spring Boot 3.x
+*   **Package Base**: `com.wootae.backend`
+*   **Module**: `com.wootae.backend.routine` (신규 패키지)
+*   **Persistence**: MySQL + Spring Data JPA
+*   **API**: REST Controller
+
+## 3. 🧩 디렉토리 구조 및 통합 전략
+
+### Frontend 통합 (`frontend/src`)
 ```
 src/
 ├── components/
-│   ├── layout/       # Sidebar, LayoutScaffold
-│   ├── common/       # Button, Card, Input
-│   └── domain/       # Routine 관련 특화 컴포넌트
-│       ├── KeyTaskInput.tsx
-│       ├── TimeBlock.tsx
-│       ├── ReflectionForm.tsx
-│       └── TaskList.tsx
+│   └── routine/                    # [NEW] 루틴 전용 컴포넌트
+│       ├── DailyPlan/
+│       │   ├── KeyTaskInput.tsx
+│       │   └── TimeBlockSection.tsx
+│       ├── Reflection/
+│       │   ├── ReflectionForm.tsx
+│       │   └── ReflectionCard.tsx
+│       └── common/                 # 루틴 모듈 내 공통 (버튼 등)
 ├── pages/
-│   ├── HomePage.tsx
-│   ├── TasksPage.tsx
-│   ├── CalendarPage.tsx
-│   ├── ReflectionPage.tsx
-│   └── ArchivePage.tsx
-├── store/
-│   └── useRoutineStore.ts  # DailyPlan & Archive 관리
+│   └── routine/                    # [NEW] 루틴 페이지
+│       ├── RoutineLayout.tsx       # 루틴 공통 레이아웃 (사이드바 등)
+│       ├── HomePage.tsx            # /routine (Daily Plan)
+│       ├── ReflectionPage.tsx      # /routine/reflection
+│       └── ArchivePage.tsx         # /routine/archive
+├── stores/                         # [NEW/Check] 상태 관리
+│   └── useRoutineStore.ts
 ├── types/
-│   └── routine.d.ts      # TypeScript Interfaces
-└── utils/
-    └── storage.ts        # localStorage Wrapper
+│   └── routine.d.ts
+└── App.tsx                         # 라우팅 라우트 추가
+```
+
+### Backend 통합 (`backend/src/main/java/com/wootae/backend`)
+```
+com.wootae.backend.routine/         # [NEW] 루틴 도메인 패키지
+├── controller/
+│   ├── RoutineController.java      # 통합 Controller 또는 기능별 분리
+│   └── ReflectionController.java
+├── service/
+│   ├── RoutineService.java
+│   └── ReflectionService.java
+├── repository/
+│   ├── DailyPlanRepository.java
+│   └── ReflectionRepository.java
+├── domain/ (or entity/)
+│   ├── DailyPlan.java
+│   ├── TimeBlock.java
+│   ├── Task.java
+│   └── Reflection.java
+└── dto/
+    ├── DailyPlanDto.java
+    └── ReflectionDto.java
 ```
 
 ## 4. 📅 구현 단계별 계획 (Phases)
 
-### Phase 1: 프로젝트 셋업 및 기본 구조
-*   [ ] Vite + React + TS 프로젝트 초기화
-*   [ ] TailwindCSS 설정 및 `index.css` 디자인 토큰(폰트, 컬러) 정의
-*   [ ] 라우팅 설정 (`react-router-dom`) 및 Layout 컴포넌트 구현
-*   [ ] 기본 공통 컴포넌트 (Button, Card) 구현
+### Phase 1: Frontend 통합 환경 설정 (Integration Setup)
+*   [ ] **디펜던시 설치**: `npm install zustand date-fns lucide-react`
+*   [ ] **라우팅 구성**: `App.tsx`에 `/routine` 경로 및 `RoutineLayout` 추가
+*   [ ] **디렉토리 생성**: `components/routine`, `pages/routine` 구조 잡기
+*   [ ] **타입 정의**: `types/routine.d.ts`에 핵심 데이터 모델 정의
 
-### Phase 2: 핵심 데이터 모델 및 스토어 구현
-*   [ ] `types/routine.d.ts` 정의 (Design Spec 준수)
-*   [ ] `useRoutineStore` 구현 (Zustand)
-    *   Action: `setKeyTask`, `addTimeBlock`, `saveReflection`, `loadFromStorage`
-*   [ ] `localStorage` 연동 로직 구현
+### Phase 2: Frontend 핵심 기능 구현 (MVP Core)
+*   **2-1. Daily Plan (Home)**
+    *   [ ] `useRoutineStore` 구현 (DailyPlan 상태 관리)
+    *   [ ] `KeyTaskInput` 컴포넌트 (3개 태스크 입력)
+    *   [ ] `TimeBlockSection` 컴포넌트 (시간표 렌더링)
+    *   [ ] 로컬 스토리지 연동 (API 연동 전 임시 영속성)
+*   **2-2. Reflection (회고)**
+    *   [ ] `ReflectionForm` 구현 (회고 작성)
+    *   [ ] 아카이빙 로직 구현 (완료된 루틴 저장)
+*   **2-3. UI Polish**
+    *   [ ] Glassmorphism 스타일 적용
+    *   [ ] `RoutineLayout` 사이드바/헤더 디자인
 
-### Phase 3: 주요 페이지 및 기능 구현 (MVP Core)
-*   **3-1. Home Page (Daily Plan)**
-    *   [ ] Key Task 입력 필드 (3개 제한)
-    *   [ ] TimeBlock 타임라인 (6AM ~ 11PM) Visual Rendering
-    *   [ ] Task Drag & Drop 구현 (Pending)
-*   **3-2. Tasks Page**
-    *   [ ] 주간 미완료 태스크 리스트업
-    *   [ ] 태스크 추가/삭제 기능
-*   **3-3. Reflection & Archive**
-    *   [ ] 회고 폼 (3가지 질문) 및 저장 로직
-    *   [ ] Archive 리스트 뷰 및 데이터 조회
+### Phase 3: Backend 도메인 구현 (Domain Setup)
+*   [ ] **Entity 설계**: `DailyPlan`, `Task`, `TimeBlock`, `Reflection` JPA Entity 작성
+*   [ ] **Repository**: JpaRepository 인터페이스 생성
+*   [ ] **Database Schema**: MySQL 테이블 생성 쿼리 작성 (또는 JPA ddl-auto 활용)
+    *   기존 `application.properties` 설정 확인 및 필요 시 조정
 
-### Phase 4: UI/UX 고도화 및 검증
-*   [ ] 반응형 디자인 점검 (Mobile View)
-*   [ ] 애니메이션 추가 (페이지 전환, 태스크 완료 인터랙션)
-*   [ ] 에러 핸들링 (입력값 검증 등)
-*   [ ] 최종 빌드 및 테스트
+### Phase 4: Backend API 구현 & 연동 (API Implementation)
+*   [ ] **DTO & Mapper**: Frontend 데이터 구조와 매핑
+*   [ ] **Service Logic**: 루틴 생성, 수정, 회고 저장 로직 구현
+*   [ ] **Controller**: REST API 엔드포인트 개설 (`/api/routine/...`)
+*   [ ] **Integration**: Frontend `useRoutineStore` 또는 별도 API hook에서 백엔드 호출로 전환
 
-## 5. 🧪 검증 계획 (Verification Plan)
-### 자동화 테스트 (Automated Tests)
-*   `vitest`를 사용하여 유틸리티 함수(날짜 계산, 스토리지 로직) 단위 테스트
-
-### 수동 검증 (Manual Verification)
-1.  **시나리오 A (아침)**: Key Task 3개 입력 -> 타임라인에 드래그하여 배치 -> 저장 확인
-2.  **시나리오 B (저녁)**: Reflection 페이지 진입 -> 회고 작성 -> 저장 후 Archive 페이지에서 데이터 확인
-3.  **데이터 유지**: 브라우저 새로고침 후 데이터 유지 여부 확인
-
-## 6. 🎨 디자인 제안 (Design Suggestions)
-*   **Glassmorphism Theme**: 기존 AI Hub 프로젝트와 일관성을 유지하기 위해 은은한 글래스모피즘 적용.
-*   **Micro-interactions**: 태스크 완료 체크 시 파티클 효과, 타임라인 배치 시 햅틱 피드백(모바일) 느낌의 시각적 강조.
-*   **Gamification**: 연속 달성일(Streak) 표시로 습관 형성 강화.
+## 5. 🧪 검증 계획 (Verification)
+1.  **Frontend 단독 테스트**: 로컬 스토리지 모드로 루틴 생성 -> 회고 -> 저장 사이클 확인.
+2.  **API 연동 테스트**: Swagger/Postman으로 백엔드 API 검증.
+3.  **통합 테스트**: 실제 앱에서 DB 저장 및 조회 확인.
