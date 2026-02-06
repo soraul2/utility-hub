@@ -1,0 +1,9 @@
+
+> Task :compileJava
+Note: C:\AiProject\utility-hub\utility-hub\backend\src\main\java\com\wootae\backend\domain\user\util\OAuthAttributesExtractor.java uses unchecked or unsafe operations.
+Note: Recompile with -Xlint:unchecked for details.
+
+[Incubating] Problems report is available at: file:///C:/AiProject/utility-hub/utility-hub/backend/build/reports/problems/problems-report.html
+
+BUILD SUCCESSFUL in 7s
+1 actionable task: 1 executed

@@ -8,14 +8,15 @@
  */
 
 const ACCESS_TOKEN_KEY = 'lm_access_token';
-const REFRESH_TOKEN_KEY = 'lm_refresh_token';
+
 
 /**
  * 액세스 토큰 및 리프레시 토큰을 저장합니다.
+ * (Refresh Token은 이제 쿠키로 관리되므로 저장하지 않음)
  */
-export const setTokens = (accessToken: string, refreshToken: string): void => {
+export const setTokens = (accessToken: string, _refreshToken?: string): void => {
       localStorage.setItem(ACCESS_TOKEN_KEY, accessToken);
-      localStorage.setItem(REFRESH_TOKEN_KEY, refreshToken);
+      // Refresh Token은 HttpOnly Cookie로 관리됨
 };
 
 /**
@@ -27,9 +28,10 @@ export const getAccessToken = (): string | null => {
 
 /**
  * 저장된 리프레시 토큰을 가져옵니다.
+ * (더 이상 클라이언트에서 접근 불가)
  */
 export const getRefreshToken = (): string | null => {
-      return localStorage.getItem(REFRESH_TOKEN_KEY);
+      return null;
 };
 
 /**
@@ -37,7 +39,6 @@ export const getRefreshToken = (): string | null => {
  */
 export const clearTokens = (): void => {
       localStorage.removeItem(ACCESS_TOKEN_KEY);
-      localStorage.removeItem(REFRESH_TOKEN_KEY);
 };
 
 /**

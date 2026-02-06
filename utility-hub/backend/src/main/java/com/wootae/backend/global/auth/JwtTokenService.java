@@ -35,9 +35,18 @@ public class JwtTokenService {
                   @Value("${spring.jwt.secret}") String secret,
                   @Value("${spring.jwt.access-token-expiry:3600000}") long accessTokenExpiry,
                   @Value("${spring.jwt.refresh-token-expiry:1209600000}") long refreshTokenExpiry) {
-            this.key = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
+            this.key = io.jsonwebtoken.security.Keys
+                        .hmacShaKeyFor(secret.getBytes(java.nio.charset.StandardCharsets.UTF_8));
             this.accessTokenValidityInMilliseconds = accessTokenExpiry;
             this.refreshTokenValidityInMilliseconds = refreshTokenExpiry;
+      }
+
+      public long getAccessTokenValidityInMilliseconds() {
+            return accessTokenValidityInMilliseconds;
+      }
+
+      public long getRefreshTokenValidityInMilliseconds() {
+            return refreshTokenValidityInMilliseconds;
       }
 
       public String createAccessToken(Authentication authentication) {

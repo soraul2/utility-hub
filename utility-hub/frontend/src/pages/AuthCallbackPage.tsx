@@ -23,7 +23,6 @@ const AuthCallbackPage: React.FC = () => {
 
             const params = new URLSearchParams(location.search);
             const accessToken = params.get('accessToken');
-            const refreshToken = params.get('refreshToken');
             const error = params.get('error');
 
             // OAuth 에러 처리
@@ -34,9 +33,9 @@ const AuthCallbackPage: React.FC = () => {
                   return;
             }
 
-            if (accessToken && refreshToken) {
-                  // tokenStorage 유틸 사용
-                  setTokens(accessToken, refreshToken);
+            if (accessToken) {
+                  // tokenStorage 유틸 사용 (Refresh Token은 쿠키로 자동 설정됨)
+                  setTokens(accessToken, '');
 
                   // 이관 로직
                   const handleMigration = async () => {

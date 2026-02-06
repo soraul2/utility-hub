@@ -1,6 +1,6 @@
 import axios from 'axios';
 import type { AxiosInstance, InternalAxiosRequestConfig, AxiosResponse, AxiosError } from 'axios';
-import { getAccessToken, getRefreshToken, setTokens, clearTokens } from '../utils/tokenStorage';
+import { getAccessToken, setTokens, clearTokens } from '../utils/tokenStorage';
 import type { TokenResponse } from '../types/auth';
 
 /**
@@ -15,6 +15,7 @@ const axiosInstance: AxiosInstance = axios.create({
       headers: {
             'Content-Type': 'application/json',
       },
+      withCredentials: true, // 쿠키 송수신 허용
 });
 
 /**
@@ -84,27 +85,19 @@ axiosInstance.interceptors.response.use(
                   originalRequest._retry = true;
                   isRefreshing = true;
 
-                  const refreshToken = getRefreshToken();
-
-                  if (!refreshToken) {
-                        // 리프레시 토큰이 없으면 로그아웃 처리
-                        isRefreshing = false;
-                        clearTokens();
-                        // 페이지 새로고침하여 로그인 상태 초기화 유도 (또는 Context에서 처리)
-                        window.location.href = '/login';
-                        return Promise.reject(error);
-                  }
-
                   try {
-                        // 토큰 재발급 요청
-                        const response = await axios.post<TokenResponse>('/api/auth/token/refresh', {
-                              refreshToken: refreshToken,
-                        });
+                        // 토큰 재발급 요청 (쿠키 사용)
+                        // Body는 비우고, withCredentials: true로 쿠키 자동 전송
+                        const response = await axios.post<TokenResponse>(
+                              '/api/auth/token/refresh',
+                              {}, // Empty Body
+                              { withCredentials: true }
+                        );
 
-                        const { accessToken, refreshToken: newRefreshToken } = response.data;
+                        const { accessToken } = response.data; // Refresh Token은 쿠키로 옴
 
-                        // 새 토큰 저장
-                        setTokens(accessToken, newRefreshToken);
+                        // 새 Access Token 저장
+                        setTokens(accessToken, ''); // Refresh Token은 클라이언트에서 관리 안 함
 
                         // 헤더 업데이트 및 큐 처리
                         if (originalRequest.headers) {

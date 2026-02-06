@@ -1,0 +1,17 @@
+package com.wootae.backend.domain.user.repository;
+
+import com.wootae.backend.domain.user.entity.RefreshToken;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+import java.time.LocalDateTime;
+import java.util.Optional;
+
+public interface RefreshTokenRepository extends JpaRepository<RefreshToken, Long> {
+      Optional<RefreshToken> findByToken(String token);
+
+      Optional<RefreshToken> findByUserId(Long userId);
+
+      void deleteByUserId(Long userId);
+
+      void deleteByExpiryDateBefore(LocalDateTime dateTime);
+}

@@ -75,8 +75,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       /**
        * 로그인 처리 (토큰 저장 및 상태 업데이트)
        */
-      const login = useCallback((accessToken: string, refreshToken: string, user: AuthUser) => {
-            setTokens(accessToken, refreshToken);
+      const login = useCallback((accessToken: string, _refreshToken: string, user: AuthUser) => {
+            setTokens(accessToken, '');
             setError(null);
             setState({
                   isAuthenticated: true,
@@ -87,17 +87,24 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       }, []);
 
       /**
-       * 로그아웃 처리 (토큰 삭제 및 상태 초기화)
+       * 로그아웃 처리 (서버 로그아웃 호출 및 토큰 삭제)
        */
-      const logout = useCallback(() => {
-            clearTokens();
-            setError(null);
-            setState({
-                  isAuthenticated: false,
-                  isLoading: false,
-                  user: null,
-                  accessToken: null,
-            });
+      const logout = useCallback(async () => {
+            try {
+                  // 서버에 로그아웃 요청 (쿠키 삭제 및 DB 토큰 삭제)
+                  await axiosInstance.post('/auth/logout');
+            } catch (e) {
+                  console.error('로그아웃 요청 실패 (무시됨)', e);
+            } finally {
+                  clearTokens();
+                  setError(null);
+                  setState({
+                        isAuthenticated: false,
+                        isLoading: false,
+                        user: null,
+                        accessToken: null,
+                  });
+            }
       }, []);
 
       /**

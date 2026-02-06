@@ -1,0 +1,31 @@
+
+> Task :compileJava
+C:\AiProject\utility-hub\utility-hub\backend\src\main\java\com\wootae\backend\global\auth\JwtTokenService.java:40: error: variable key might not have been initialized
+      }
+      ^
+Note: C:\AiProject\utility-hub\utility-hub\backend\src\main\java\com\wootae\backend\domain\user\util\OAuthAttributesExtractor.java uses unchecked or unsafe operations.
+Note: Recompile with -Xlint:unchecked for details.
+1 error
+
+> Task :compileJava FAILED
+
+[Incubating] Problems report is available at: file:///C:/AiProject/utility-hub/utility-hub/backend/build/reports/problems/problems-report.html
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':compileJava'.
+> Compilation failed; see the compiler output below.
+  C:\AiProject\utility-hub\utility-hub\backend\src\main\java\com\wootae\backend\global\auth\JwtTokenService.java:40: error: variable key might not have been initialized
+        }
+        ^
+  Note: C:\AiProject\utility-hub\utility-hub\backend\src\main\java\com\wootae\backend\domain\user\util\OAuthAttributesExtractor.java uses unchecked or unsafe operations.
+  Note: Recompile with -Xlint:unchecked for details.
+  1 error
+
+* Try:
+> Check your code and dependencies to fix the compilation error(s)
+> Run with --scan to get full insights.
+
+BUILD FAILED in 8s
+1 actionable task: 1 executed
