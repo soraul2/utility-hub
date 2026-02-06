@@ -74,7 +74,7 @@ export const ConfirmedPlanView: React.FC<ConfirmedPlanViewProps> = ({ plan, onTo
 
       return (
             <div className="h-full overflow-y-auto custom-scrollbar bg-gradient-to-br from-slate-50 via-white to-indigo-50/30 dark:from-gray-950 dark:via-gray-900 dark:to-indigo-950/20">
-                  <div className="max-w-7xl mx-auto p-6 space-y-6">
+                  <div className="max-w-7xl mx-auto w-full p-6 space-y-6">
                         {/* Header with Stats */}
                         <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
                               {/* Main Progress Card */}
@@ -141,8 +141,8 @@ export const ConfirmedPlanView: React.FC<ConfirmedPlanViewProps> = ({ plan, onTo
                         {/* Main Content Grid */}
                         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                               {/* Focus Zone - Left Side */}
-                              <div className="lg:col-span-1 space-y-4">
-                                    <div className="flex items-center gap-2 mb-2">
+                              <div className="lg:col-span-1 space-y-3">
+                                    <div className="flex items-center gap-2">
                                           <Zap className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
                                           <h2 className="text-lg font-black text-gray-900 dark:text-white">Focus Zone</h2>
                                     </div>
@@ -150,8 +150,8 @@ export const ConfirmedPlanView: React.FC<ConfirmedPlanViewProps> = ({ plan, onTo
                               </div>
 
                               {/* Timeline - Right Side */}
-                              <div className="lg:col-span-2">
-                                    <div className="flex items-center justify-between mb-2">
+                              <div className="lg:col-span-2 space-y-3">
+                                    <div className="flex items-center justify-between">
                                           <div className="flex items-center gap-2">
                                                 <BarChart3 className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
                                                 <h2 className="text-lg font-black text-gray-900 dark:text-white">Timeline</h2>
@@ -175,12 +175,14 @@ export const ConfirmedPlanView: React.FC<ConfirmedPlanViewProps> = ({ plan, onTo
                                                 />
                                           </div>
                                     </div>
-                                    <ExecutionTimeline
-                                          tasks={plan.keyTasks}
-                                          startHour={timelineRange.startHour}
-                                          endHour={timelineRange.endHour}
-                                          onToggleTask={onToggleTask}
-                                    />
+                                    <div className="h-[340px]">
+                                          <ExecutionTimeline
+                                                tasks={plan.keyTasks}
+                                                startHour={timelineRange.startHour}
+                                                endHour={timelineRange.endHour}
+                                                onToggleTask={onToggleTask}
+                                          />
+                                    </div>
                               </div>
                         </div>
 

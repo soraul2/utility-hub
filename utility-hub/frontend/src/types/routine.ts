@@ -107,7 +107,10 @@ export interface WeeklyReviewDto {
 export interface MonthlyGoalRequest {
       monthlyGoal: string;
 }
-// ... existing types
+
+export interface MonthlyMemoRequest {
+      memo: string;
+}
 
 export interface CalendarEvent {
       id: number;
@@ -147,6 +150,8 @@ export interface MonthlyStatus {
 }
 
 // Template Types
+export type TemplateType = 'NORMAL' | 'REST';
+
 export interface TemplateTask {
       id: number;
       title: string;
@@ -161,7 +166,6 @@ export interface TemplateTask {
 
 export interface RoutineTemplate {
       id: number;
-      name: string;
       name: string;
       description?: string;
       type?: TemplateType;

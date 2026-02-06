@@ -2,6 +2,8 @@ package com.wootae.backend.domain.routine.dto;
 
 import com.wootae.backend.domain.routine.entity.Reflection;
 
+import java.time.LocalDateTime;
+
 public class ReflectionDto {
       private Long id;
       private Long dailyPlanId;
@@ -12,12 +14,14 @@ public class ReflectionDto {
       private String tomorrowFocus;
       private Integer energyLevel;
       private String morningGoal;
+      private LocalDateTime createdAt;
 
       public ReflectionDto() {
       }
 
       public ReflectionDto(Long id, Long dailyPlanId, int rating, String mood, String whatWentWell,
-                  String whatDidntGoWell, String tomorrowFocus, Integer energyLevel, String morningGoal) {
+                  String whatDidntGoWell, String tomorrowFocus, Integer energyLevel, String morningGoal,
+                  LocalDateTime createdAt) {
             this.id = id;
             this.dailyPlanId = dailyPlanId;
             this.rating = rating;
@@ -27,6 +31,7 @@ public class ReflectionDto {
             this.tomorrowFocus = tomorrowFocus;
             this.energyLevel = energyLevel;
             this.morningGoal = morningGoal;
+            this.createdAt = createdAt;
       }
 
       public static ReflectionDto from(Reflection reflection) {
@@ -41,7 +46,8 @@ public class ReflectionDto {
                         reflection.getWhatDidntGoWell(),
                         reflection.getTomorrowFocus(),
                         reflection.getEnergyLevel(),
-                        reflection.getMorningGoal());
+                        reflection.getMorningGoal(),
+                        reflection.getCreatedAt());
       }
 
       // Getters and Setters
@@ -117,6 +123,14 @@ public class ReflectionDto {
             this.morningGoal = morningGoal;
       }
 
+      public LocalDateTime getCreatedAt() {
+            return createdAt;
+      }
+
+      public void setCreatedAt(LocalDateTime createdAt) {
+            this.createdAt = createdAt;
+      }
+
       public static ReflectionDtoBuilder builder() {
             return new ReflectionDtoBuilder();
       }
@@ -131,6 +145,7 @@ public class ReflectionDto {
             private String tomorrowFocus;
             private Integer energyLevel;
             private String morningGoal;
+            private LocalDateTime createdAt;
 
             public ReflectionDtoBuilder id(Long id) {
                   this.id = id;
@@ -177,9 +192,14 @@ public class ReflectionDto {
                   return this;
             }
 
+            public ReflectionDtoBuilder createdAt(LocalDateTime createdAt) {
+                  this.createdAt = createdAt;
+                  return this;
+            }
+
             public ReflectionDto build() {
                   return new ReflectionDto(id, dailyPlanId, rating, mood, whatWentWell, whatDidntGoWell, tomorrowFocus,
-                              energyLevel, morningGoal);
+                              energyLevel, morningGoal, createdAt);
             }
       }
 }

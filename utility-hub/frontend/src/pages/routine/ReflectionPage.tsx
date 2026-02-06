@@ -1,5 +1,7 @@
 import { useEffect, useState, useMemo, useCallback } from 'react';
 import { useRoutineStore } from '../../stores/useRoutineStore';
+import { format } from 'date-fns';
+import { ko } from 'date-fns/locale';
 import {
       Star,
       Save,
@@ -156,7 +158,14 @@ const ReflectionPage = () => {
                               <BookOpen className="w-5 h-5 md:w-6 md:h-6 text-purple-600 dark:text-purple-400" />
                         </div>
                         <div>
-                              <h1 className="text-xl md:text-2xl font-bold text-gray-900 dark:text-white">하루 회고</h1>
+                              <h1 className="text-xl md:text-2xl font-bold text-gray-900 dark:text-white">
+                                    하루 회고
+                                    {today?.planDate && (
+                                          <span className="ml-2 text-base md:text-lg font-bold text-purple-500 dark:text-purple-400">
+                                                {format(new Date(today.planDate), 'M월 d일 (E)', { locale: ko })}
+                                          </span>
+                                    )}
+                              </h1>
                               <p className="text-xs md:text-sm text-gray-500 dark:text-gray-400">오늘 하루를 돌아보고 내일을 준비하세요.</p>
                         </div>
                   </div>

@@ -123,7 +123,7 @@ export const ExecutionTimeline: React.FC<ExecutionTimelineProps> = ({
       };
 
       return (
-            <div className="relative bg-white dark:bg-gray-950 rounded-2xl border border-gray-200/60 dark:border-gray-800 overflow-hidden shadow-lg h-[280px]">
+            <div className="relative bg-white dark:bg-gray-950 rounded-2xl border border-gray-200/60 dark:border-gray-800 overflow-hidden shadow-lg h-full min-h-[200px]">
                   <div className="h-full overflow-x-auto overflow-y-hidden custom-scrollbar relative select-none">
                         {/* Grid Layer */}
                         <div className="absolute inset-0 flex whitespace-nowrap min-w-max pointer-events-none">

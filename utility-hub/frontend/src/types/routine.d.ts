@@ -130,6 +130,8 @@ export interface MonthlyStatus {
 }
 
 // Template Types
+export type TemplateType = 'NORMAL' | 'REST';
+
 export interface TemplateTask {
       id: number;
       title: string;
@@ -144,7 +146,6 @@ export interface TemplateTask {
 
 export interface RoutineTemplate {
       id: number;
-      name: string;
       name: string;
       description?: string;
       type?: TemplateType;
