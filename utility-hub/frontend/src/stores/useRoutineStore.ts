@@ -163,8 +163,14 @@ export const useRoutineStore = create<RoutineState>((set, get) => ({
                   const res = await routineApi.getPlan(date);
                   set({ today: res.data.data, isLoading: false });
             } catch (err: any) {
-                  console.error(err);
-                  set({ error: 'Failed to load plan', isLoading: false, today: null });
+                  // Plan not found - auto-create it
+                  try {
+                        const createRes = await routineApi.createPlan({ planDate: date });
+                        set({ today: createRes.data.data, isLoading: false });
+                  } catch (createErr: any) {
+                        console.error(createErr);
+                        set({ error: 'Failed to load plan', isLoading: false, today: null });
+                  }
             }
       },
 

@@ -1,5 +1,5 @@
 import axiosInstance from '../../api/axiosInstance';
-import type { DailyPlan, Task, Reflection, ReflectionDto, WeeklyStats, WeeklyReview, WeeklyReviewDto, RoutineTemplate, TemplateCreateRequest, MonthlyStatus, MonthlyGoalRequest, MonthlyMemoRequest } from '../../types/routine';
+import type { DailyPlan, Task, Reflection, ReflectionDto, WeeklyStats, WeeklyReview, WeeklyReviewDto, RoutineTemplate, TemplateCreateRequest, MonthlyStatus, MonthlyGoalRequest, MonthlyMemoRequest, CalendarEvent, CalendarEventCreateRequest } from '../../types/routine';
 
 const BASE_URL = '/v1/routine';
 
@@ -10,6 +10,7 @@ export const routineApi = {
       createPlan: (data: { planDate: string }) => axiosInstance.post<{ success: boolean, data: DailyPlan }>(`${BASE_URL}/daily-plans`, data),
       confirmPlan: (date: string) => axiosInstance.post<{ success: boolean, data: DailyPlan }>(`${BASE_URL}/daily-plans/${date}/confirm`),
       unconfirmPlan: (date: string) => axiosInstance.post<{ success: boolean, data: DailyPlan }>(`${BASE_URL}/daily-plans/${date}/unconfirm`),
+      deletePlan: (date: string) => axiosInstance.delete<{ success: boolean }>(`${BASE_URL}/daily-plans/${date}`),
 
       // Task
       // Task
@@ -82,4 +83,17 @@ export const routineApi = {
 
       updateMonthlyMemo: (date: string, data: MonthlyMemoRequest) =>
             axiosInstance.post<{ success: boolean }>(`${BASE_URL}/daily-plans/${date}/memo`, data),
+
+      // Calendar Events
+      getCalendarEvents: (year: number, month: number) =>
+            axiosInstance.get<{ success: boolean, data: CalendarEvent[] }>(`${BASE_URL}/calendar-events`, { params: { year, month } }),
+
+      createCalendarEvent: (data: CalendarEventCreateRequest) =>
+            axiosInstance.post<{ success: boolean, data: CalendarEvent }>(`${BASE_URL}/calendar-events`, data),
+
+      updateCalendarEvent: (eventId: number, data: CalendarEventCreateRequest) =>
+            axiosInstance.put<{ success: boolean, data: CalendarEvent }>(`${BASE_URL}/calendar-events/${eventId}`, data),
+
+      deleteCalendarEvent: (eventId: number) =>
+            axiosInstance.delete<{ success: boolean }>(`${BASE_URL}/calendar-events/${eventId}`),
 };

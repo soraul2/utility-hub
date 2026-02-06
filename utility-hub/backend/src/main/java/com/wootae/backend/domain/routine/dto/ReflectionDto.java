@@ -1,12 +1,15 @@
 package com.wootae.backend.domain.routine.dto;
 
+import com.wootae.backend.domain.routine.entity.DailyPlan;
 import com.wootae.backend.domain.routine.entity.Reflection;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 public class ReflectionDto {
       private Long id;
       private Long dailyPlanId;
+      private LocalDate planDate;
       private int rating;
       private String mood;
       private String whatWentWell;
@@ -14,16 +17,20 @@ public class ReflectionDto {
       private String tomorrowFocus;
       private Integer energyLevel;
       private String morningGoal;
+      private int totalTasks;
+      private int completedTasks;
       private LocalDateTime createdAt;
 
       public ReflectionDto() {
       }
 
-      public ReflectionDto(Long id, Long dailyPlanId, int rating, String mood, String whatWentWell,
-                  String whatDidntGoWell, String tomorrowFocus, Integer energyLevel, String morningGoal,
-                  LocalDateTime createdAt) {
+      public ReflectionDto(Long id, Long dailyPlanId, LocalDate planDate, int rating, String mood,
+                  String whatWentWell, String whatDidntGoWell, String tomorrowFocus,
+                  Integer energyLevel, String morningGoal,
+                  int totalTasks, int completedTasks, LocalDateTime createdAt) {
             this.id = id;
             this.dailyPlanId = dailyPlanId;
+            this.planDate = planDate;
             this.rating = rating;
             this.mood = mood;
             this.whatWentWell = whatWentWell;
@@ -31,15 +38,34 @@ public class ReflectionDto {
             this.tomorrowFocus = tomorrowFocus;
             this.energyLevel = energyLevel;
             this.morningGoal = morningGoal;
+            this.totalTasks = totalTasks;
+            this.completedTasks = completedTasks;
             this.createdAt = createdAt;
       }
 
       public static ReflectionDto from(Reflection reflection) {
             if (reflection == null)
                   return null;
+
+            DailyPlan plan = reflection.getDailyPlan();
+            LocalDate planDate = null;
+            int totalTasks = 0;
+            int completedTasks = 0;
+
+            if (plan != null) {
+                  planDate = plan.getPlanDate();
+                  if (plan.getKeyTasks() != null) {
+                        totalTasks = plan.getKeyTasks().size();
+                        completedTasks = (int) plan.getKeyTasks().stream()
+                                    .filter(t -> t.isCompleted())
+                                    .count();
+                  }
+            }
+
             return new ReflectionDto(
                         reflection.getId(),
-                        reflection.getDailyPlan() != null ? reflection.getDailyPlan().getId() : null,
+                        plan != null ? plan.getId() : null,
+                        planDate,
                         reflection.getRating(),
                         reflection.getMood(),
                         reflection.getWhatWentWell(),
@@ -47,6 +73,8 @@ public class ReflectionDto {
                         reflection.getTomorrowFocus(),
                         reflection.getEnergyLevel(),
                         reflection.getMorningGoal(),
+                        totalTasks,
+                        completedTasks,
                         reflection.getCreatedAt());
       }
 
@@ -65,6 +93,14 @@ public class ReflectionDto {
 
       public void setDailyPlanId(Long dailyPlanId) {
             this.dailyPlanId = dailyPlanId;
+      }
+
+      public LocalDate getPlanDate() {
+            return planDate;
+      }
+
+      public void setPlanDate(LocalDate planDate) {
+            this.planDate = planDate;
       }
 
       public int getRating() {
@@ -123,83 +159,27 @@ public class ReflectionDto {
             this.morningGoal = morningGoal;
       }
 
+      public int getTotalTasks() {
+            return totalTasks;
+      }
+
+      public void setTotalTasks(int totalTasks) {
+            this.totalTasks = totalTasks;
+      }
+
+      public int getCompletedTasks() {
+            return completedTasks;
+      }
+
+      public void setCompletedTasks(int completedTasks) {
+            this.completedTasks = completedTasks;
+      }
+
       public LocalDateTime getCreatedAt() {
             return createdAt;
       }
 
       public void setCreatedAt(LocalDateTime createdAt) {
             this.createdAt = createdAt;
-      }
-
-      public static ReflectionDtoBuilder builder() {
-            return new ReflectionDtoBuilder();
-      }
-
-      public static class ReflectionDtoBuilder {
-            private Long id;
-            private Long dailyPlanId;
-            private int rating;
-            private String mood;
-            private String whatWentWell;
-            private String whatDidntGoWell;
-            private String tomorrowFocus;
-            private Integer energyLevel;
-            private String morningGoal;
-            private LocalDateTime createdAt;
-
-            public ReflectionDtoBuilder id(Long id) {
-                  this.id = id;
-                  return this;
-            }
-
-            public ReflectionDtoBuilder dailyPlanId(Long dailyPlanId) {
-                  this.dailyPlanId = dailyPlanId;
-                  return this;
-            }
-
-            public ReflectionDtoBuilder rating(int rating) {
-                  this.rating = rating;
-                  return this;
-            }
-
-            public ReflectionDtoBuilder mood(String mood) {
-                  this.mood = mood;
-                  return this;
-            }
-
-            public ReflectionDtoBuilder whatWentWell(String whatWentWell) {
-                  this.whatWentWell = whatWentWell;
-                  return this;
-            }
-
-            public ReflectionDtoBuilder whatDidntGoWell(String whatDidntGoWell) {
-                  this.whatDidntGoWell = whatDidntGoWell;
-                  return this;
-            }
-
-            public ReflectionDtoBuilder tomorrowFocus(String tomorrowFocus) {
-                  this.tomorrowFocus = tomorrowFocus;
-                  return this;
-            }
-
-            public ReflectionDtoBuilder energyLevel(Integer energyLevel) {
-                  this.energyLevel = energyLevel;
-                  return this;
-            }
-
-            public ReflectionDtoBuilder morningGoal(String morningGoal) {
-                  this.morningGoal = morningGoal;
-                  return this;
-            }
-
-            public ReflectionDtoBuilder createdAt(LocalDateTime createdAt) {
-                  this.createdAt = createdAt;
-                  return this;
-            }
-
-            public ReflectionDto build() {
-                  return new ReflectionDto(id, dailyPlanId, rating, mood, whatWentWell, whatDidntGoWell, tomorrowFocus,
-                              energyLevel, morningGoal, createdAt);
-            }
       }
 }

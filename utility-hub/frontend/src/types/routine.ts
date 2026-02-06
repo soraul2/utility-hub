@@ -36,6 +36,8 @@ export interface TimeBlock {
 export interface Reflection {
       id: number;
       planId?: number;
+      dailyPlanId?: number;
+      planDate?: string; // YYYY-MM-DD
       rating: number; // 1-5
       mood: string;
       whatWentWell?: string;
@@ -45,6 +47,10 @@ export interface Reflection {
       // V2 Fields
       energyLevel?: number; // 1-5
       morningGoal?: string;
+
+      // Task stats
+      totalTasks?: number;
+      completedTasks?: number;
 
       createdAt?: string;
 }
@@ -138,6 +144,10 @@ export interface DailySummary {
       isRest: boolean;
       hasPlan: boolean;
       memoSnippet: string | null;
+      totalTasks: number;
+      completedTasks: number;
+      mood: string | null; // GOOD / NORMAL / BAD
+      appliedTemplateName: string | null;
 }
 
 export interface MonthlyStatus {

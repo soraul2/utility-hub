@@ -33,6 +33,7 @@ public enum ErrorCode {
       REFLECTION_ALREADY_EXISTS(HttpStatus.CONFLICT, "ROUTINE_003", "이미 회고가 존재합니다."),
       UNAUTHORIZED_ACCESS(HttpStatus.FORBIDDEN, "ROUTINE_004", "해당 리소스에 대한 접근 권한이 없습니다."),
       TEMPLATE_NOT_FOUND(HttpStatus.NOT_FOUND, "ROUTINE_005", "템플릿을 찾을 수 없습니다."),
+      EVENT_NOT_FOUND(HttpStatus.NOT_FOUND, "ROUTINE_006", "캘린더 이벤트를 찾을 수 없습니다."),
 
       // OAuth2
       OAUTH2_FAILED(HttpStatus.BAD_REQUEST, "OAUTH2_001", "소셜 로그인 중 오류가 발생했습니다."),

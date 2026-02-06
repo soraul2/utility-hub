@@ -30,5 +30,9 @@ public class MonthlyStatusResponse {
             private boolean isRest;
             private boolean hasPlan;
             private String memoSnippet; // First few chars of monthlyMemo
+            private int totalTasks;
+            private int completedTasks;
+            private String mood; // GOOD / NORMAL / BAD (from Reflection)
+            private String appliedTemplateName;
       }
 }

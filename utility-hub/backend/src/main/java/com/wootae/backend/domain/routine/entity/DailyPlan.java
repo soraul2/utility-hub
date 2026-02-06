@@ -56,6 +56,9 @@ public class DailyPlan {
       @Column(length = 500)
       private String monthlyMemo;
 
+      @Column(length = 100)
+      private String appliedTemplateName;
+
       @CreatedDate
       @Column(updatable = false)
       private LocalDateTime createdAt;

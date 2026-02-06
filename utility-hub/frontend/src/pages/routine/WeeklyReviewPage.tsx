@@ -92,8 +92,15 @@ export const WeeklyReviewPage = () => {
                   const res = await routineApi.getPlan(dateStr);
                   const plan = res.data.data;
                   if (plan && plan.reflection) {
+                        const reflection = { ...plan.reflection };
+                        // Inject task stats from plan
+                        if (plan.keyTasks) {
+                              reflection.totalTasks = plan.keyTasks.length;
+                              reflection.completedTasks = plan.keyTasks.filter((t: { completed: boolean }) => t.completed).length;
+                        }
+                        reflection.planDate = dateStr;
                         setSelectedDate(dateStr);
-                        setSelectedReflection(plan.reflection);
+                        setSelectedReflection(reflection);
                         setReflectionModalOpen(true);
                   } else {
                         setSaveMessage({ type: 'error', text: '해당 날짜의 회고 기록이 없습니다.' });
@@ -245,53 +252,78 @@ export const WeeklyReviewPage = () => {
                                     <TrendingUp className="w-4 h-4 text-indigo-500" />
                                     일별 달성률
                               </h3>
-                              <div className="flex items-end justify-between gap-2 h-28">
+
+                              {/* 퍼센트 라벨 */}
+                              <div className="flex justify-between gap-2 mb-1">
                                     {weekDays.map((day) => {
                                           const dayStr = format(day, 'EEE').toUpperCase();
                                           const rate = weeklyStats?.dailyCompletion[dayStr] || 0;
-                                          const isToday = format(new Date(), 'yyyy-MM-dd') === format(day, 'yyyy-MM-dd');
-                                          const isPast = day < new Date() && !isToday;
                                           const isFuture = day > new Date();
-
                                           return (
-                                                <div key={dayStr} className="flex-1 flex flex-col items-center gap-1 group relative">
-                                                      <span className="text-[10px] font-bold text-gray-400 dark:text-gray-500 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                            {rate}%
-                                                      </span>
+                                                <span key={dayStr} className={`flex-1 text-center text-[10px] font-bold ${
+                                                      isFuture || rate === 0 ? 'text-gray-300 dark:text-gray-600' : 'text-gray-500 dark:text-gray-400'
+                                                }`}>
+                                                      {isFuture ? '-' : `${rate}%`}
+                                                </span>
+                                          );
+                                    })}
+                              </div>
 
-                                                      {/* Search/View Button - Visible on Hover */}
-                                                      <button
-                                                            onClick={() => handleViewReflection(format(day, 'yyyy-MM-dd'))}
-                                                            className="absolute -top-8 z-10 p-1.5 bg-white dark:bg-gray-700 rounded-full shadow-md border border-gray-100 dark:border-gray-600 opacity-0 group-hover:opacity-100 transition-all hover:scale-110 transform translate-y-2 group-hover:translate-y-0"
-                                                            title="일간 회고 보기"
-                                                      >
-                                                            <Search className="w-3 h-3 text-indigo-500" />
-                                                      </button>
+                              {/* 바 영역 + 50% 기준선 */}
+                              <div className="relative h-28">
+                                    {/* 50% 기준선 - 바 영역의 정확히 가운데 */}
+                                    <div className="absolute left-0 right-0 top-1/2 -translate-y-1/2 flex items-center pointer-events-none z-[1]">
+                                          <div className="flex-1 border-t border-dashed border-gray-300 dark:border-gray-600" />
+                                          <span className="text-[9px] font-bold text-gray-400 dark:text-gray-500 ml-1 shrink-0">50%</span>
+                                    </div>
 
-                                                      <div className="w-full h-20 bg-gray-100 dark:bg-gray-700 rounded-lg relative overflow-hidden flex items-end cursor-pointer"
+                                    <div className="flex items-end h-full gap-2">
+                                          {weekDays.map((day) => {
+                                                const dayStr = format(day, 'EEE').toUpperCase();
+                                                const rate = weeklyStats?.dailyCompletion[dayStr] || 0;
+                                                const isToday = format(new Date(), 'yyyy-MM-dd') === format(day, 'yyyy-MM-dd');
+                                                const isFuture = day > new Date();
+
+                                                return (
+                                                      <div
+                                                            key={dayStr}
+                                                            className="flex-1 h-full bg-gray-100 dark:bg-gray-700 rounded-lg relative overflow-hidden flex items-end cursor-pointer hover:ring-2 hover:ring-indigo-300 dark:hover:ring-indigo-600 transition-all"
                                                             onClick={() => handleViewReflection(format(day, 'yyyy-MM-dd'))}
+                                                            title="클릭하여 회고 보기"
                                                       >
                                                             <div
-                                                                  className={`w-full transition-all duration-500 rounded-t-md ${isFuture ? 'bg-gray-200' :
+                                                                  className={`w-full transition-all duration-500 rounded-t-md ${isFuture ? 'bg-gray-200 dark:bg-gray-600' :
                                                                         isToday ? 'bg-indigo-500' :
                                                                               rate >= 80 ? 'bg-emerald-500' :
                                                                                     rate >= 50 ? 'bg-amber-400' :
-                                                                                          rate > 0 ? 'bg-rose-400' : 'bg-gray-200'
+                                                                                          rate > 0 ? 'bg-rose-400' : 'bg-gray-200 dark:bg-gray-600'
                                                                         }`}
-                                                                  style={{ height: `${Math.max(isFuture ? 10 : rate, 5)}%` }}
+                                                                  style={{ height: `${Math.max(isFuture ? 8 : rate, 4)}%` }}
                                                             />
                                                             {isToday && (
                                                                   <div className="absolute inset-0 flex items-center justify-center">
-                                                                        <Zap className="w-3 h-3 text-white" />
+                                                                        <Zap className="w-3.5 h-3.5 text-white drop-shadow-sm" />
                                                                   </div>
                                                             )}
                                                       </div>
-                                                      <span className={`text-xs font-bold ${isToday ? 'text-indigo-600 dark:text-indigo-400' :
-                                                            isPast ? 'text-gray-600 dark:text-gray-400' : 'text-gray-300 dark:text-gray-600'
-                                                            }`}>
-                                                            {DAY_NAMES[dayStr]}
-                                                      </span>
-                                                </div>
+                                                );
+                                          })}
+                                    </div>
+                              </div>
+
+                              {/* 요일 라벨 */}
+                              <div className="flex justify-between gap-2 mt-1">
+                                    {weekDays.map((day) => {
+                                          const dayStr = format(day, 'EEE').toUpperCase();
+                                          const isToday = format(new Date(), 'yyyy-MM-dd') === format(day, 'yyyy-MM-dd');
+                                          const isPast = day < new Date() && !isToday;
+                                          return (
+                                                <span key={dayStr} className={`flex-1 text-center text-xs font-bold ${
+                                                      isToday ? 'text-indigo-600 dark:text-indigo-400' :
+                                                      isPast ? 'text-gray-600 dark:text-gray-400' : 'text-gray-300 dark:text-gray-600'
+                                                }`}>
+                                                      {DAY_NAMES[dayStr]}
+                                                </span>
                                           );
                                     })}
                               </div>

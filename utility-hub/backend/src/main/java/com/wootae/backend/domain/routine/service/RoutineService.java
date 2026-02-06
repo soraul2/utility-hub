@@ -14,6 +14,8 @@ import com.wootae.backend.domain.routine.dto.MonthlyMemoRequest;
 import com.wootae.backend.domain.routine.dto.MonthlyStatusResponse;
 import com.wootae.backend.domain.routine.dto.WeeklyReviewDto;
 import com.wootae.backend.domain.routine.dto.WeeklyReviewRequest;
+import com.wootae.backend.domain.routine.dto.CalendarEventDto;
+import com.wootae.backend.domain.routine.dto.CalendarEventCreateRequest;
 import com.wootae.backend.domain.routine.entity.*;
 import com.wootae.backend.domain.routine.repository.*;
 import com.wootae.backend.domain.user.entity.User;
@@ -45,6 +47,7 @@ public class RoutineService {
       private final RoutineTemplateRepository routineTemplateRepository;
       private final UserRepository userRepository;
       private final MonthlyLogRepository monthlyLogRepository;
+      private final CalendarEventRepository calendarEventRepository;
 
       private Long getCurrentUserId() {
             try {
@@ -268,9 +271,10 @@ public class RoutineService {
             return ReflectionDto.from(reflection);
       }
 
+      @Transactional(readOnly = true)
       public Page<ReflectionDto> getArchive(Pageable pageable) {
             Long userId = getCurrentUserId();
-            return reflectionRepository.findByDailyPlan_UserIdOrderByCreatedAtDesc(userId, pageable)
+            return reflectionRepository.findArchiveWithTasks(userId, pageable)
                         .map(ReflectionDto::from);
       }
 
@@ -363,6 +367,10 @@ public class RoutineService {
                   boolean isRest = false;
                   boolean hasPlan = false;
                   String memoSnippet = null;
+                  int totalTasks = 0;
+                  int completedTasks = 0;
+                  String mood = null;
+                  String appliedTemplateName = null;
 
                   if (plan != null) {
                         hasPlan = true;
@@ -370,8 +378,16 @@ public class RoutineService {
                         rate = calculateDailyRate(plan);
                         if (plan.getMonthlyMemo() != null) {
                               memoSnippet = plan.getMonthlyMemo();
-                              // Simple snippet logic handled in frontend or full string here
                         }
+                        if (plan.getKeyTasks() != null) {
+                              totalTasks = plan.getKeyTasks().size();
+                              completedTasks = (int) plan.getKeyTasks().stream()
+                                          .filter(t -> t.isCompleted()).count();
+                        }
+                        if (plan.getReflection() != null) {
+                              mood = plan.getReflection().getMood();
+                        }
+                        appliedTemplateName = plan.getAppliedTemplateName();
                   }
 
                   // Add to average if past or today
@@ -386,17 +402,48 @@ public class RoutineService {
                               .isRest(isRest)
                               .hasPlan(hasPlan)
                               .memoSnippet(memoSnippet)
+                              .totalTasks(totalTasks)
+                              .completedTasks(completedTasks)
+                              .mood(mood)
+                              .appliedTemplateName(appliedTemplateName)
                               .build());
             }
 
             double monthlyRate = count == 0 ? 0.0 : (totalRates / count);
             monthlyRate = Math.round(monthlyRate * 10.0) / 10.0;
 
+            // 4. Calculate XP dynamically from actual data
+            long calculatedXp = 0;
+            for (DailyPlan plan : plans) {
+                  if (plan.isRest()) {
+                        calculatedXp += 5;
+                  } else if (plan.getKeyTasks() != null && !plan.getKeyTasks().isEmpty()) {
+                        calculatedXp += 5; // Plan created
+                        int completed = (int) plan.getKeyTasks().stream().filter(Task::isCompleted).count();
+                        int total = plan.getKeyTasks().size();
+                        calculatedXp += completed * 10L; // Per completed task
+                        if (total > 0) {
+                              double rate = (double) completed / total * 100;
+                              if (rate >= 100) {
+                                    calculatedXp += 50;
+                              } else if (rate >= 80) {
+                                    calculatedXp += 20;
+                              }
+                        }
+                  }
+                  if (plan.getReflection() != null) {
+                        calculatedXp += 20;
+                  }
+            }
+            if (monthlyGoal != null && !monthlyGoal.isBlank()) {
+                  calculatedXp += 10;
+            }
+
             return MonthlyStatusResponse.builder()
                         .year(year)
                         .month(month)
                         .monthlyGoal(monthlyGoal)
-                        .totalXp(totalXp)
+                        .totalXp(calculatedXp)
                         .monthlyCompletionRate(monthlyRate)
                         .days(dailySummaries)
                         .build();
@@ -434,6 +481,14 @@ public class RoutineService {
 
             plan.updateMonthlyMemo(memo);
             // Transactional handles save on modify, but strict saving is fine
+      }
+
+      @Transactional
+      public void deletePlan(LocalDate date) {
+            User user = getCurrentUser();
+            DailyPlan plan = dailyPlanRepository.findByUserIdAndPlanDate(user.getId(), date)
+                        .orElseThrow(() -> new BusinessException(ErrorCode.PLAN_NOT_FOUND));
+            dailyPlanRepository.delete(plan);
       }
 
       @Transactional
@@ -618,12 +673,64 @@ public class RoutineService {
             if (template.getType() == TemplateType.REST) {
                   plan.setRest(true);
             } else {
-                  // Explicitly set false if applying a normal template over a rest one?
-                  // Maybe keep it true if it was already rest?
-                  // Let's assume applying a template OVERWRITES the nature of the day.
                   plan.setRest(false);
             }
 
+            // Store applied template name for calendar display
+            plan.setAppliedTemplateName(template.getName());
+
             return DailyPlanDto.from(plan);
+      }
+
+      // ==================== Calendar Events ====================
+
+      @Transactional(readOnly = true)
+      public List<CalendarEventDto> getCalendarEvents(int year, int month) {
+            User user = getCurrentUser();
+            LocalDate startOfMonth = LocalDate.of(year, month, 1);
+            LocalDate endOfMonth = startOfMonth.withDayOfMonth(startOfMonth.lengthOfMonth());
+            return calendarEventRepository.findEventsInRange(user, startOfMonth, endOfMonth)
+                        .stream()
+                        .map(CalendarEventDto::from)
+                        .collect(Collectors.toList());
+      }
+
+      @Transactional
+      public CalendarEventDto createCalendarEvent(CalendarEventCreateRequest request) {
+            User user = getCurrentUser();
+            CalendarEvent event = CalendarEvent.builder()
+                        .user(user)
+                        .title(request.getTitle())
+                        .description(request.getDescription())
+                        .startDate(LocalDate.parse(request.getStartDate()))
+                        .endDate(LocalDate.parse(request.getEndDate()))
+                        .color(request.getColor() != null ? request.getColor() : "#6366f1")
+                        .type(CalendarEvent.EventType.valueOf(request.getType() != null ? request.getType() : "MEMO"))
+                        .build();
+            event = calendarEventRepository.save(event);
+            return CalendarEventDto.from(event);
+      }
+
+      @Transactional
+      public CalendarEventDto updateCalendarEvent(Long eventId, CalendarEventCreateRequest request) {
+            Long userId = getCurrentUserId();
+            CalendarEvent event = calendarEventRepository.findByIdAndUserId(eventId, userId)
+                        .orElseThrow(() -> new BusinessException(ErrorCode.EVENT_NOT_FOUND));
+            event.update(
+                        request.getTitle(),
+                        request.getDescription(),
+                        LocalDate.parse(request.getStartDate()),
+                        LocalDate.parse(request.getEndDate()),
+                        request.getColor() != null ? request.getColor() : "#6366f1",
+                        CalendarEvent.EventType.valueOf(request.getType() != null ? request.getType() : "MEMO"));
+            return CalendarEventDto.from(event);
+      }
+
+      @Transactional
+      public void deleteCalendarEvent(Long eventId) {
+            Long userId = getCurrentUserId();
+            CalendarEvent event = calendarEventRepository.findByIdAndUserId(eventId, userId)
+                        .orElseThrow(() -> new BusinessException(ErrorCode.EVENT_NOT_FOUND));
+            calendarEventRepository.delete(event);
       }
 }

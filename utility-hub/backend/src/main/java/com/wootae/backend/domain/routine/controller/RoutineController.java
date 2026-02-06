@@ -11,6 +11,8 @@ import com.wootae.backend.domain.routine.dto.MonthlyMemoRequest;
 import com.wootae.backend.domain.routine.dto.MonthlyStatusResponse;
 import com.wootae.backend.domain.routine.dto.WeeklyReviewDto;
 import com.wootae.backend.domain.routine.dto.WeeklyReviewRequest;
+import com.wootae.backend.domain.routine.dto.CalendarEventDto;
+import com.wootae.backend.domain.routine.dto.CalendarEventCreateRequest;
 import com.wootae.backend.domain.routine.service.RoutineService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -60,6 +62,13 @@ public class RoutineController {
                   @PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
             DailyPlanDto plan = routineService.unconfirmPlan(date);
             return ResponseEntity.ok(Map.of("success", true, "data", plan));
+      }
+
+      @DeleteMapping("/daily-plans/{date}")
+      public ResponseEntity<?> deletePlan(
+                  @PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
+            routineService.deletePlan(date);
+            return ResponseEntity.ok(Map.of("success", true));
       }
 
       // Task Endpoints
@@ -172,6 +181,33 @@ public class RoutineController {
                   @PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
                   @RequestBody MonthlyMemoRequest request) {
             routineService.updateMonthlyMemo(date, request.getMemo());
+            return ResponseEntity.ok(Map.of("success", true));
+      }
+
+      // Calendar Event Endpoints
+
+      @GetMapping("/calendar-events")
+      public ResponseEntity<?> getCalendarEvents(@RequestParam int year, @RequestParam int month) {
+            List<CalendarEventDto> events = routineService.getCalendarEvents(year, month);
+            return ResponseEntity.ok(Map.of("success", true, "data", events));
+      }
+
+      @PostMapping("/calendar-events")
+      public ResponseEntity<?> createCalendarEvent(@RequestBody CalendarEventCreateRequest request) {
+            CalendarEventDto event = routineService.createCalendarEvent(request);
+            return ResponseEntity.ok(Map.of("success", true, "data", event));
+      }
+
+      @PutMapping("/calendar-events/{eventId}")
+      public ResponseEntity<?> updateCalendarEvent(@PathVariable Long eventId,
+                  @RequestBody CalendarEventCreateRequest request) {
+            CalendarEventDto event = routineService.updateCalendarEvent(eventId, request);
+            return ResponseEntity.ok(Map.of("success", true, "data", event));
+      }
+
+      @DeleteMapping("/calendar-events/{eventId}")
+      public ResponseEntity<?> deleteCalendarEvent(@PathVariable Long eventId) {
+            routineService.deleteCalendarEvent(eventId);
             return ResponseEntity.ok(Map.of("success", true));
       }
 }
