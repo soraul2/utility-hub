@@ -10,6 +10,7 @@ public enum ErrorCode {
 
       // Common
       INVALID_INPUT_VALUE(HttpStatus.BAD_REQUEST, "C001", "Invalid Input Value"),
+      RESOURCE_NOT_FOUND(HttpStatus.NOT_FOUND, "C002", "리소스를 찾을 수 없습니다."),
 
       // Domain Specific
       INVALID_TEXT_INPUT(HttpStatus.BAD_REQUEST, "TEXT_001", "변환할 텍스트가 비어 있거나 너무 깁니다."),
