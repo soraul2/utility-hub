@@ -68,7 +68,7 @@ const TarotHome: React.FC = () => {
                         message="로그인하시면 당신이 마주한 신비로운 운명들을 기록 보관소에 소중히 간직할 수 있습니다. 지금 로그인하시겠습니까?"
                         confirmText="로그인하러 가기"
                         cancelText="나중에 할게요"
-                        variant="warning"
+                        variant="mystic"
                   />
             </div>
       );

@@ -94,7 +94,7 @@ const TarotLayout: React.FC = () => {
                         message="정말로 로그아웃 하시겠습니까?"
                         confirmLabel="로그아웃"
                         cancelLabel="취소"
-                        isDanger={false}
+                        variant="mystic"
                   />
             </div>
       );

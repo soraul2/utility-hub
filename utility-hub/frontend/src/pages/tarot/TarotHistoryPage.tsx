@@ -321,6 +321,7 @@ const TarotHistoryPage: React.FC = () => {
                         message="정말 이 운명의 기록을 영구히 삭제하시겠습니까? 삭제된 기록은 복구할 수 없습니다."
                         confirmLabel="삭제하기"
                         cancelLabel="유지하기"
+                        variant="mystic"
                         isDanger={true}
                   />
             </div>
