@@ -102,3 +102,31 @@ export interface WeeklyReviewDto {
       improvement: string;
       nextGoal: string;
 }
+
+// Template Types
+export interface TemplateTask {
+      id: number;
+      title: string;
+      taskOrder: number;
+      category?: Category;
+      startTime?: string;
+      endTime?: string;
+      durationMinutes?: number;
+      description?: string;
+      priority?: Priority;
+}
+
+export interface RoutineTemplate {
+      id: number;
+      name: string;
+      description?: string;
+      tasks: TemplateTask[];
+      createdAt?: string;
+      updatedAt?: string;
+}
+
+export interface TemplateCreateRequest {
+      name: string;
+      description?: string;
+      sourcePlanId?: number;
+}

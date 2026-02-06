@@ -1,5 +1,5 @@
 import axiosInstance from '../../api/axiosInstance';
-import type { DailyPlan, Task, Reflection, ReflectionDto, WeeklyStats, WeeklyReview, WeeklyReviewDto } from '../../types/routine';
+import type { DailyPlan, Task, Reflection, ReflectionDto, WeeklyStats, WeeklyReview, WeeklyReviewDto, RoutineTemplate, TemplateCreateRequest } from '../../types/routine';
 
 const BASE_URL = '/v1/routine';
 
@@ -59,4 +59,17 @@ export const routineApi = {
 
       getWeeklyReview: (weekStart: string) =>
             axiosInstance.get<{ success: boolean, data: WeeklyReview | null }>(`${BASE_URL}/weekly-reviews/${weekStart}`),
+
+      // Templates
+      getTemplates: () =>
+            axiosInstance.get<{ success: boolean, data: RoutineTemplate[] }>(`${BASE_URL}/templates`),
+
+      createTemplate: (data: TemplateCreateRequest) =>
+            axiosInstance.post<{ success: boolean, data: RoutineTemplate }>(`${BASE_URL}/templates`, data),
+
+      deleteTemplate: (templateId: number) =>
+            axiosInstance.delete<{ success: boolean }>(`${BASE_URL}/templates/${templateId}`),
+
+      applyTemplate: (planId: number, templateId: number) =>
+            axiosInstance.post<{ success: boolean, data: DailyPlan }>(`${BASE_URL}/daily-plans/${planId}/apply-template/${templateId}`),
 };

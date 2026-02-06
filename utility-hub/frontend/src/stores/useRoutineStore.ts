@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { routineApi } from '../services/routine/api';
-import type { DailyPlan, Reflection, ReflectionDto, WeeklyStats, Task, WeeklyReview, WeeklyReviewDto } from '../types/routine';
+import type { DailyPlan, Reflection, ReflectionDto, WeeklyStats, Task, WeeklyReview, WeeklyReviewDto, RoutineTemplate, TemplateCreateRequest } from '../types/routine';
 
 // Task 업데이트 시 사용하는 데이터 타입
 type TaskUpdateData = Partial<Pick<Task, 'title' | 'completed' | 'category' | 'startTime' | 'endTime' | 'durationMinutes' | 'description' | 'priority'>>;
@@ -10,6 +10,8 @@ interface RoutineState {
       reflections: Reflection[];
       weeklyStats: WeeklyStats | null;
       weeklyReview: WeeklyReview | null;
+      templates: RoutineTemplate[];
+      templatesLoading: boolean;
       isLoading: boolean;
       error: string | null;
 
@@ -26,6 +28,10 @@ interface RoutineState {
       loadPlan: (date: string) => Promise<void>;
       confirmPlan: (date: string) => Promise<void>;
       unconfirmPlan: (date: string) => Promise<void>;
+      loadTemplates: () => Promise<void>;
+      createTemplate: (data: TemplateCreateRequest) => Promise<void>;
+      deleteTemplate: (templateId: number) => Promise<void>;
+      applyTemplate: (templateId: number) => Promise<void>;
 }
 
 export const useRoutineStore = create<RoutineState>((set, get) => ({
@@ -33,6 +39,8 @@ export const useRoutineStore = create<RoutineState>((set, get) => ({
       reflections: [],
       weeklyStats: null,
       weeklyReview: null,
+      templates: [],
+      templatesLoading: false,
       isLoading: false,
       error: null,
 
@@ -213,6 +221,49 @@ export const useRoutineStore = create<RoutineState>((set, get) => ({
             } catch (err: any) {
                   console.error(err);
                   set({ error: 'Failed to unconfirm plan', isLoading: false });
+            }
+      },
+
+      loadTemplates: async () => {
+            set({ templatesLoading: true });
+            try {
+                  const res = await routineApi.getTemplates();
+                  set({ templates: res.data.data, templatesLoading: false });
+            } catch (err: any) {
+                  console.error(err);
+                  set({ templatesLoading: false, error: '템플릿을 불러오는데 실패했습니다' });
+            }
+      },
+
+      createTemplate: async (data: TemplateCreateRequest) => {
+            try {
+                  const res = await routineApi.createTemplate(data);
+                  set(state => ({ templates: [res.data.data, ...state.templates] }));
+            } catch (err: any) {
+                  console.error(err);
+                  set({ error: '템플릿 저장에 실패했습니다' });
+            }
+      },
+
+      deleteTemplate: async (templateId: number) => {
+            try {
+                  await routineApi.deleteTemplate(templateId);
+                  set(state => ({ templates: state.templates.filter(t => t.id !== templateId) }));
+            } catch (err: any) {
+                  console.error(err);
+                  set({ error: '템플릿 삭제에 실패했습니다' });
+            }
+      },
+
+      applyTemplate: async (templateId: number) => {
+            const state = get();
+            if (!state.today) return;
+            try {
+                  const res = await routineApi.applyTemplate(state.today.id, templateId);
+                  set({ today: res.data.data });
+            } catch (err: any) {
+                  console.error(err);
+                  set({ error: '템플릿 적용에 실패했습니다' });
             }
       }
 }));
