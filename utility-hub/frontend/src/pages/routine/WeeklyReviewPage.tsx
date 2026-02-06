@@ -1,5 +1,8 @@
 import { useEffect, useState, useMemo, useCallback } from 'react';
 import { useRoutineStore } from '../../stores/useRoutineStore';
+import { routineApi } from '../../services/routine/api';
+import DailyReflectionModal from '../../components/routine/DailyReflectionModal';
+import type { Reflection } from '../../types/routine';
 import {
       Trophy,
       TrendingUp,
@@ -13,7 +16,8 @@ import {
       Sparkles,
       ChevronLeft,
       ChevronRight,
-      Zap
+      Zap,
+      Search
 } from 'lucide-react';
 import { format, startOfWeek, endOfWeek, eachDayOfInterval, addWeeks, isThisWeek } from 'date-fns';
 import { ko } from 'date-fns/locale';
@@ -32,6 +36,11 @@ export const WeeklyReviewPage = () => {
       const [currentWeekOffset, setCurrentWeekOffset] = useState(0);
       const [isSaving, setIsSaving] = useState(false);
       const [saveMessage, setSaveMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+
+      // Daily Reflection Modal State
+      const [reflectionModalOpen, setReflectionModalOpen] = useState(false);
+      const [selectedDate, setSelectedDate] = useState<string | null>(null);
+      const [selectedReflection, setSelectedReflection] = useState<Reflection | null>(null);
 
       const [reflection, setReflection] = useState({
             achievement: '',
@@ -78,6 +87,23 @@ export const WeeklyReviewPage = () => {
             setSaveMessage(null);
       }, []);
 
+      const handleViewReflection = async (dateStr: string) => {
+            try {
+                  const res = await routineApi.getPlan(dateStr);
+                  const plan = res.data.data;
+                  if (plan && plan.reflection) {
+                        setSelectedDate(dateStr);
+                        setSelectedReflection(plan.reflection);
+                        setReflectionModalOpen(true);
+                  } else {
+                        setSaveMessage({ type: 'error', text: '해당 날짜의 회고 기록이 없습니다.' });
+                  }
+            } catch (err) {
+                  console.error(err);
+                  setSaveMessage({ type: 'error', text: '데이터를 불러오는데 실패했습니다.' });
+            }
+      };
+
       const handleSaveReview = async () => {
             if (!reflection.achievement && !reflection.improvement && !reflection.nextGoal) {
                   setSaveMessage({ type: 'error', text: '최소 하나의 항목을 입력해주세요.' });
@@ -110,14 +136,29 @@ export const WeeklyReviewPage = () => {
             const perfectDays = entries.filter(([, rate]) => rate === 100).length;
             const avgRate = entries.reduce((sum, [, rate]) => sum + rate, 0) / entries.length;
 
+            const getDateStrForDay = (dayName: string) => {
+                  const dayIndex = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'].indexOf(dayName);
+                  if (dayIndex === -1) return '';
+                  const targetDate = weekDays[dayIndex]; // weekDays starts from MON because of weekStartsOn: 1
+                  return format(targetDate, 'yyyy-MM-dd');
+            };
+
             return {
-                  bestDay: bestDay ? { day: DAY_FULL_NAMES[bestDay[0]] || bestDay[0], rate: bestDay[1] } : null,
-                  worstDay: worstDay ? { day: DAY_FULL_NAMES[worstDay[0]] || worstDay[0], rate: worstDay[1] } : null,
+                  bestDay: bestDay ? {
+                        day: DAY_FULL_NAMES[bestDay[0]] || bestDay[0],
+                        rate: bestDay[1],
+                        dateStr: getDateStrForDay(bestDay[0])
+                  } : null,
+                  worstDay: worstDay ? {
+                        day: DAY_FULL_NAMES[worstDay[0]] || worstDay[0],
+                        rate: worstDay[1],
+                        dateStr: getDateStrForDay(worstDay[0])
+                  } : null,
                   totalDays: entries.length,
                   perfectDays,
                   avgRate: Math.round(avgRate)
             };
-      }, [weeklyStats]);
+      }, [weeklyStats, weekDays]);
 
       // 주간 점수에 따른 메시지 및 색상
       const getScoreInfo = (rate: number) => {
@@ -213,11 +254,23 @@ export const WeeklyReviewPage = () => {
                                           const isFuture = day > new Date();
 
                                           return (
-                                                <div key={dayStr} className="flex-1 flex flex-col items-center gap-1 group">
+                                                <div key={dayStr} className="flex-1 flex flex-col items-center gap-1 group relative">
                                                       <span className="text-[10px] font-bold text-gray-400 dark:text-gray-500 opacity-0 group-hover:opacity-100 transition-opacity">
                                                             {rate}%
                                                       </span>
-                                                      <div className="w-full h-20 bg-gray-100 dark:bg-gray-700 rounded-lg relative overflow-hidden flex items-end">
+
+                                                      {/* Search/View Button - Visible on Hover */}
+                                                      <button
+                                                            onClick={() => handleViewReflection(format(day, 'yyyy-MM-dd'))}
+                                                            className="absolute -top-8 z-10 p-1.5 bg-white dark:bg-gray-700 rounded-full shadow-md border border-gray-100 dark:border-gray-600 opacity-0 group-hover:opacity-100 transition-all hover:scale-110 transform translate-y-2 group-hover:translate-y-0"
+                                                            title="일간 회고 보기"
+                                                      >
+                                                            <Search className="w-3 h-3 text-indigo-500" />
+                                                      </button>
+
+                                                      <div className="w-full h-20 bg-gray-100 dark:bg-gray-700 rounded-lg relative overflow-hidden flex items-end cursor-pointer"
+                                                            onClick={() => handleViewReflection(format(day, 'yyyy-MM-dd'))}
+                                                      >
                                                             <div
                                                                   className={`w-full transition-all duration-500 rounded-t-md ${isFuture ? 'bg-gray-200' :
                                                                         isToday ? 'bg-indigo-500' :
@@ -248,11 +301,22 @@ export const WeeklyReviewPage = () => {
                   {/* 주간 하이라이트 */}
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                         {/* 최고의 날 */}
-                        <div className="bg-emerald-50 dark:bg-emerald-900/20 rounded-xl p-4">
-                              <div className="flex items-center gap-2 mb-2">
-                                    <div className="w-8 h-8 bg-emerald-100 dark:bg-emerald-900/30 rounded-lg flex items-center justify-center">
-                                          <Trophy className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                        <div className="bg-emerald-50 dark:bg-emerald-900/20 rounded-xl p-4 relative group">
+                              <div className="flex items-center justify-between mb-2">
+                                    <div className="flex items-center gap-2">
+                                          <div className="w-8 h-8 bg-emerald-100 dark:bg-emerald-900/30 rounded-lg flex items-center justify-center">
+                                                <Trophy className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                                          </div>
                                     </div>
+                                    {stats.bestDay && (
+                                          <button
+                                                onClick={() => handleViewReflection(stats.bestDay!.dateStr)}
+                                                className="p-1.5 bg-white/50 dark:bg-black/20 hover:bg-white dark:hover:bg-black/40 rounded-full transition-colors opacity-0 group-hover:opacity-100"
+                                                title="회고 보기"
+                                          >
+                                                <Search className="w-3 h-3 text-emerald-600 dark:text-emerald-400" />
+                                          </button>
+                                    )}
                               </div>
                               <p className="text-xs font-medium text-emerald-600 dark:text-emerald-400 mb-1">최고의 날</p>
                               {stats.bestDay ? (
@@ -266,11 +330,22 @@ export const WeeklyReviewPage = () => {
                         </div>
 
                         {/* 개선 필요 */}
-                        <div className="bg-rose-50 dark:bg-rose-900/20 rounded-xl p-4">
-                              <div className="flex items-center gap-2 mb-2">
-                                    <div className="w-8 h-8 bg-rose-100 dark:bg-rose-900/30 rounded-lg flex items-center justify-center">
-                                          <TrendingDown className="w-4 h-4 text-rose-600 dark:text-rose-400" />
+                        <div className="bg-rose-50 dark:bg-rose-900/20 rounded-xl p-4 relative group">
+                              <div className="flex items-center justify-between mb-2">
+                                    <div className="flex items-center gap-2">
+                                          <div className="w-8 h-8 bg-rose-100 dark:bg-rose-900/30 rounded-lg flex items-center justify-center">
+                                                <TrendingDown className="w-4 h-4 text-rose-600 dark:text-rose-400" />
+                                          </div>
                                     </div>
+                                    {stats.worstDay && stats.worstDay.rate < 100 && (
+                                          <button
+                                                onClick={() => handleViewReflection(stats.worstDay!.dateStr)}
+                                                className="p-1.5 bg-white/50 dark:bg-black/20 hover:bg-white dark:hover:bg-black/40 rounded-full transition-colors opacity-0 group-hover:opacity-100"
+                                                title="회고 보기"
+                                          >
+                                                <Search className="w-3 h-3 text-rose-600 dark:text-rose-400" />
+                                          </button>
+                                    )}
                               </div>
                               <p className="text-xs font-medium text-rose-600 dark:text-rose-400 mb-1">개선 필요</p>
                               {stats.worstDay && stats.worstDay.rate < 100 ? (
@@ -375,6 +450,16 @@ export const WeeklyReviewPage = () => {
                               </div>
                         </div>
                   </div>
+
+                  {/* 일간 회고 모달 */}
+                  {selectedReflection && selectedDate && (
+                        <DailyReflectionModal
+                              isOpen={reflectionModalOpen}
+                              onClose={() => setReflectionModalOpen(false)}
+                              date={selectedDate}
+                              data={selectedReflection}
+                        />
+                  )}
 
                   {/* Toast 알림 */}
                   {saveMessage && (

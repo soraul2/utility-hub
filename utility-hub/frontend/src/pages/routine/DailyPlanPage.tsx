@@ -2,12 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { format } from 'date-fns';
 import { ko } from 'date-fns/locale';
-import { Sparkles, Check, Target, Clock, Layout, AlignLeft } from 'lucide-react';
+import { Sparkles, Check, Target, Clock, Layout, AlignLeft, Save, FolderOpen } from 'lucide-react';
 import classNames from 'classnames';
 import { useRoutineStore } from '../../stores/useRoutineStore';
 import { KineticPool } from '../../components/routine/kinetic/KineticPool';
 import { KineticTimeline } from '../../components/routine/kinetic/KineticTimeline';
 import { ConfirmedPlanView } from '../../components/routine/kinetic/ConfirmedPlanView';
+import { SaveTemplateModal } from '../../components/routine/template/SaveTemplateModal';
+import { LoadTemplateModal } from '../../components/routine/template/LoadTemplateModal';
 import type { Category, Priority } from '../../types/routine';
 
 const DailyPlanPage: React.FC = () => {
@@ -27,6 +29,8 @@ const DailyPlanPage: React.FC = () => {
 
       const [isDetailMode, setIsDetailMode] = useState(false);
       const [isInventoryOpen, setIsInventoryOpen] = useState(false);
+      const [showSaveTemplate, setShowSaveTemplate] = useState(false);
+      const [showLoadTemplate, setShowLoadTemplate] = useState(false);
 
       const [newTask, setNewTask] = useState({
             title: '',
@@ -157,6 +161,29 @@ const DailyPlanPage: React.FC = () => {
                                                 />
                                           </div>
                                     </div>
+
+                                    {!isConfirmed && (
+                                          <>
+                                                <button
+                                                      onClick={() => setShowLoadTemplate(true)}
+                                                      className="flex items-center gap-1.5 px-3 md:px-4 py-2.5 bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 rounded-xl text-[10px] md:text-xs font-black transition-all active:scale-95 shrink-0"
+                                                      title="템플릿 불러오기"
+                                                >
+                                                      <FolderOpen className="w-3.5 md:w-4 h-3.5 md:h-4" />
+                                                      <span className="hidden md:inline whitespace-nowrap">불러오기</span>
+                                                </button>
+                                                {today && today.keyTasks.length > 0 && (
+                                                      <button
+                                                            onClick={() => setShowSaveTemplate(true)}
+                                                            className="flex items-center gap-1.5 px-3 md:px-4 py-2.5 bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 rounded-xl text-[10px] md:text-xs font-black transition-all active:scale-95 shrink-0"
+                                                            title="템플릿 저장"
+                                                      >
+                                                            <Save className="w-3.5 md:w-4 h-3.5 md:h-4" />
+                                                            <span className="hidden md:inline whitespace-nowrap">저장</span>
+                                                      </button>
+                                                )}
+                                          </>
+                                    )}
 
                                     {!isConfirmed ? (
                                           <button
@@ -488,6 +515,14 @@ const DailyPlanPage: React.FC = () => {
                                     </div>
                               </div>
                         </div>
+                  )}
+
+                  {/* Template Modals */}
+                  {showSaveTemplate && today && (
+                        <SaveTemplateModal plan={today} onClose={() => setShowSaveTemplate(false)} />
+                  )}
+                  {showLoadTemplate && (
+                        <LoadTemplateModal onClose={() => setShowLoadTemplate(false)} />
                   )}
             </div>
       );
