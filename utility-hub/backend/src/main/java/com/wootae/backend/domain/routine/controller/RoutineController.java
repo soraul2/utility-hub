@@ -2,8 +2,13 @@ package com.wootae.backend.domain.routine.controller;
 
 import com.wootae.backend.domain.routine.dto.DailyPlanCreateRequest;
 import com.wootae.backend.domain.routine.dto.DailyPlanDto;
+import com.wootae.backend.domain.routine.dto.RoutineTemplateCreateRequest;
+import com.wootae.backend.domain.routine.dto.RoutineTemplateDto;
 import com.wootae.backend.domain.routine.dto.TaskCreateRequest;
 import com.wootae.backend.domain.routine.dto.TaskDto;
+import com.wootae.backend.domain.routine.dto.MonthlyGoalRequest;
+import com.wootae.backend.domain.routine.dto.MonthlyMemoRequest;
+import com.wootae.backend.domain.routine.dto.MonthlyStatusResponse;
 import com.wootae.backend.domain.routine.dto.WeeklyReviewDto;
 import com.wootae.backend.domain.routine.dto.WeeklyReviewRequest;
 import com.wootae.backend.domain.routine.service.RoutineService;
@@ -13,6 +18,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -105,5 +111,67 @@ public class RoutineController {
                   @PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate weekStart) {
             WeeklyReviewDto review = routineService.getWeeklyReview(weekStart);
             return ResponseEntity.ok(Map.of("success", true, "data", review));
+      }
+
+      // Template Endpoints
+
+      @GetMapping("/templates")
+      public ResponseEntity<?> getTemplates() {
+            List<RoutineTemplateDto> templates = routineService.getTemplates();
+            return ResponseEntity.ok(Map.of("success", true, "data", templates));
+      }
+
+      @GetMapping("/templates/{templateId}")
+      public ResponseEntity<?> getTemplate(@PathVariable Long templateId) {
+            RoutineTemplateDto template = routineService.getTemplate(templateId);
+            return ResponseEntity.ok(Map.of("success", true, "data", template));
+      }
+
+      @PostMapping("/templates")
+      public ResponseEntity<?> createTemplate(@RequestBody RoutineTemplateCreateRequest request) {
+            RoutineTemplateDto template = routineService.createTemplate(request);
+            return ResponseEntity.ok(Map.of("success", true, "data", template));
+      }
+
+      @PutMapping("/templates/{templateId}")
+      public ResponseEntity<?> updateTemplate(@PathVariable Long templateId,
+                  @RequestBody RoutineTemplateCreateRequest request) {
+            RoutineTemplateDto template = routineService.updateTemplate(templateId, request);
+            return ResponseEntity.ok(Map.of("success", true, "data", template));
+      }
+
+      @DeleteMapping("/templates/{templateId}")
+      public ResponseEntity<?> deleteTemplate(@PathVariable Long templateId) {
+            routineService.deleteTemplate(templateId);
+            return ResponseEntity.ok(Map.of("success", true));
+      }
+
+      @PostMapping("/daily-plans/{planId}/apply-template/{templateId}")
+      public ResponseEntity<?> applyTemplate(@PathVariable Long planId, @PathVariable Long templateId) {
+            DailyPlanDto plan = routineService.applyTemplate(planId, templateId);
+            return ResponseEntity.ok(Map.of("success", true, "data", plan));
+      }
+
+      // Monthly Calendar Endpoints
+
+      @GetMapping("/monthly/{year}/{month}")
+      public ResponseEntity<?> getMonthlyStatus(@PathVariable int year, @PathVariable int month) {
+            MonthlyStatusResponse response = routineService.getMonthlyStatus(year, month);
+            return ResponseEntity.ok(Map.of("success", true, "data", response));
+      }
+
+      @PostMapping("/monthly/{year}/{month}/goal")
+      public ResponseEntity<?> updateMonthlyGoal(@PathVariable int year, @PathVariable int month,
+                  @RequestBody MonthlyGoalRequest request) {
+            routineService.updateMonthlyGoal(year, month, request.getMonthlyGoal());
+            return ResponseEntity.ok(Map.of("success", true));
+      }
+
+      @PostMapping("/daily-plans/{date}/memo")
+      public ResponseEntity<?> updateMonthlyMemo(
+                  @PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
+                  @RequestBody MonthlyMemoRequest request) {
+            routineService.updateMonthlyMemo(date, request.getMemo());
+            return ResponseEntity.ok(Map.of("success", true));
       }
 }

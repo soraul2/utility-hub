@@ -1,5 +1,5 @@
 import axiosInstance from '../../api/axiosInstance';
-import type { DailyPlan, Task, Reflection, ReflectionDto, WeeklyStats, WeeklyReview, WeeklyReviewDto, RoutineTemplate, TemplateCreateRequest } from '../../types/routine';
+import type { DailyPlan, Task, Reflection, ReflectionDto, WeeklyStats, WeeklyReview, WeeklyReviewDto, RoutineTemplate, TemplateCreateRequest, MonthlyStatus, MonthlyGoalRequest, MonthlyMemoRequest } from '../../types/routine';
 
 const BASE_URL = '/v1/routine';
 
@@ -72,4 +72,14 @@ export const routineApi = {
 
       applyTemplate: (planId: number, templateId: number) =>
             axiosInstance.post<{ success: boolean, data: DailyPlan }>(`${BASE_URL}/daily-plans/${planId}/apply-template/${templateId}`),
+
+      // Monthly Calendar
+      getMonthlyStatus: (year: number, month: number) =>
+            axiosInstance.get<{ success: boolean, data: MonthlyStatus }>(`${BASE_URL}/monthly/${year}/${month}`),
+
+      updateMonthlyGoal: (year: number, month: number, data: MonthlyGoalRequest) =>
+            axiosInstance.post<{ success: boolean }>(`${BASE_URL}/monthly/${year}/${month}/goal`, data),
+
+      updateMonthlyMemo: (date: string, data: MonthlyMemoRequest) =>
+            axiosInstance.post<{ success: boolean }>(`${BASE_URL}/daily-plans/${date}/memo`, data),
 };

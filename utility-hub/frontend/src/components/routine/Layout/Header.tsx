@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Calendar, BookOpen, Archive, BarChart2, LogOut, User, ChevronDown, LayoutGrid, Menu, X } from 'lucide-react';
+import { Calendar, BookOpen, Archive, BarChart2, LogOut, User, ChevronDown, LayoutGrid, Menu, X, CalendarDays } from 'lucide-react';
 import { useAuth } from '../../../hooks/useAuth';
 import { useTheme } from '../../../context/ThemeContext';
 import { Sun, Moon } from 'lucide-react';
@@ -50,6 +50,7 @@ const Header = () => {
             { path: '/routine/daily-plan', label: '오늘의 계획', icon: Calendar },
             { path: '/routine/reflection', label: '하루 회고', icon: BookOpen },
             { path: '/routine/weekly', label: '주간 회고', icon: BarChart2 },
+            { path: '/routine/monthly', label: '월간 캘린더', icon: CalendarDays },
             { path: '/routine/archive', label: '기록 보관소', icon: Archive },
       ];
 

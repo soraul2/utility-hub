@@ -107,10 +107,27 @@ export interface WeeklyReviewDto {
 export interface MonthlyGoalRequest {
       monthlyGoal: string;
 }
+// ... existing types
 
-export interface MonthlyMemoRequest {
-      memo: string;
+export interface CalendarEvent {
+      id: number;
+      title: string;
+      description?: string;
+      startDate: string; // YYYY-MM-DD
+      endDate: string;   // YYYY-MM-DD
+      color: string;
+      type: 'MEMO' | 'PLAN' | 'HOLIDAY';
 }
+
+export interface CalendarEventCreateRequest {
+      title: string;
+      description?: string;
+      startDate: string;
+      endDate: string;
+      color: string;
+      type: 'MEMO' | 'PLAN' | 'HOLIDAY';
+}
+
 
 export interface DailySummary {
       date: string;

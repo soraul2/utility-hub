@@ -20,6 +20,7 @@ import DailyPlanPage from './pages/routine/DailyPlanPage';
 import { WeeklyReviewPage } from './pages/routine/WeeklyReviewPage'; // Updated
 import ReflectionPage from './pages/routine/ReflectionPage';
 import ArchivePage from './pages/routine/ArchivePage';
+import MonthlyCalendarPage from './pages/routine/MonthlyCalendarPage';
 
 function App() {
   return (
@@ -61,6 +62,7 @@ function App() {
             <Route index element={<Navigate to="daily-plan" replace />} />
             <Route path="daily-plan" element={<DailyPlanPage />} />
             <Route path="daily-plan/:date" element={<DailyPlanPage />} /> {/* Added for history view */}
+            <Route path="monthly" element={<MonthlyCalendarPage />} />
             <Route path="weekly" element={<WeeklyReviewPage />} />
             <Route path="reflection" element={<ReflectionPage />} />
             <Route path="archive" element={<ArchivePage />} />

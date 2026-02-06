@@ -4,8 +4,14 @@ import com.wootae.backend.domain.routine.dto.DailyPlanCreateRequest;
 import com.wootae.backend.domain.routine.dto.DailyPlanDto;
 import com.wootae.backend.domain.routine.dto.ReflectionDto;
 import com.wootae.backend.domain.routine.dto.ReflectionRequest;
+import com.wootae.backend.domain.routine.dto.RoutineTemplateCreateRequest;
+import com.wootae.backend.domain.routine.dto.RoutineTemplateDto;
 import com.wootae.backend.domain.routine.dto.TaskCreateRequest;
 import com.wootae.backend.domain.routine.dto.TaskDto;
+import com.wootae.backend.domain.routine.dto.TemplateTaskRequest;
+import com.wootae.backend.domain.routine.dto.MonthlyGoalRequest;
+import com.wootae.backend.domain.routine.dto.MonthlyMemoRequest;
+import com.wootae.backend.domain.routine.dto.MonthlyStatusResponse;
 import com.wootae.backend.domain.routine.dto.WeeklyReviewDto;
 import com.wootae.backend.domain.routine.dto.WeeklyReviewRequest;
 import com.wootae.backend.domain.routine.entity.*;
@@ -24,6 +30,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -35,7 +42,9 @@ public class RoutineService {
       private final ReflectionRepository reflectionRepository;
       private final TimeBlockRepository timeBlockRepository;
       private final WeeklyReviewRepository weeklyReviewRepository;
+      private final RoutineTemplateRepository routineTemplateRepository;
       private final UserRepository userRepository;
+      private final MonthlyLogRepository monthlyLogRepository;
 
       private Long getCurrentUserId() {
             try {
@@ -290,19 +299,15 @@ public class RoutineService {
                   String dayKey = d.getDayOfWeek().name().substring(0, 3); // MON, TUE...
                   boolean isPastOrToday = !d.isAfter(today);
 
-                  if (plan == null || plan.getKeyTasks().isEmpty()) {
+                  if (plan == null) {
                         dailyCompletion.put(dayKey, 0.0);
-                        // 과거~오늘까지는 0%로 주간 평균에 포함
                         if (isPastOrToday) {
                               pastOrTodayCount++;
                         }
                   } else {
-                        long dayTotal = plan.getKeyTasks().size();
-                        long dayCompleted = plan.getKeyTasks().stream().filter(Task::isCompleted).count();
-                        double rate = (double) dayCompleted / dayTotal * 100.0;
-                        dailyCompletion.put(dayKey, Math.round(rate * 10.0) / 10.0); // Round to 1 decimal
+                        double rate = calculateDailyRate(plan);
+                        dailyCompletion.put(dayKey, Math.round(rate * 10.0) / 10.0);
 
-                        // 과거~오늘까지만 주간 평균 계산에 포함
                         if (isPastOrToday) {
                               totalDailyRates += rate;
                               pastOrTodayCount++;
@@ -318,6 +323,117 @@ public class RoutineService {
                         .weeklyRate(weeklyRate)
                         .dailyCompletion(dailyCompletion)
                         .build();
+      }
+
+      private double calculateDailyRate(DailyPlan plan) {
+            if (plan.isRest())
+                  return 100.0;
+            if (plan.getKeyTasks().isEmpty())
+                  return 0.0;
+            long dayCompleted = plan.getKeyTasks().stream().filter(Task::isCompleted).count();
+            return (double) dayCompleted / plan.getKeyTasks().size() * 100.0;
+      }
+
+      @Transactional(readOnly = true)
+      public MonthlyStatusResponse getMonthlyStatus(int year, int month) {
+            User user = getCurrentUser();
+            LocalDate startOfMonth = LocalDate.of(year, month, 1);
+            LocalDate endOfMonth = startOfMonth.withDayOfMonth(startOfMonth.lengthOfMonth());
+
+            // 1. Get Monthly Log
+            MonthlyLog log = monthlyLogRepository.findByUserAndYearAndMonth(user, year, month).orElse(null);
+            String monthlyGoal = log != null ? log.getMonthlyGoal() : null;
+            Long totalXp = log != null ? log.getTotalXp() : 0L;
+
+            // 2. Get Daily Plans
+            List<DailyPlan> plans = dailyPlanRepository.findByUserIdAndPlanDateBetween(user.getId(), startOfMonth,
+                        endOfMonth);
+            java.util.Map<LocalDate, DailyPlan> planMap = plans.stream()
+                        .collect(java.util.stream.Collectors.toMap(DailyPlan::getPlanDate, p -> p));
+
+            // 3. Calculate Stats and Build Daily Summaries
+            List<MonthlyStatusResponse.DailySummary> dailySummaries = new ArrayList<>();
+            double totalRates = 0.0;
+            int count = 0;
+            LocalDate today = LocalDate.now();
+
+            for (LocalDate d = startOfMonth; !d.isAfter(endOfMonth); d = d.plusDays(1)) {
+                  DailyPlan plan = planMap.get(d);
+                  Double rate = 0.0;
+                  boolean isRest = false;
+                  boolean hasPlan = false;
+                  String memoSnippet = null;
+
+                  if (plan != null) {
+                        hasPlan = true;
+                        isRest = plan.isRest();
+                        rate = calculateDailyRate(plan);
+                        if (plan.getMonthlyMemo() != null) {
+                              memoSnippet = plan.getMonthlyMemo();
+                              // Simple snippet logic handled in frontend or full string here
+                        }
+                  }
+
+                  // Add to average if past or today
+                  if (!d.isAfter(today)) {
+                        totalRates += rate;
+                        count++;
+                  }
+
+                  dailySummaries.add(MonthlyStatusResponse.DailySummary.builder()
+                              .date(d)
+                              .completionRate(Math.round(rate * 10.0) / 10.0)
+                              .isRest(isRest)
+                              .hasPlan(hasPlan)
+                              .memoSnippet(memoSnippet)
+                              .build());
+            }
+
+            double monthlyRate = count == 0 ? 0.0 : (totalRates / count);
+            monthlyRate = Math.round(monthlyRate * 10.0) / 10.0;
+
+            return MonthlyStatusResponse.builder()
+                        .year(year)
+                        .month(month)
+                        .monthlyGoal(monthlyGoal)
+                        .totalXp(totalXp)
+                        .monthlyCompletionRate(monthlyRate)
+                        .days(dailySummaries)
+                        .build();
+      }
+
+      @Transactional
+      public void updateMonthlyGoal(int year, int month, String goal) {
+            User user = getCurrentUser();
+            MonthlyLog log = monthlyLogRepository.findByUserAndYearAndMonth(user, year, month)
+                        .orElseGet(() -> MonthlyLog.builder()
+                                    .user(user)
+                                    .year(year)
+                                    .month(month)
+                                    .totalXp(0L)
+                                    .build());
+            log.updateMonthlyGoal(goal);
+            monthlyLogRepository.save(log);
+      }
+
+      @Transactional
+      public void updateMonthlyMemo(LocalDate date, String memo) {
+            User user = getCurrentUser();
+            DailyPlan plan = dailyPlanRepository.findByUserIdAndPlanDate(user.getId(), date)
+                        .orElseGet(() -> DailyPlan.builder()
+                                    .user(user)
+                                    .planDate(date)
+                                    .status(PlanStatus.PLANNING)
+                                    .build());
+
+            // If new plan, save it first? cascade should handle it if added to repo
+            // But here we need to ensure it's saved.
+            if (plan.getId() == null) {
+                  plan = dailyPlanRepository.save(plan);
+            }
+
+            plan.updateMonthlyMemo(memo);
+            // Transactional handles save on modify, but strict saving is fine
       }
 
       @Transactional
@@ -352,5 +468,162 @@ public class RoutineService {
             return weeklyReviewRepository.findByUserAndWeekStart(user, weekStart)
                         .map(WeeklyReviewDto::from)
                         .orElse(null);
+      }
+
+      // ==================== Template ====================
+
+      @Transactional(readOnly = true)
+      public List<RoutineTemplateDto> getTemplates() {
+            Long userId = getCurrentUserId();
+            return routineTemplateRepository.findByUserIdOrderByCreatedAtDesc(userId)
+                        .stream()
+                        .map(RoutineTemplateDto::from)
+                        .collect(Collectors.toList());
+      }
+
+      @Transactional(readOnly = true)
+      public RoutineTemplateDto getTemplate(Long templateId) {
+            Long userId = getCurrentUserId();
+            RoutineTemplate template = routineTemplateRepository.findByIdAndUserId(templateId, userId)
+                        .orElseThrow(() -> new BusinessException(ErrorCode.TEMPLATE_NOT_FOUND));
+            return RoutineTemplateDto.from(template);
+      }
+
+      @Transactional
+      public RoutineTemplateDto createTemplate(RoutineTemplateCreateRequest request) {
+            User user = getCurrentUser();
+
+            RoutineTemplate template = RoutineTemplate.builder()
+                        .user(user)
+                        .name(request.getName())
+                        .description(request.getDescription())
+                        .build();
+            template = routineTemplateRepository.save(template);
+
+            if (request.getSourcePlanId() != null) {
+                  DailyPlan plan = dailyPlanRepository.findById(request.getSourcePlanId())
+                              .orElseThrow(() -> new BusinessException(ErrorCode.PLAN_NOT_FOUND));
+                  if (!plan.getUser().getId().equals(user.getId())) {
+                        throw new BusinessException(ErrorCode.UNAUTHORIZED_ACCESS);
+                  }
+                  List<RoutineTemplateTask> templateTasks = new ArrayList<>();
+                  for (Task task : plan.getKeyTasks()) {
+                        templateTasks.add(RoutineTemplateTask.builder()
+                                    .template(template)
+                                    .title(task.getTitle())
+                                    .taskOrder(task.getTaskOrder())
+                                    .category(task.getCategory())
+                                    .startTime(task.getStartTime())
+                                    .endTime(task.getEndTime())
+                                    .durationMinutes(task.getDurationMinutes())
+                                    .description(task.getDescription())
+                                    .priority(task.getPriority())
+                                    .build());
+                  }
+                  template.setTasks(templateTasks);
+            } else if (request.getTasks() != null) {
+                  List<RoutineTemplateTask> templateTasks = new ArrayList<>();
+                  int order = 0;
+                  for (TemplateTaskRequest tr : request.getTasks()) {
+                        templateTasks.add(RoutineTemplateTask.builder()
+                                    .template(template)
+                                    .title(tr.getTitle())
+                                    .taskOrder(tr.getTaskOrder() != null ? tr.getTaskOrder() : order++)
+                                    .category(tr.getCategory())
+                                    .startTime(tr.getStartTime())
+                                    .endTime(tr.getEndTime())
+                                    .durationMinutes(tr.getDurationMinutes())
+                                    .description(tr.getDescription())
+                                    .priority(tr.getPriority())
+                                    .build());
+                  }
+                  template.setTasks(templateTasks);
+            }
+
+            return RoutineTemplateDto.from(template);
+      }
+
+      @Transactional
+      public RoutineTemplateDto updateTemplate(Long templateId, RoutineTemplateCreateRequest request) {
+            Long userId = getCurrentUserId();
+            RoutineTemplate template = routineTemplateRepository.findByIdAndUserId(templateId, userId)
+                        .orElseThrow(() -> new BusinessException(ErrorCode.TEMPLATE_NOT_FOUND));
+
+            if (request.getName() != null)
+                  template.updateName(request.getName());
+            if (request.getDescription() != null)
+                  template.updateDescription(request.getDescription());
+
+            if (request.getTasks() != null) {
+                  template.getTasks().clear();
+                  int order = 0;
+                  for (TemplateTaskRequest tr : request.getTasks()) {
+                        template.getTasks().add(RoutineTemplateTask.builder()
+                                    .template(template)
+                                    .title(tr.getTitle())
+                                    .taskOrder(tr.getTaskOrder() != null ? tr.getTaskOrder() : order++)
+                                    .category(tr.getCategory())
+                                    .startTime(tr.getStartTime())
+                                    .endTime(tr.getEndTime())
+                                    .durationMinutes(tr.getDurationMinutes())
+                                    .description(tr.getDescription())
+                                    .priority(tr.getPriority())
+                                    .build());
+                  }
+            }
+
+            return RoutineTemplateDto.from(template);
+      }
+
+      @Transactional
+      public void deleteTemplate(Long templateId) {
+            Long userId = getCurrentUserId();
+            RoutineTemplate template = routineTemplateRepository.findByIdAndUserId(templateId, userId)
+                        .orElseThrow(() -> new BusinessException(ErrorCode.TEMPLATE_NOT_FOUND));
+            routineTemplateRepository.delete(template);
+      }
+
+      @Transactional
+      public DailyPlanDto applyTemplate(Long planId, Long templateId) {
+            User user = getCurrentUser();
+
+            DailyPlan plan = dailyPlanRepository.findById(planId)
+                        .orElseThrow(() -> new BusinessException(ErrorCode.PLAN_NOT_FOUND));
+            if (!plan.getUser().getId().equals(user.getId())) {
+                  throw new BusinessException(ErrorCode.UNAUTHORIZED_ACCESS);
+            }
+
+            RoutineTemplate template = routineTemplateRepository.findByIdAndUserId(templateId, user.getId())
+                        .orElseThrow(() -> new BusinessException(ErrorCode.TEMPLATE_NOT_FOUND));
+
+            int existingCount = plan.getKeyTasks().size();
+            for (RoutineTemplateTask tt : template.getTasks()) {
+                  Task task = Task.builder()
+                              .dailyPlan(plan)
+                              .title(tt.getTitle())
+                              .completed(false)
+                              .taskOrder(existingCount + (tt.getTaskOrder() != null ? tt.getTaskOrder() : 0))
+                              .category(tt.getCategory())
+                              .startTime(tt.getStartTime())
+                              .endTime(tt.getEndTime())
+                              .durationMinutes(tt.getDurationMinutes())
+                              .description(tt.getDescription())
+                              .priority(tt.getPriority())
+                              .build();
+                  taskRepository.save(task);
+                  plan.addTask(task);
+            }
+
+            // Handle Rest Template Type
+            if (template.getType() == TemplateType.REST) {
+                  plan.setRest(true);
+            } else {
+                  // Explicitly set false if applying a normal template over a rest one?
+                  // Maybe keep it true if it was already rest?
+                  // Let's assume applying a template OVERWRITES the nature of the day.
+                  plan.setRest(false);
+            }
+
+            return DailyPlanDto.from(plan);
       }
 }

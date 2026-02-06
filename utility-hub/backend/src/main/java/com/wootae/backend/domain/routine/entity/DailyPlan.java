@@ -38,6 +38,10 @@ public class DailyPlan {
       @Builder.Default
       private PlanStatus status = PlanStatus.PLANNING;
 
+      @Column(nullable = false)
+      @Builder.Default
+      private boolean isRest = false;
+
       @OneToMany(mappedBy = "dailyPlan", cascade = CascadeType.ALL, orphanRemoval = true)
       @Builder.Default
       private List<Task> keyTasks = new ArrayList<>();
@@ -48,6 +52,9 @@ public class DailyPlan {
 
       @OneToOne(mappedBy = "dailyPlan", cascade = CascadeType.ALL, orphanRemoval = true)
       private Reflection reflection;
+
+      @Column(length = 500)
+      private String monthlyMemo;
 
       @CreatedDate
       @Column(updatable = false)
@@ -99,5 +106,17 @@ public class DailyPlan {
 
       public List<TimeBlock> getTimeBlocks() {
             return timeBlocks;
+      }
+
+      public void updateMonthlyMemo(String monthlyMemo) {
+            this.monthlyMemo = monthlyMemo;
+      }
+
+      public boolean isRest() {
+            return isRest;
+      }
+
+      public void setRest(boolean rest) {
+            isRest = rest;
       }
 }
