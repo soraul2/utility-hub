@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import { useMemo, forwardRef } from 'react';
 import {
       format,
       endOfMonth,
@@ -136,12 +136,12 @@ interface MonthlyCalendarGridProps {
       className?: string;
 }
 
-const MonthlyCalendarGrid: React.FC<MonthlyCalendarGridProps> = ({
+const MonthlyCalendarGrid = forwardRef<HTMLDivElement, MonthlyCalendarGridProps>(({
       year, month, data, selectedDate, onSelectDay, onOpenDetail, onEventClick,
       batchMode = false, batchSelectedDates, onToggleBatchDate,
       events = [],
       className,
-}) => {
+}, ref) => {
       const monthStart = new Date(year, month - 1, 1);
       const monthEnd_ = endOfMonth(monthStart);
       const gridStart = startOfWeek(monthStart, { weekStartsOn: 0 });
@@ -178,7 +178,7 @@ const MonthlyCalendarGrid: React.FC<MonthlyCalendarGridProps> = ({
       };
 
       return (
-            <div className={classNames("bg-white dark:bg-gray-800 rounded-2xl p-3 md:p-5 shadow-sm border border-gray-100 dark:border-gray-700 flex flex-col", className)}>
+            <div ref={ref} className={classNames("bg-white dark:bg-gray-800 rounded-2xl p-3 md:p-5 shadow-sm border border-gray-100 dark:border-gray-700 flex flex-col", className)}>
                   {/* Weekday Headers */}
                   <div className="grid grid-cols-7 mb-1">
                         {weekDayLabels.map((day, idx) => (
@@ -407,6 +407,8 @@ const MonthlyCalendarGrid: React.FC<MonthlyCalendarGridProps> = ({
                   </div>
             </div>
       );
-};
+});
+
+MonthlyCalendarGrid.displayName = 'MonthlyCalendarGrid';
 
 export default MonthlyCalendarGrid;

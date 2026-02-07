@@ -814,3 +814,29 @@
 .animate-pop-out {
   animation: pop-out 0.15s ease-out forwards;
 }
+
+/* Print Styles for Monthly Calendar Export */
+@media print {
+  body {
+    background: white !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .print\:hidden,
+  header, nav, footer,
+  .mystic-bg, .bg-particles {
+    display: none !important;
+  }
+
+  .dark body,
+  .dark * {
+    background-color: white !important;
+    color: black !important;
+  }
+
+  @page {
+    size: landscape;
+    margin: 10mm;
+  }
+}

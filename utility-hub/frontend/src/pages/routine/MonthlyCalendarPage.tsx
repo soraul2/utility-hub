@@ -1,5 +1,7 @@
+import { useRef, useState as useStateReact } from 'react';
 import { format } from 'date-fns';
-import { Layers, X, Coffee, ListTodo, Trash2, Download } from 'lucide-react';
+import { Layers, X, Coffee, ListTodo, Trash2, Download, Printer, Image, FileText, ChevronDown } from 'lucide-react';
+import { toPng } from 'html-to-image';
 import MonthlySummaryCard from '@/components/routine/Monthly/MonthlySummaryCard';
 import MonthlyCalendarGrid from '@/components/routine/Monthly/MonthlyCalendarGrid';
 import DayDetailPanel from '@/components/routine/Monthly/DayDetailPanel';
@@ -26,6 +28,52 @@ const MonthlyCalendarPage = () => {
             toast, setToast,
             batchDeleteConfirmOpen, setBatchDeleteConfirmOpen,
       } = useMonthlyCalendar();
+
+      const calendarRef = useRef<HTMLDivElement>(null);
+      const [exportOpen, setExportOpen] = useStateReact(false);
+      const [exporting, setExporting] = useStateReact(false);
+
+      const handleExportIcs = async () => {
+            try {
+                  const res = await routineApi.exportMonthlyIcs(year, month);
+                  const url = URL.createObjectURL(new Blob([res.data]));
+                  const a = document.createElement('a');
+                  a.href = url;
+                  a.download = `routine-${year}-${String(month).padStart(2, '0')}.ics`;
+                  document.body.appendChild(a);
+                  a.click();
+                  document.body.removeChild(a);
+                  URL.revokeObjectURL(url);
+            } catch { /* silently fail */ }
+            setExportOpen(false);
+      };
+
+      const handleExportImage = async () => {
+            if (!calendarRef.current) return;
+            setExporting(true);
+            try {
+                  const dataUrl = await toPng(calendarRef.current, {
+                        backgroundColor: '#ffffff',
+                        pixelRatio: 2,
+                  });
+                  const a = document.createElement('a');
+                  a.href = dataUrl;
+                  a.download = `routine-${year}-${String(month).padStart(2, '0')}.png`;
+                  document.body.appendChild(a);
+                  a.click();
+                  document.body.removeChild(a);
+            } catch {
+                  setToast({ type: 'error', text: '이미지 저장에 실패했습니다.' });
+            } finally {
+                  setExporting(false);
+                  setExportOpen(false);
+            }
+      };
+
+      const handlePrint = () => {
+            setExportOpen(false);
+            setTimeout(() => window.print(), 100);
+      };
 
       return (
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex flex-col gap-3 h-[calc(100vh-5rem)]">
@@ -179,27 +227,57 @@ const MonthlyCalendarPage = () => {
                         /* ====== NORMAL MODE: Full Calendar ====== */
                         <div className="flex-1 flex flex-col min-h-0">
                               {/* Actions */}
-                              <div className="flex items-center justify-end gap-2 mb-2">
-                                    <button
-                                          onClick={async () => {
-                                                try {
-                                                      const res = await routineApi.exportMonthlyIcs(year, month);
-                                                      const url = URL.createObjectURL(new Blob([res.data]));
-                                                      const a = document.createElement('a');
-                                                      a.href = url;
-                                                      a.download = `routine-${year}-${String(month).padStart(2, '0')}.ics`;
-                                                      document.body.appendChild(a);
-                                                      a.click();
-                                                      document.body.removeChild(a);
-                                                      URL.revokeObjectURL(url);
-                                                } catch { /* silently fail */ }
-                                          }}
-                                          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
-                                          title="ICS 내보내기"
-                                    >
-                                          <Download className="w-3.5 h-3.5" />
-                                          ICS
-                                    </button>
+                              <div className="flex items-center justify-end gap-2 mb-2 print:hidden">
+                                    {/* Export Dropdown */}
+                                    <div className="relative">
+                                          <button
+                                                onClick={() => setExportOpen(prev => !prev)}
+                                                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
+                                          >
+                                                <Download className="w-3.5 h-3.5" />
+                                                내보내기
+                                                <ChevronDown className={`w-3 h-3 transition-transform ${exportOpen ? 'rotate-180' : ''}`} />
+                                          </button>
+                                          {exportOpen && (
+                                                <>
+                                                      <div className="fixed inset-0 z-40" onClick={() => setExportOpen(false)} />
+                                                      <div className="absolute right-0 top-full mt-1 z-50 bg-white dark:bg-gray-900 rounded-xl shadow-xl border border-gray-200 dark:border-gray-700 py-1.5 min-w-[180px] animate-in fade-in slide-in-from-top-2 duration-150">
+                                                            <button
+                                                                  onClick={handlePrint}
+                                                                  className="w-full flex items-center gap-3 px-4 py-2.5 text-xs font-bold text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+                                                            >
+                                                                  <Printer className="w-4 h-4 text-gray-400" />
+                                                                  <div className="text-left">
+                                                                        <div>프린트 / PDF</div>
+                                                                        <div className="text-[10px] text-gray-400 font-medium">브라우저 인쇄 기능</div>
+                                                                  </div>
+                                                            </button>
+                                                            <button
+                                                                  onClick={handleExportImage}
+                                                                  disabled={exporting}
+                                                                  className="w-full flex items-center gap-3 px-4 py-2.5 text-xs font-bold text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors disabled:opacity-50"
+                                                            >
+                                                                  <Image className="w-4 h-4 text-gray-400" />
+                                                                  <div className="text-left">
+                                                                        <div>{exporting ? '저장 중...' : 'PNG 이미지'}</div>
+                                                                        <div className="text-[10px] text-gray-400 font-medium">캘린더를 이미지로 저장</div>
+                                                                  </div>
+                                                            </button>
+                                                            <div className="border-t border-gray-100 dark:border-gray-800 my-1" />
+                                                            <button
+                                                                  onClick={handleExportIcs}
+                                                                  className="w-full flex items-center gap-3 px-4 py-2.5 text-xs font-bold text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+                                                            >
+                                                                  <FileText className="w-4 h-4 text-gray-400" />
+                                                                  <div className="text-left">
+                                                                        <div>ICS 파일</div>
+                                                                        <div className="text-[10px] text-gray-400 font-medium">캘린더 앱으로 가져오기</div>
+                                                                  </div>
+                                                            </button>
+                                                      </div>
+                                                </>
+                                          )}
+                                    </div>
                                     <button
                                           onClick={() => setBatchMode(true)}
                                           className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
@@ -210,6 +288,7 @@ const MonthlyCalendarPage = () => {
                               </div>
 
                               <MonthlyCalendarGrid
+                                    ref={calendarRef}
                                     year={year}
                                     month={month}
                                     data={monthlyData?.days || []}
