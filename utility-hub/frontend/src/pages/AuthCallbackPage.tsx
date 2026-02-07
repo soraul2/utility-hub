@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { setTokens } from '../utils/tokenStorage';
 import { useGuestTarot } from '../hooks/useGuestTarot';
 import { migrateSessions } from '../lib/api/tarotApi';
+import { useAuth } from '../hooks/useAuth';
 
 /**
  * OAuth2 인증 성공 후 백엔드로부터 리다이렉트되는 콜백 페이지
@@ -15,6 +16,7 @@ const AuthCallbackPage: React.FC = () => {
       const [errorMessage, setErrorMessage] = useState<string | null>(null);
       const isProcessed = useRef(false);
       const { guestSessions, clearGuestSessions } = useGuestTarot();
+      const { restoreSession } = useAuth();
 
       useEffect(() => {
             // 중복 실행 방지
@@ -50,16 +52,18 @@ const AuthCallbackPage: React.FC = () => {
                         }
                   };
 
-                  handleMigration().then(() => {
+                  handleMigration().then(async () => {
                         // URL에서 토큰 제거 (보안)
                         window.history.replaceState({}, document.title, location.pathname);
+
+                        // 토큰 설정 후 세션 복원 (AuthContext 상태 업데이트)
+                        await restoreSession();
 
                         // sessionStorage에서 리다이렉트 경로 가져오기
                         const savedPath = sessionStorage.getItem('oauth_redirect_path');
                         console.log('[AuthCallback] savedPath:', savedPath);
                         sessionStorage.removeItem('oauth_redirect_path');
 
-                        // 등급 페이지 리다이렉트 방지
                         // 내부 경로 검증 (Open Redirect 방지)
                         const isInternalPath = (path: string): boolean => {
                               return path.startsWith('/') && !path.startsWith('//');
@@ -74,7 +78,7 @@ const AuthCallbackPage: React.FC = () => {
                   setErrorMessage('인증 토큰이 누락되었습니다.');
                   setTimeout(() => navigate('/login', { replace: true }), 2000);
             }
-      }, [location, navigate, guestSessions, clearGuestSessions]);
+      }, [location, navigate, guestSessions, clearGuestSessions, restoreSession]);
 
       return (
             <div className="flex items-center justify-center min-h-screen bg-[#0f172a] text-white">

@@ -171,7 +171,7 @@ const MonthlyCalendarGrid: React.FC<MonthlyCalendarGridProps> = ({
       };
 
       const getProgressBarColor = (rate: number) => {
-            if (rate >= 80) return 'bg-indigo-500';
+            if (rate >= 80) return 'mystic-solid';
             if (rate >= 50) return 'bg-amber-400';
             if (rate > 0) return 'bg-rose-400';
             return 'bg-gray-300 dark:bg-gray-600';
@@ -250,7 +250,7 @@ const MonthlyCalendarGrid: React.FC<MonthlyCalendarGridProps> = ({
                                                                         <div className={classNames(
                                                                               "absolute top-1.5 right-1.5 w-5 h-5 rounded-md border-2 flex items-center justify-center transition-all z-20",
                                                                               isBatchSelected
-                                                                                    ? "bg-indigo-500 border-indigo-500 shadow-sm"
+                                                                                    ? "mystic-solid border-transparent shadow-sm"
                                                                                     : "border-gray-300 dark:border-gray-600 bg-white/90 dark:bg-gray-800/90"
                                                                         )}>
                                                                               {isBatchSelected && <Check className="w-3 h-3 text-white" />}
@@ -260,7 +260,7 @@ const MonthlyCalendarGrid: React.FC<MonthlyCalendarGridProps> = ({
                                                                   {/* Quick Detail Button */}
                                                                   {!batchMode && isCurrentMonth && onOpenDetail && (
                                                                         <button
-                                                                              className="absolute top-1 right-1 w-5 h-5 rounded-full bg-indigo-500/80 text-white opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center z-20 hover:bg-indigo-600"
+                                                                              className="absolute top-1 right-1 w-5 h-5 rounded-full mystic-solid opacity-80 text-white group-hover:opacity-100 transition-opacity flex items-center justify-center z-20 mystic-solid-hover"
                                                                               onClick={(e) => {
                                                                                     e.stopPropagation();
                                                                                     onOpenDetail(day);
@@ -276,7 +276,7 @@ const MonthlyCalendarGrid: React.FC<MonthlyCalendarGridProps> = ({
                                                                         <span className={classNames(
                                                                               "text-xs font-bold w-5 h-5 flex items-center justify-center rounded-full",
                                                                               isTodayDate
-                                                                                    ? "bg-indigo-600 text-white"
+                                                                                    ? "mystic-solid text-white"
                                                                                     : (dayOfWeek === 0 ? "text-rose-500" : (dayOfWeek === 6 ? "text-blue-500" : "text-gray-700 dark:text-gray-300"))
                                                                         )}>
                                                                               {format(day, 'd')}
@@ -300,7 +300,7 @@ const MonthlyCalendarGrid: React.FC<MonthlyCalendarGridProps> = ({
 
                                                                   {/* Content */}
                                                                   <div className="flex-1 px-2 mt-0.5 min-h-0 overflow-hidden">
-                                                                        {dayData?.appliedTemplateName && !batchMode && (
+                                                                        {dayData?.appliedTemplateName && (
                                                                               <div className="flex items-center gap-0.5 mb-0.5">
                                                                                     <FileText className="w-2.5 h-2.5 text-indigo-400 shrink-0" />
                                                                                     <span className="text-[9px] font-bold text-indigo-500 dark:text-indigo-400 truncate">

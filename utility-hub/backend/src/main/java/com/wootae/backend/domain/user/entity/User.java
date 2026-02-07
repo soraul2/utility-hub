@@ -47,6 +47,15 @@ public class User {
       @Column(nullable = false)
       private UserRole role;
 
+      @Column(nullable = false)
+      private Long spentPoints = 0L;
+
+      @Column(length = 50)
+      private String activeThemeKey;
+
+      @Column(nullable = false)
+      private boolean onboardingCompleted = false;
+
       @CreatedDate
       @Column(updatable = false)
       private LocalDateTime createdAt;
@@ -61,6 +70,7 @@ public class User {
             this.provider = provider;
             this.providerId = providerId;
             this.role = role;
+            this.spentPoints = 0L;
       }
 
       /**
@@ -85,5 +95,17 @@ public class User {
        */
       public String getRoleKey() {
             return this.role.name();
+      }
+
+      public void spendPoints(Long amount) {
+            this.spentPoints += amount;
+      }
+
+      public void setActiveThemeKey(String themeKey) {
+            this.activeThemeKey = themeKey;
+      }
+
+      public void completeOnboarding() {
+            this.onboardingCompleted = true;
       }
 }

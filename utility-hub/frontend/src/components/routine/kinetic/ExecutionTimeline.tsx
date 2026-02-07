@@ -227,7 +227,7 @@ export const ExecutionTimeline: React.FC<ExecutionTimelineProps> = ({
 
                                                       {/* Active indicator */}
                                                       {isActive && !task.completed && (
-                                                            <div className="absolute bottom-0 left-0 right-0 h-1 bg-indigo-500 rounded-b animate-pulse" />
+                                                            <div className="absolute bottom-0 left-0 right-0 h-1 mystic-solid rounded-b animate-pulse" />
                                                       )}
                                                 </div>
                                           </div>

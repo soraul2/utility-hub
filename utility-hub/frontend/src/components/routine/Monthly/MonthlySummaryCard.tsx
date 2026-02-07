@@ -163,7 +163,7 @@ const MonthlySummaryCard: React.FC<MonthlySummaryCardProps> = ({
                                     <div className="w-8 hidden md:block">
                                           <div className="h-1.5 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
                                                 <div
-                                                      className="h-full bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full transition-all duration-1000 ease-out"
+                                                      className="h-full mystic-gradient-r rounded-full transition-all duration-1000 ease-out"
                                                       style={{ width: `${roundedRate}%` }}
                                                 />
                                           </div>

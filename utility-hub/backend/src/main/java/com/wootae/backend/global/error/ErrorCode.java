@@ -35,6 +35,17 @@ public enum ErrorCode {
       TEMPLATE_NOT_FOUND(HttpStatus.NOT_FOUND, "ROUTINE_005", "템플릿을 찾을 수 없습니다."),
       EVENT_NOT_FOUND(HttpStatus.NOT_FOUND, "ROUTINE_006", "캘린더 이벤트를 찾을 수 없습니다."),
 
+      // Shop
+      THEME_NOT_FOUND(HttpStatus.NOT_FOUND, "SHOP_001", "테마를 찾을 수 없습니다."),
+      THEME_ALREADY_OWNED(HttpStatus.CONFLICT, "SHOP_002", "이미 보유한 테마입니다."),
+      INSUFFICIENT_POINTS(HttpStatus.BAD_REQUEST, "SHOP_003", "포인트가 부족합니다."),
+      THEME_NOT_OWNED(HttpStatus.FORBIDDEN, "SHOP_004", "보유하지 않은 테마입니다."),
+
+      // Google Calendar
+      GCAL_NOT_CONNECTED(HttpStatus.BAD_REQUEST, "GCAL_001", "Google Calendar이 연동되지 않았습니다."),
+      GCAL_TOKEN_EXPIRED(HttpStatus.UNAUTHORIZED, "GCAL_002", "Google Calendar 토큰이 만료되었습니다. 재연동이 필요합니다."),
+      GCAL_SYNC_FAILED(HttpStatus.BAD_GATEWAY, "GCAL_003", "Google Calendar 동기화 중 오류가 발생했습니다."),
+
       // OAuth2
       OAUTH2_FAILED(HttpStatus.BAD_REQUEST, "OAUTH2_001", "소셜 로그인 중 오류가 발생했습니다."),
 

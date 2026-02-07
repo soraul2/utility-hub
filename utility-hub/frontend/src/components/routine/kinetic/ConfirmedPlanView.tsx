@@ -78,7 +78,7 @@ export const ConfirmedPlanView: React.FC<ConfirmedPlanViewProps> = ({ plan, onTo
                         {/* Header with Stats */}
                         <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
                               {/* Main Progress Card */}
-                              <div className="lg:col-span-2 relative overflow-hidden bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-600 rounded-2xl p-6 text-white shadow-xl">
+                              <div className="lg:col-span-2 relative overflow-hidden mystic-gradient-br rounded-2xl p-6 text-white shadow-xl">
                                     <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
                                     <div className="relative z-10">
                                           <div className="flex items-center gap-3 mb-4">
@@ -188,7 +188,7 @@ export const ConfirmedPlanView: React.FC<ConfirmedPlanViewProps> = ({ plan, onTo
 
                         {/* Scheduled Tasks List */}
                         <div className="bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800 shadow-sm overflow-hidden">
-                              <div className="bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-950/50 dark:to-purple-950/50 px-6 py-4 border-b border-gray-100 dark:border-gray-800">
+                              <div className="mystic-gradient-muted px-6 py-4 border-b border-gray-100 dark:border-gray-800">
                                     <div className="flex items-center justify-between">
                                           <div className="flex items-center gap-2">
                                                 <Clock className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />

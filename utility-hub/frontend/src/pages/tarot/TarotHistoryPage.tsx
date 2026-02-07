@@ -101,11 +101,11 @@ const TarotHistoryPage: React.FC = () => {
 
                         <div className="flex flex-col sm:flex-row justify-between items-center mb-8 gap-6 sm:gap-4">
                               <div className="flex flex-wrap justify-center sm:justify-start gap-2 sm:gap-3 w-full sm:w-auto">
-                                    {[
+                                    {([
                                           { id: undefined, label: '전체' },
-                                          { id: 'DAILY_ONE', label: '오늘의 카드' },
-                                          { id: 'THREE_CARD', label: '3카드 스프레드' },
-                                    ].map((tab) => (
+                                          { id: 'DAILY_ONE' as SpreadType, label: '오늘의 카드' },
+                                          { id: 'THREE_CARD' as SpreadType, label: '3카드 스프레드' },
+                                    ] as { id: SpreadType | undefined; label: string }[]).map((tab) => (
                                           <button
                                                 key={tab.id || 'all'}
                                                 onClick={() => {

@@ -14,11 +14,16 @@ import com.wootae.backend.domain.routine.dto.WeeklyReviewRequest;
 import com.wootae.backend.domain.routine.dto.CalendarEventDto;
 import com.wootae.backend.domain.routine.dto.CalendarEventCreateRequest;
 import com.wootae.backend.domain.routine.service.RoutineService;
+import com.wootae.backend.domain.calendar.service.IcsExportService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
@@ -29,6 +34,7 @@ import java.util.Map;
 public class RoutineController {
 
       private final RoutineService routineService;
+      private final IcsExportService icsExportService;
 
       // Daily Plan Endpoints
 
@@ -209,5 +215,31 @@ public class RoutineController {
       public ResponseEntity<?> deleteCalendarEvent(@PathVariable Long eventId) {
             routineService.deleteCalendarEvent(eventId);
             return ResponseEntity.ok(Map.of("success", true));
+      }
+
+      // ICS Export Endpoints
+
+      @GetMapping("/daily-plans/{date}/export.ics")
+      public ResponseEntity<byte[]> exportDailyPlanIcs(
+                  @PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
+            Long userId = Long.valueOf(SecurityContextHolder.getContext().getAuthentication().getName());
+            String icsContent = icsExportService.exportDailyPlan(userId, date);
+            return ResponseEntity.ok()
+                        .header(HttpHeaders.CONTENT_DISPOSITION,
+                                    "attachment; filename=\"routine-" + date + ".ics\"")
+                        .contentType(MediaType.parseMediaType("text/calendar"))
+                        .body(icsContent.getBytes(StandardCharsets.UTF_8));
+      }
+
+      @GetMapping("/monthly/{year}/{month}/export.ics")
+      public ResponseEntity<byte[]> exportMonthlyIcs(
+                  @PathVariable int year, @PathVariable int month) {
+            Long userId = Long.valueOf(SecurityContextHolder.getContext().getAuthentication().getName());
+            String icsContent = icsExportService.exportMonthly(userId, year, month);
+            return ResponseEntity.ok()
+                        .header(HttpHeaders.CONTENT_DISPOSITION,
+                                    "attachment; filename=\"routine-" + year + "-" + String.format("%02d", month) + ".ics\"")
+                        .contentType(MediaType.parseMediaType("text/calendar"))
+                        .body(icsContent.getBytes(StandardCharsets.UTF_8));
       }
 }

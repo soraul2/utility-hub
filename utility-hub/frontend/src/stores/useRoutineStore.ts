@@ -26,6 +26,7 @@ interface RoutineState {
       loadWeeklyReview: (weekStart: string) => Promise<void>;
       saveWeeklyReview: (data: WeeklyReviewDto) => Promise<void>;
       loadPlan: (date: string) => Promise<void>;
+      createNewPlan: (date: string) => Promise<void>;
       confirmPlan: (date: string) => Promise<void>;
       unconfirmPlan: (date: string) => Promise<void>;
       loadTemplates: () => Promise<void>;
@@ -52,7 +53,7 @@ export const useRoutineStore = create<RoutineState>((set, get) => ({
             } catch (err: any) {
                   console.error(err);
                   // If 404/empty, maybe handle? But API should return empty plan.
-                  set({ error: 'Failed to load daily plan', isLoading: false });
+                  set({ error: '오늘의 계획을 불러올 수 없습니다.', isLoading: false });
             }
       },
 
@@ -162,15 +163,27 @@ export const useRoutineStore = create<RoutineState>((set, get) => ({
             try {
                   const res = await routineApi.getPlan(date);
                   set({ today: res.data.data, isLoading: false });
-            } catch (err: any) {
-                  // Plan not found - auto-create it
+            } catch {
+                  // Plan not found or other error - auto-create (idempotent)
                   try {
                         const createRes = await routineApi.createPlan({ planDate: date });
                         set({ today: createRes.data.data, isLoading: false });
                   } catch (createErr: any) {
-                        console.error(createErr);
-                        set({ error: 'Failed to load plan', isLoading: false, today: null });
+                        console.error('loadPlan failed:', createErr);
+                        set({ error: '계획을 불러올 수 없습니다. 다시 시도해주세요.', isLoading: false, today: null });
                   }
+            }
+      },
+
+      createNewPlan: async (date: string) => {
+            set({ isLoading: true, error: null });
+            try {
+                  // createPlan is idempotent - returns existing plan if already exists
+                  const createRes = await routineApi.createPlan({ planDate: date });
+                  set({ today: createRes.data.data, isLoading: false });
+            } catch (createErr: any) {
+                  console.error('createNewPlan failed:', createErr);
+                  set({ error: '계획을 생성할 수 없습니다. 다시 시도해주세요.', isLoading: false, today: null });
             }
       },
 

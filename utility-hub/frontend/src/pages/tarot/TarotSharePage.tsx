@@ -99,6 +99,7 @@ const TarotSharePage: React.FC = () => {
                                           selectedLeader={null}
                                           assistants={ASSISTANTS}
                                           onReset={() => navigate('/tarot')}
+                                          userName={data.userName}
                                     />
                               </div>
                         ) : (

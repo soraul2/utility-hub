@@ -33,6 +33,13 @@
 
     /* Gradients */
     --mystic-gradient-text: linear-gradient(to right, #b45309, #d97706, #b45309);
+
+    /* Main Gradient Colors (accent gradients used for cards, buttons, etc.) */
+    --mystic-gradient-from: #4338ca;
+    --mystic-gradient-via: #4f46e5;
+    --mystic-gradient-to: #6366f1;
+    --mystic-gradient-from-muted: rgba(67, 56, 202, 0.08);
+    --mystic-gradient-to-muted: rgba(99, 102, 241, 0.08);
   }
 
   .dark {
@@ -61,6 +68,13 @@
 
     /* Gradients */
     --mystic-gradient-text: linear-gradient(to right, #bf953f, #fcf6ba, #b38728, #fbf5b7);
+
+    /* Main Gradient Colors */
+    --mystic-gradient-from: #818cf8;
+    --mystic-gradient-via: #6366f1;
+    --mystic-gradient-to: #a5b4fc;
+    --mystic-gradient-from-muted: rgba(99, 102, 241, 0.15);
+    --mystic-gradient-to-muted: rgba(165, 180, 252, 0.15);
   }
 
   body {
@@ -74,6 +88,35 @@
 }
 
 @layer components {
+
+  /* Mystic Theme Gradients */
+  .mystic-gradient {
+    background: linear-gradient(to right, var(--mystic-gradient-from), var(--mystic-gradient-via), var(--mystic-gradient-to));
+  }
+  .mystic-gradient-br {
+    background: linear-gradient(to bottom right, var(--mystic-gradient-from), var(--mystic-gradient-via), var(--mystic-gradient-to));
+  }
+  .mystic-gradient-r {
+    background: linear-gradient(to right, var(--mystic-gradient-from), var(--mystic-gradient-to));
+  }
+  .mystic-gradient-muted {
+    background: linear-gradient(to right, var(--mystic-gradient-from-muted), var(--mystic-gradient-to-muted));
+  }
+  .mystic-gradient-muted-br {
+    background: linear-gradient(to bottom right, var(--mystic-gradient-from-muted), var(--mystic-gradient-to-muted));
+  }
+  .mystic-solid {
+    background-color: var(--mystic-gradient-from);
+  }
+  .mystic-solid-hover:hover {
+    background-color: var(--mystic-gradient-via);
+  }
+  .mystic-text-gradient {
+    background: linear-gradient(to right, var(--mystic-gradient-from), var(--mystic-gradient-to));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
 
   /* Premium Glassmorphism & Gold Theme */
   .glass-card {
@@ -574,6 +617,15 @@
   background: linear-gradient(90deg, transparent 25%, rgba(168, 85, 247, 0.1) 50%, transparent 75%);
   background-size: 200% 100%;
   animation: shimmer 2s infinite;
+}
+
+/* Mobile touch target sizes */
+@media (max-width: 768px) {
+  .btn-sm,
+  button[class*="p-1"] {
+    min-height: 36px;
+    min-width: 36px;
+  }
 }
 
 /* Hide Scrollbar Utility */

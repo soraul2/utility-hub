@@ -10,6 +10,8 @@ export interface AuthUser {
       nickname: string;
       provider: AuthProvider;
       role: UserRole;
+      activeThemeKey: string | null;
+      onboardingCompleted: boolean;
 }
 
 /**

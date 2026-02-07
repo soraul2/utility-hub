@@ -8,31 +8,24 @@ import {
       X,
       Star,
       Battery,
-      Smile,
-      Meh,
-      Frown,
       Zap,
       Target,
       TrendingUp,
       ArrowRight
 } from 'lucide-react';
 import type { Reflection } from '../../types/routine';
-
-const MOOD_CONFIG: Record<string, { icon: typeof Smile; label: string }> = {
-      'GOOD': { icon: Smile, label: '좋은 날' },
-      'NORMAL': { icon: Meh, label: '보통' },
-      'BAD': { icon: Frown, label: '힘든 날' }
-};
+import { MOOD_CONFIG } from '../../lib/constants/routine';
+import { getCompletionRateColor } from '../../lib/utils/routine';
 
 interface DailyReflectionModalProps {
-      isOpen: boolean;
+      isOpen?: boolean;
       onClose: () => void;
-      date: string;
+      date?: string;
       data: Reflection;
 }
 
 const DailyReflectionModal: React.FC<DailyReflectionModalProps> = ({
-      isOpen,
+      isOpen = true,
       onClose,
       date,
       data
@@ -57,6 +50,8 @@ const DailyReflectionModal: React.FC<DailyReflectionModalProps> = ({
             ? Math.round((data.completedTasks || 0) / data.totalTasks * 100)
             : null;
 
+      const completionColors = completionRate !== null ? getCompletionRateColor(completionRate) : null;
+
       return createPortal(
             <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 overflow-hidden font-sans">
                   {/* Backdrop */}
@@ -68,7 +63,7 @@ const DailyReflectionModal: React.FC<DailyReflectionModalProps> = ({
                   {/* Modal */}
                   <div className="relative bg-white dark:bg-gray-900 rounded-3xl shadow-2xl w-full max-w-lg max-h-[85vh] flex flex-col overflow-hidden animate-fade-in-up">
                         {/* Gradient Header */}
-                        <div className="relative bg-gradient-to-br from-indigo-600 via-purple-600 to-indigo-700 p-6 text-white flex-shrink-0">
+                        <div className="relative mystic-gradient-br p-6 text-white flex-shrink-0">
                               <button onClick={onClose}
                                     className="absolute top-4 right-4 p-1.5 text-white/50 hover:text-white hover:bg-white/20 rounded-lg transition-colors z-10">
                                     <X className="w-5 h-5" />
@@ -117,11 +112,7 @@ const DailyReflectionModal: React.FC<DailyReflectionModalProps> = ({
                                     </div>
                                     <div className="h-2 bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden">
                                           <div
-                                                className={`h-full rounded-full transition-all duration-500 ${
-                                                      completionRate >= 80 ? 'bg-gradient-to-r from-emerald-500 to-green-400' :
-                                                      completionRate >= 50 ? 'bg-gradient-to-r from-amber-500 to-yellow-400' :
-                                                      'bg-gradient-to-r from-rose-500 to-red-400'
-                                                }`}
+                                                className={`h-full rounded-full transition-all duration-500 ${completionColors!.gradient}`}
                                                 style={{ width: `${completionRate}%` }}
                                           />
                                     </div>
@@ -185,7 +176,7 @@ const DailyReflectionModal: React.FC<DailyReflectionModalProps> = ({
                               </button>
                               <Link
                                     to={`/routine/daily-plan/${dateStr ? format(new Date(dateStr), 'yyyy-MM-dd') : ''}`}
-                                    className="flex-1 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-sm font-black transition-colors flex items-center justify-center gap-1.5"
+                                    className="flex-1 py-3 mystic-solid mystic-solid-hover text-white rounded-xl text-sm font-black transition-colors flex items-center justify-center gap-1.5"
                               >
                                     해당 날 계획 보기
                                     <ArrowRight className="w-4 h-4" />

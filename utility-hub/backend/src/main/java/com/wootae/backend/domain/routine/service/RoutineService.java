@@ -16,13 +16,16 @@ import com.wootae.backend.domain.routine.dto.WeeklyReviewDto;
 import com.wootae.backend.domain.routine.dto.WeeklyReviewRequest;
 import com.wootae.backend.domain.routine.dto.CalendarEventDto;
 import com.wootae.backend.domain.routine.dto.CalendarEventCreateRequest;
+import com.wootae.backend.domain.calendar.service.GoogleCalendarService;
 import com.wootae.backend.domain.routine.entity.*;
 import com.wootae.backend.domain.routine.repository.*;
+import com.wootae.backend.domain.routine.util.XpCalculator;
 import com.wootae.backend.domain.user.entity.User;
 import com.wootae.backend.domain.user.repository.UserRepository;
 import com.wootae.backend.global.error.BusinessException;
 import com.wootae.backend.global.error.ErrorCode;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -30,10 +33,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -48,6 +53,7 @@ public class RoutineService {
       private final UserRepository userRepository;
       private final MonthlyLogRepository monthlyLogRepository;
       private final CalendarEventRepository calendarEventRepository;
+      private final GoogleCalendarService googleCalendarService;
 
       private Long getCurrentUserId() {
             try {
@@ -69,7 +75,7 @@ public class RoutineService {
             User user = getCurrentUser();
             LocalDate today = LocalDate.now();
 
-            return dailyPlanRepository.findByUserIdAndPlanDate(user.getId(), today)
+            return dailyPlanRepository.findFirstByUserIdAndPlanDateOrderByIdAsc(user.getId(), today)
                         .map(DailyPlanDto::from)
                         .orElseGet(() -> createDailyPlan(user, today));
       }
@@ -110,7 +116,7 @@ public class RoutineService {
       @Transactional
       public DailyPlanDto getPlan(LocalDate date) {
             Long userId = getCurrentUserId();
-            DailyPlan plan = dailyPlanRepository.findByUserIdAndPlanDate(userId, date)
+            DailyPlan plan = dailyPlanRepository.findFirstByUserIdAndPlanDateOrderByIdAsc(userId, date)
                         .orElseThrow(() -> new BusinessException(ErrorCode.PLAN_NOT_FOUND));
             return DailyPlanDto.from(plan);
       }
@@ -118,17 +124,33 @@ public class RoutineService {
       @Transactional
       public DailyPlanDto confirmPlan(LocalDate date) {
             Long userId = getCurrentUserId();
-            DailyPlan plan = dailyPlanRepository.findByUserIdAndPlanDate(userId, date)
+            DailyPlan plan = dailyPlanRepository.findFirstByUserIdAndPlanDateOrderByIdAsc(userId, date)
                         .orElseThrow(() -> new BusinessException(ErrorCode.PLAN_NOT_FOUND));
 
             plan.setStatus(PlanStatus.CONFIRMED);
+            recalculateMonthlyXp(userId, date);
+
+            // Best-effort Google Calendar sync
+            try {
+                  if (googleCalendarService.isConnected(userId)) {
+                        List<Task> scheduledTasks = plan.getKeyTasks().stream()
+                                    .filter(t -> t.getStartTime() != null)
+                                    .collect(Collectors.toList());
+                        if (!scheduledTasks.isEmpty()) {
+                              googleCalendarService.createEvents(userId, scheduledTasks, date);
+                        }
+                  }
+            } catch (Exception e) {
+                  log.warn("Google Calendar sync failed for userId={}: {}", userId, e.getMessage());
+            }
+
             return DailyPlanDto.from(plan);
       }
 
       @Transactional
       public DailyPlanDto unconfirmPlan(LocalDate date) {
             Long userId = getCurrentUserId();
-            DailyPlan plan = dailyPlanRepository.findByUserIdAndPlanDate(userId, date)
+            DailyPlan plan = dailyPlanRepository.findFirstByUserIdAndPlanDateOrderByIdAsc(userId, date)
                         .orElseThrow(() -> new BusinessException(ErrorCode.PLAN_NOT_FOUND));
 
             plan.setStatus(PlanStatus.PLANNING);
@@ -138,11 +160,10 @@ public class RoutineService {
       @Transactional
       public DailyPlanDto createPlan(DailyPlanCreateRequest request) {
             User user = getCurrentUser();
-            // Check if exists
-            if (dailyPlanRepository.findByUserIdAndPlanDate(user.getId(), request.getPlanDate()).isPresent()) {
-                  throw new BusinessException(ErrorCode.INVALID_INPUT_VALUE); // Already exists
-            }
-            return createDailyPlan(user, request.getPlanDate());
+            // Return existing plan if already exists (idempotent)
+            return dailyPlanRepository.findFirstByUserIdAndPlanDateOrderByIdAsc(user.getId(), request.getPlanDate())
+                  .map(DailyPlanDto::from)
+                  .orElseGet(() -> createDailyPlan(user, request.getPlanDate()));
       }
 
       @Transactional
@@ -211,11 +232,13 @@ public class RoutineService {
             Task task = taskRepository.findById(taskId)
                         .orElseThrow(() -> new BusinessException(ErrorCode.TASK_NOT_FOUND));
 
-            if (!task.getDailyPlan().getUser().getId().equals(getCurrentUserId())) {
+            Long userId = getCurrentUserId();
+            if (!task.getDailyPlan().getUser().getId().equals(userId)) {
                   throw new BusinessException(ErrorCode.UNAUTHORIZED_ACCESS);
             }
 
             task.toggleComplete();
+            recalculateMonthlyXp(userId, task.getDailyPlan().getPlanDate());
             return TaskDto.from(task);
       }
 
@@ -257,6 +280,7 @@ public class RoutineService {
                               .morningGoal(request.getMorningGoal())
                               .build();
                   reflection = reflectionRepository.save(reflection);
+                  recalculateMonthlyXp(plan.getUser().getId(), plan.getPlanDate());
             } else {
                   reflection.update(
                               request.getRating(),
@@ -266,7 +290,6 @@ public class RoutineService {
                               request.getTomorrowFocus(),
                               request.getEnergyLevel(),
                               request.getMorningGoal());
-                  // No save needed if transactional, but explicit save is safe
             }
             return ReflectionDto.from(reflection);
       }
@@ -291,7 +314,12 @@ public class RoutineService {
 
             // Create a map for easy lookup
             java.util.Map<LocalDate, DailyPlan> planMap = plans.stream()
-                        .collect(java.util.stream.Collectors.toMap(DailyPlan::getPlanDate, p -> p));
+                        .collect(java.util.stream.Collectors.toMap(
+                              DailyPlan::getPlanDate,
+                              p -> p,
+                              (existing, duplicate) -> existing.getKeyTasks().size() >= duplicate.getKeyTasks().size()
+                                    ? existing : duplicate
+                        ));
 
             java.util.Map<String, Double> dailyCompletion = new java.util.HashMap<>();
             double totalDailyRates = 0.0;
@@ -338,7 +366,7 @@ public class RoutineService {
             return (double) dayCompleted / plan.getKeyTasks().size() * 100.0;
       }
 
-      @Transactional(readOnly = true)
+      @Transactional
       public MonthlyStatusResponse getMonthlyStatus(int year, int month) {
             User user = getCurrentUser();
             LocalDate startOfMonth = LocalDate.of(year, month, 1);
@@ -347,13 +375,17 @@ public class RoutineService {
             // 1. Get Monthly Log
             MonthlyLog log = monthlyLogRepository.findByUserAndYearAndMonth(user, year, month).orElse(null);
             String monthlyGoal = log != null ? log.getMonthlyGoal() : null;
-            Long totalXp = log != null ? log.getTotalXp() : 0L;
 
             // 2. Get Daily Plans
             List<DailyPlan> plans = dailyPlanRepository.findByUserIdAndPlanDateBetween(user.getId(), startOfMonth,
                         endOfMonth);
             java.util.Map<LocalDate, DailyPlan> planMap = plans.stream()
-                        .collect(java.util.stream.Collectors.toMap(DailyPlan::getPlanDate, p -> p));
+                        .collect(java.util.stream.Collectors.toMap(
+                              DailyPlan::getPlanDate,
+                              p -> p,
+                              (existing, duplicate) -> existing.getKeyTasks().size() >= duplicate.getKeyTasks().size()
+                                    ? existing : duplicate
+                        ));
 
             // 3. Calculate Stats and Build Daily Summaries
             List<MonthlyStatusResponse.DailySummary> dailySummaries = new ArrayList<>();
@@ -412,31 +444,10 @@ public class RoutineService {
             double monthlyRate = count == 0 ? 0.0 : (totalRates / count);
             monthlyRate = Math.round(monthlyRate * 10.0) / 10.0;
 
-            // 4. Calculate XP dynamically from actual data
-            long calculatedXp = 0;
-            for (DailyPlan plan : plans) {
-                  if (plan.isRest()) {
-                        calculatedXp += 5;
-                  } else if (plan.getKeyTasks() != null && !plan.getKeyTasks().isEmpty()) {
-                        calculatedXp += 5; // Plan created
-                        int completed = (int) plan.getKeyTasks().stream().filter(Task::isCompleted).count();
-                        int total = plan.getKeyTasks().size();
-                        calculatedXp += completed * 10L; // Per completed task
-                        if (total > 0) {
-                              double rate = (double) completed / total * 100;
-                              if (rate >= 100) {
-                                    calculatedXp += 50;
-                              } else if (rate >= 80) {
-                                    calculatedXp += 20;
-                              }
-                        }
-                  }
-                  if (plan.getReflection() != null) {
-                        calculatedXp += 20;
-                  }
-            }
-            if (monthlyGoal != null && !monthlyGoal.isBlank()) {
-                  calculatedXp += 10;
+            // 4. Calculate XP dynamically and cache in MonthlyLog
+            long calculatedXp = XpCalculator.calculate(plans, monthlyGoal);
+            if (log != null) {
+                  log.setTotalXp(calculatedXp);
             }
 
             return MonthlyStatusResponse.builder()
@@ -466,7 +477,7 @@ public class RoutineService {
       @Transactional
       public void updateMonthlyMemo(LocalDate date, String memo) {
             User user = getCurrentUser();
-            DailyPlan plan = dailyPlanRepository.findByUserIdAndPlanDate(user.getId(), date)
+            DailyPlan plan = dailyPlanRepository.findFirstByUserIdAndPlanDateOrderByIdAsc(user.getId(), date)
                         .orElseGet(() -> DailyPlan.builder()
                                     .user(user)
                                     .planDate(date)
@@ -486,9 +497,11 @@ public class RoutineService {
       @Transactional
       public void deletePlan(LocalDate date) {
             User user = getCurrentUser();
-            DailyPlan plan = dailyPlanRepository.findByUserIdAndPlanDate(user.getId(), date)
-                        .orElseThrow(() -> new BusinessException(ErrorCode.PLAN_NOT_FOUND));
-            dailyPlanRepository.delete(plan);
+            List<DailyPlan> plans = dailyPlanRepository.findAllByUserIdAndPlanDate(user.getId(), date);
+            if (plans.isEmpty()) {
+                  throw new BusinessException(ErrorCode.PLAN_NOT_FOUND);
+            }
+            dailyPlanRepository.deleteAll(plans);
       }
 
       @Transactional
@@ -530,8 +543,9 @@ public class RoutineService {
       @Transactional(readOnly = true)
       public List<RoutineTemplateDto> getTemplates() {
             Long userId = getCurrentUserId();
-            return routineTemplateRepository.findByUserIdOrderByCreatedAtDesc(userId)
-                        .stream()
+            List<RoutineTemplate> templates = routineTemplateRepository.findByUserIdOrderByCreatedAtDesc(userId);
+
+            return templates.stream()
                         .map(RoutineTemplateDto::from)
                         .collect(Collectors.toList());
       }
@@ -638,6 +652,125 @@ public class RoutineService {
             routineTemplateRepository.delete(template);
       }
 
+      private void recalculateMonthlyXp(Long userId, LocalDate date) {
+            int year = date.getYear();
+            int month = date.getMonthValue();
+            LocalDate monthStart = date.withDayOfMonth(1);
+            LocalDate monthEnd = date.withDayOfMonth(date.lengthOfMonth());
+
+            List<DailyPlan> plans = dailyPlanRepository.findByUserIdAndPlanDateBetween(userId, monthStart, monthEnd);
+            MonthlyLog log = monthlyLogRepository.findByUserIdAndYearAndMonth(userId, year, month)
+                        .orElse(null);
+
+            String monthlyGoal = log != null ? log.getMonthlyGoal() : null;
+            long xp = XpCalculator.calculate(plans, monthlyGoal);
+
+            if (log != null) {
+                  log.setTotalXp(xp);
+            }
+      }
+
+      private void initializeDefaultTemplates(User user) {
+            // Template 1: 출근 루틴
+            RoutineTemplate morningRoutine = routineTemplateRepository.save(
+                        RoutineTemplate.builder()
+                                    .user(user)
+                                    .name("출근 루틴")
+                                    .description("직장인의 하루를 체계적으로 시작하는 루틴")
+                                    .type(TemplateType.NORMAL)
+                                    .build());
+            morningRoutine.setTasks(List.of(
+                        RoutineTemplateTask.builder().template(morningRoutine).title("기상 + 스트레칭").taskOrder(0)
+                                    .category("HEALTH").startTime(LocalTime.of(6, 0)).endTime(LocalTime.of(6, 30))
+                                    .durationMinutes(30).priority("HIGH").build(),
+                        RoutineTemplateTask.builder().template(morningRoutine).title("아침 식사 + 준비").taskOrder(1)
+                                    .category("PERSONAL").startTime(LocalTime.of(6, 30)).endTime(LocalTime.of(7, 15))
+                                    .durationMinutes(45).priority("MEDIUM").build(),
+                        RoutineTemplateTask.builder().template(morningRoutine).title("출근").taskOrder(2)
+                                    .category("PERSONAL").startTime(LocalTime.of(7, 15)).endTime(LocalTime.of(8, 0))
+                                    .durationMinutes(45).priority("LOW").build(),
+                        RoutineTemplateTask.builder().template(morningRoutine).title("오전 업무 집중").taskOrder(3)
+                                    .category("WORK").startTime(LocalTime.of(9, 0)).endTime(LocalTime.of(12, 0))
+                                    .durationMinutes(180).priority("HIGH").build(),
+                        RoutineTemplateTask.builder().template(morningRoutine).title("점심 + 휴식").taskOrder(4)
+                                    .category("PERSONAL").startTime(LocalTime.of(12, 0)).endTime(LocalTime.of(13, 0))
+                                    .durationMinutes(60).priority("LOW").build(),
+                        RoutineTemplateTask.builder().template(morningRoutine).title("오후 업무").taskOrder(5)
+                                    .category("WORK").startTime(LocalTime.of(13, 0)).endTime(LocalTime.of(17, 0))
+                                    .durationMinutes(240).priority("HIGH").build(),
+                        RoutineTemplateTask.builder().template(morningRoutine).title("퇴근 + 저녁").taskOrder(6)
+                                    .category("PERSONAL").startTime(LocalTime.of(17, 0)).endTime(LocalTime.of(19, 0))
+                                    .durationMinutes(120).priority("LOW").build()));
+
+            // Template 2: 자기계발 루틴
+            RoutineTemplate selfDevRoutine = routineTemplateRepository.save(
+                        RoutineTemplate.builder()
+                                    .user(user)
+                                    .name("자기계발 루틴")
+                                    .description("퇴근 후 성장에 집중하는 하루")
+                                    .type(TemplateType.NORMAL)
+                                    .build());
+            selfDevRoutine.setTasks(List.of(
+                        RoutineTemplateTask.builder().template(selfDevRoutine).title("아침 독서").taskOrder(0)
+                                    .category("STUDY").startTime(LocalTime.of(6, 30)).endTime(LocalTime.of(7, 30))
+                                    .durationMinutes(60).priority("HIGH").build(),
+                        RoutineTemplateTask.builder().template(selfDevRoutine).title("오전 업무").taskOrder(1)
+                                    .category("WORK").startTime(LocalTime.of(9, 0)).endTime(LocalTime.of(12, 0))
+                                    .durationMinutes(180).priority("HIGH").build(),
+                        RoutineTemplateTask.builder().template(selfDevRoutine).title("점심").taskOrder(2)
+                                    .category("PERSONAL").startTime(LocalTime.of(12, 0)).endTime(LocalTime.of(13, 0))
+                                    .durationMinutes(60).priority("LOW").build(),
+                        RoutineTemplateTask.builder().template(selfDevRoutine).title("오후 업무").taskOrder(3)
+                                    .category("WORK").startTime(LocalTime.of(13, 0)).endTime(LocalTime.of(17, 0))
+                                    .durationMinutes(240).priority("MEDIUM").build(),
+                        RoutineTemplateTask.builder().template(selfDevRoutine).title("운동").taskOrder(4)
+                                    .category("HEALTH").startTime(LocalTime.of(18, 0)).endTime(LocalTime.of(19, 0))
+                                    .durationMinutes(60).priority("HIGH").build(),
+                        RoutineTemplateTask.builder().template(selfDevRoutine).title("온라인 강의").taskOrder(5)
+                                    .category("STUDY").startTime(LocalTime.of(20, 0)).endTime(LocalTime.of(21, 30))
+                                    .durationMinutes(90).priority("MEDIUM").build(),
+                        RoutineTemplateTask.builder().template(selfDevRoutine).title("하루 회고").taskOrder(6)
+                                    .category("PERSONAL").startTime(LocalTime.of(22, 0)).endTime(LocalTime.of(22, 30))
+                                    .durationMinutes(30).priority("MEDIUM").build()));
+
+            // Template 3: 업무 집중 루틴
+            RoutineTemplate workFocusRoutine = routineTemplateRepository.save(
+                        RoutineTemplate.builder()
+                                    .user(user)
+                                    .name("업무 집중 루틴")
+                                    .description("프로젝트 마감 등 업무에 올인하는 하루")
+                                    .type(TemplateType.NORMAL)
+                                    .build());
+            workFocusRoutine.setTasks(List.of(
+                        RoutineTemplateTask.builder().template(workFocusRoutine).title("하루 계획 정리").taskOrder(0)
+                                    .category("WORK").startTime(LocalTime.of(8, 30)).endTime(LocalTime.of(9, 0))
+                                    .durationMinutes(30).priority("HIGH").build(),
+                        RoutineTemplateTask.builder().template(workFocusRoutine).title("핵심 업무 집중").taskOrder(1)
+                                    .category("WORK").startTime(LocalTime.of(9, 0)).endTime(LocalTime.of(12, 0))
+                                    .durationMinutes(180).priority("HIGH").build(),
+                        RoutineTemplateTask.builder().template(workFocusRoutine).title("점심 + 산책").taskOrder(2)
+                                    .category("HEALTH").startTime(LocalTime.of(12, 0)).endTime(LocalTime.of(13, 0))
+                                    .durationMinutes(60).priority("LOW").build(),
+                        RoutineTemplateTask.builder().template(workFocusRoutine).title("회의 + 협업").taskOrder(3)
+                                    .category("WORK").startTime(LocalTime.of(13, 0)).endTime(LocalTime.of(15, 0))
+                                    .durationMinutes(120).priority("MEDIUM").build(),
+                        RoutineTemplateTask.builder().template(workFocusRoutine).title("오후 집중 업무").taskOrder(4)
+                                    .category("WORK").startTime(LocalTime.of(15, 0)).endTime(LocalTime.of(17, 30))
+                                    .durationMinutes(150).priority("HIGH").build(),
+                        RoutineTemplateTask.builder().template(workFocusRoutine).title("업무 정리 + 내일 준비").taskOrder(5)
+                                    .category("WORK").startTime(LocalTime.of(17, 30)).endTime(LocalTime.of(18, 0))
+                                    .durationMinutes(30).priority("MEDIUM").build()));
+
+            // Template 4: 휴식일
+            routineTemplateRepository.save(
+                        RoutineTemplate.builder()
+                                    .user(user)
+                                    .name("휴식일")
+                                    .description("충분한 휴식으로 다음 주를 준비하는 날")
+                                    .type(TemplateType.REST)
+                                    .build());
+      }
+
       @Transactional
       public DailyPlanDto applyTemplate(Long planId, Long templateId) {
             User user = getCurrentUser();
@@ -698,16 +831,31 @@ public class RoutineService {
       @Transactional
       public CalendarEventDto createCalendarEvent(CalendarEventCreateRequest request) {
             User user = getCurrentUser();
+            LocalDate startDate = LocalDate.parse(request.getStartDate());
+            LocalDate endDate = LocalDate.parse(request.getEndDate());
+
             CalendarEvent event = CalendarEvent.builder()
                         .user(user)
                         .title(request.getTitle())
                         .description(request.getDescription())
-                        .startDate(LocalDate.parse(request.getStartDate()))
-                        .endDate(LocalDate.parse(request.getEndDate()))
+                        .startDate(startDate)
+                        .endDate(endDate)
                         .color(request.getColor() != null ? request.getColor() : "#6366f1")
                         .type(CalendarEvent.EventType.valueOf(request.getType() != null ? request.getType() : "MEMO"))
                         .build();
             event = calendarEventRepository.save(event);
+
+            // Google Calendar 동기화 (best-effort)
+            try {
+                  String googleEventId = googleCalendarService.createAllDayEvent(
+                              user.getId(), request.getTitle(), request.getDescription(), startDate, endDate);
+                  if (googleEventId != null) {
+                        event.setGoogleEventId(googleEventId);
+                  }
+            } catch (Exception e) {
+                  log.warn("Google Calendar sync failed for event {}: {}", event.getId(), e.getMessage());
+            }
+
             return CalendarEventDto.from(event);
       }
 
@@ -716,13 +864,26 @@ public class RoutineService {
             Long userId = getCurrentUserId();
             CalendarEvent event = calendarEventRepository.findByIdAndUserId(eventId, userId)
                         .orElseThrow(() -> new BusinessException(ErrorCode.EVENT_NOT_FOUND));
+
+            LocalDate startDate = LocalDate.parse(request.getStartDate());
+            LocalDate endDate = LocalDate.parse(request.getEndDate());
+
             event.update(
                         request.getTitle(),
                         request.getDescription(),
-                        LocalDate.parse(request.getStartDate()),
-                        LocalDate.parse(request.getEndDate()),
+                        startDate,
+                        endDate,
                         request.getColor() != null ? request.getColor() : "#6366f1",
                         CalendarEvent.EventType.valueOf(request.getType() != null ? request.getType() : "MEMO"));
+
+            // Google Calendar 동기화 (best-effort)
+            try {
+                  googleCalendarService.updateGoogleEvent(
+                              userId, event.getGoogleEventId(), request.getTitle(), request.getDescription(), startDate, endDate);
+            } catch (Exception e) {
+                  log.warn("Google Calendar update failed for event {}: {}", eventId, e.getMessage());
+            }
+
             return CalendarEventDto.from(event);
       }
 
@@ -731,6 +892,14 @@ public class RoutineService {
             Long userId = getCurrentUserId();
             CalendarEvent event = calendarEventRepository.findByIdAndUserId(eventId, userId)
                         .orElseThrow(() -> new BusinessException(ErrorCode.EVENT_NOT_FOUND));
+
+            // Google Calendar에서도 삭제 (best-effort)
+            try {
+                  googleCalendarService.deleteGoogleEvent(userId, event.getGoogleEventId());
+            } catch (Exception e) {
+                  log.warn("Google Calendar delete failed for event {}: {}", eventId, e.getMessage());
+            }
+
             calendarEventRepository.delete(event);
       }
 }

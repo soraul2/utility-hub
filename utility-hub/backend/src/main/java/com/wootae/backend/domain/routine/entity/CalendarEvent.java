@@ -48,6 +48,9 @@ public class CalendarEvent {
       @Builder.Default
       private EventType type = EventType.MEMO;
 
+      @Column(length = 512)
+      private String googleEventId;
+
       @CreatedDate
       @Column(updatable = false)
       private LocalDateTime createdAt;
@@ -66,5 +69,9 @@ public class CalendarEvent {
             this.endDate = endDate;
             this.color = color;
             this.type = type;
+      }
+
+      public void setGoogleEventId(String googleEventId) {
+            this.googleEventId = googleEventId;
       }
 }

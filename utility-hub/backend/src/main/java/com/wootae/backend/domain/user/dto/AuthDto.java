@@ -71,9 +71,15 @@ public class AuthDto {
             /** 사용자 권한 (ROLE_USER, ROLE_ADMIN) */
             private String role;
 
+            /** 활성 테마 키 */
+            private String activeThemeKey;
+
+            /** 온보딩 완료 여부 */
+            private boolean onboardingCompleted;
+
             /**
              * User 엔티티에서 UserResponse DTO로 변환
-             * 
+             *
              * @param user 사용자 엔티티
              * @return 변환된 사용자 정보 응답
              */
@@ -84,6 +90,8 @@ public class AuthDto {
                               .nickname(user.getNickname())
                               .provider(user.getProvider().name())
                               .role(user.getRole().name())
+                              .activeThemeKey(user.getActiveThemeKey())
+                              .onboardingCompleted(user.isOnboardingCompleted())
                               .build();
             }
       }

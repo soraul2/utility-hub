@@ -1,7 +1,7 @@
 import React from 'react';
 import type { Task } from '../../../types/routine';
 import { TaskCategoryBadge } from '../ui/TaskCategoryBadge';
-import { Clock, CheckCircle2, Circle, Trash2, MoreVertical } from 'lucide-react';
+import { Clock, CheckCircle2, Circle, Trash2 } from 'lucide-react';
 import { useRoutineStore } from '../../../stores/useRoutineStore';
 
 interface TimelineItemProps {
@@ -45,7 +45,7 @@ export const TimelineItem: React.FC<TimelineItemProps> = ({ task, showTime = tru
                   {/* Timeline Line & Dot */}
                   <div className="relative flex flex-col items-center">
                         <div className={`w-3 h-3 rounded-full border-2 z-10 bg-white dark:bg-gray-900 ${task.completed
-                              ? 'border-indigo-500 bg-indigo-500'
+                              ? 'border-[var(--mystic-gradient-from)] mystic-solid'
                               : 'border-gray-300 dark:border-gray-600'
                               }`} />
                         <div className="w-0.5 flex-1 bg-gray-200 dark:bg-gray-800 -mt-1" />
@@ -93,8 +93,8 @@ export const TimelineItem: React.FC<TimelineItemProps> = ({ task, showTime = tru
                               <div className="w-6 flex-shrink-0" />
                         </div>
 
-                        {/* Hover Actions (Top Right) */}
-                        <div className={`absolute top-2 right-2 transition-all duration-200 ${showActions ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-1 pointer-events-none'
+                        {/* Hover Actions (Top Right) - always visible on mobile */}
+                        <div className={`absolute top-2 right-2 transition-all duration-200 max-md:opacity-100 max-md:translate-y-0 ${showActions ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-1 pointer-events-none md:pointer-events-none'
                               }`}>
                               <div className="flex items-center bg-white dark:bg-gray-900 shadow-xl rounded-xl border border-gray-100 dark:border-gray-700 p-1">
                                     <button

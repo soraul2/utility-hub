@@ -1,20 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { X, Download, Trash2, Clock, ChevronDown, ChevronUp, Layers } from 'lucide-react';
 import { useRoutineStore } from '../../../stores/useRoutineStore';
-import type { RoutineTemplate, Priority, Category } from '../../../types/routine';
-
-const PRIORITY_CONFIG: Record<Priority, { dotColor: string }> = {
-      HIGH: { dotColor: 'bg-red-500' },
-      MEDIUM: { dotColor: 'bg-yellow-500' },
-      LOW: { dotColor: 'bg-green-500' },
-};
-
-const CATEGORY_CONFIG: Record<Category, { emoji: string }> = {
-      WORK: { emoji: '💼' },
-      HEALTH: { emoji: '💪' },
-      STUDY: { emoji: '📚' },
-      PERSONAL: { emoji: '🏠' },
-};
+import type { RoutineTemplate } from '../../../types/routine';
+import { PRIORITY_CONFIG, CATEGORY_CONFIG } from '../../../lib/constants/routine';
 
 interface LoadTemplateModalProps {
       onClose: () => void;
@@ -159,7 +147,7 @@ const TemplateCard: React.FC<TemplateCardProps> = ({
                               <button
                                     onClick={onApply}
                                     disabled={isApplying}
-                                    className="px-3 py-1.5 text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 rounded-lg transition-colors flex items-center gap-1.5"
+                                    className="px-3 py-1.5 text-xs font-bold text-white mystic-solid mystic-solid-hover disabled:opacity-50 rounded-lg transition-colors flex items-center gap-1.5"
                               >
                                     <Download className="w-3.5 h-3.5" />
                                     {isApplying ? '적용중...' : '적용'}

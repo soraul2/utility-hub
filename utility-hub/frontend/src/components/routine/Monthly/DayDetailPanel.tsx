@@ -96,7 +96,7 @@ const DayDetailPanel: React.FC<DayDetailPanelProps> = ({
             <>
                   <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
                         {/* Header */}
-                        <div className="px-5 py-3.5 bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-900/20 dark:to-purple-900/20 border-b border-gray-100 dark:border-gray-700">
+                        <div className="px-5 py-3.5 mystic-gradient-muted border-b border-gray-100 dark:border-gray-700">
                               <div className="flex items-center justify-between flex-wrap gap-2">
                                     <div className="flex items-center gap-2.5">
                                           <Calendar className="w-4 h-4 text-indigo-500" />
@@ -136,7 +136,7 @@ const DayDetailPanel: React.FC<DayDetailPanelProps> = ({
                                           <div className="h-1.5 bg-white/50 dark:bg-gray-700 rounded-full overflow-hidden">
                                                 <div
                                                       className={classNames("h-full rounded-full transition-all duration-500",
-                                                            completionRate >= 80 ? 'bg-indigo-500' :
+                                                            completionRate >= 80 ? 'mystic-solid' :
                                                             completionRate >= 50 ? 'bg-amber-400' : 'bg-rose-400'
                                                       )}
                                                       style={{ width: `${completionRate}%` }}
@@ -185,7 +185,7 @@ const DayDetailPanel: React.FC<DayDetailPanelProps> = ({
                                                                         {event.startDate !== event.endDate && ` · ${event.startDate} ~ ${event.endDate}`}
                                                                   </p>
                                                             </div>
-                                                            <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
+                                                            <div className="flex items-center gap-0.5 md:opacity-0 md:group-hover:opacity-100 transition-opacity shrink-0">
                                                                   {onEditEvent && (
                                                                         <button
                                                                               onClick={() => onEditEvent(event)}
@@ -228,7 +228,7 @@ const DayDetailPanel: React.FC<DayDetailPanelProps> = ({
                                                             disabled={isSaving}
                                                             className={classNames(
                                                                   "p-2 text-white rounded-lg transition-colors shadow-sm disabled:opacity-50",
-                                                                  memo.trim() ? "bg-indigo-600 hover:bg-indigo-700" : "bg-rose-500 hover:bg-rose-600"
+                                                                  memo.trim() ? "mystic-solid mystic-solid-hover" : "bg-rose-500 hover:bg-rose-600"
                                                             )}
                                                             title={memo.trim() ? '저장' : '메모 삭제'}
                                                       >

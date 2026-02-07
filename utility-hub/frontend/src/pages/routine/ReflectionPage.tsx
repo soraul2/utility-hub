@@ -5,35 +5,16 @@ import { ko } from 'date-fns/locale';
 import {
       Star,
       Save,
-      Smile,
-      Meh,
-      Frown,
       BookOpen,
       AlertCircle,
       CheckCircle2,
       Circle,
       TrendingUp,
-      Briefcase,
-      Heart,
-      GraduationCap,
-      Home
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import type { Category } from '../../types/routine';
 import Toast from '../../components/common/Toast';
-
-const MOODS = [
-      { value: 'BAD', label: '나쁨', icon: Frown, color: 'text-red-500' },
-      { value: 'NORMAL', label: '보통', icon: Meh, color: 'text-yellow-500' },
-      { value: 'GOOD', label: '좋음', icon: Smile, color: 'text-green-500' },
-];
-
-const CATEGORY_CONFIG: Record<Category, { label: string; icon: typeof Briefcase; color: string; bgColor: string }> = {
-      WORK: { label: '업무', icon: Briefcase, color: 'text-blue-600 dark:text-blue-400', bgColor: 'bg-blue-50 dark:bg-blue-900/20' },
-      HEALTH: { label: '건강', icon: Heart, color: 'text-rose-600 dark:text-rose-400', bgColor: 'bg-rose-50 dark:bg-rose-900/20' },
-      STUDY: { label: '학습', icon: GraduationCap, color: 'text-purple-600 dark:text-purple-400', bgColor: 'bg-purple-50 dark:bg-purple-900/20' },
-      PERSONAL: { label: '개인', icon: Home, color: 'text-amber-600 dark:text-amber-400', bgColor: 'bg-amber-50 dark:bg-amber-900/20' },
-};
+import { MOODS, CATEGORY_CONFIG } from '../../lib/constants/routine';
 
 const ReflectionPage = () => {
       const { today, loadToday, saveReflection, isLoading } = useRoutineStore();
@@ -151,9 +132,9 @@ const ReflectionPage = () => {
       }
 
       return (
-            <div className="min-h-screen bg-white dark:bg-gray-950 space-y-6 md:space-y-8 animate-fade-in max-w-4xl mx-auto px-4 py-6 md:py-8">
+            <div className="min-h-screen bg-mystic-bg space-y-6 md:space-y-8 animate-fade-in max-w-4xl mx-auto px-4 py-6 md:py-8">
                   {/* Header */}
-                  <div className="bg-white dark:bg-gray-800 rounded-2xl p-4 md:p-6 shadow-sm border border-gray-100 dark:border-gray-700 flex items-center gap-4">
+                  <div className="bg-mystic-bg-secondary rounded-2xl p-4 md:p-6 shadow-sm border border-mystic-border flex items-center gap-4">
                         <div className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-purple-50 dark:bg-purple-900/30 flex items-center justify-center shrink-0">
                               <BookOpen className="w-5 h-5 md:w-6 md:h-6 text-purple-600 dark:text-purple-400" />
                         </div>
@@ -172,9 +153,9 @@ const ReflectionPage = () => {
 
                   {/* Today's Summary Section */}
                   {taskStats && taskStats.total > 0 && (
-                        <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-gray-700 space-y-6">
+                        <div className="bg-mystic-bg-secondary rounded-2xl p-6 shadow-sm border border-mystic-border space-y-6">
                               <div className="flex items-center gap-3">
-                                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg shadow-indigo-200 dark:shadow-none">
+                                    <div className="w-10 h-10 rounded-xl mystic-gradient-br flex items-center justify-center shadow-lg">
                                           <TrendingUp className="w-5 h-5 text-white" />
                                     </div>
                                     <div>
@@ -289,7 +270,7 @@ const ReflectionPage = () => {
                   <form onSubmit={handleSubmit} className="space-y-6">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                               {/* Rating Section */}
-                              <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-gray-700">
+                              <div className="bg-mystic-bg-secondary rounded-2xl p-6 shadow-sm border border-mystic-border">
                                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-4">
                                           오늘 하루 만족도
                                     </label>
@@ -313,7 +294,7 @@ const ReflectionPage = () => {
                               </div>
 
                               {/* Mood Section */}
-                              <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-gray-700">
+                              <div className="bg-mystic-bg-secondary rounded-2xl p-6 shadow-sm border border-mystic-border">
                                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-4">
                                           오늘의 기분
                                     </label>
@@ -344,7 +325,7 @@ const ReflectionPage = () => {
                         </div>
 
                         {/* Text Inputs */}
-                        <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-gray-700 space-y-6">
+                        <div className="bg-mystic-bg-secondary rounded-2xl p-6 shadow-sm border border-mystic-border space-y-6">
                               <div>
                                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                                           잘한 점 (Keep)
@@ -387,7 +368,7 @@ const ReflectionPage = () => {
                               <button
                                     type="submit"
                                     disabled={isSaving}
-                                    className="flex items-center gap-2 px-8 py-3 bg-purple-600 dark:bg-purple-500 text-white font-medium rounded-xl hover:bg-purple-700 dark:hover:bg-purple-600 disabled:opacity-50 transition-colors shadow-lg shadow-purple-200 dark:shadow-none"
+                                    className="flex items-center gap-2 px-8 py-3 mystic-solid text-white font-medium rounded-xl mystic-solid-hover disabled:opacity-50 transition-colors shadow-lg"
                               >
                                     <Save className="w-5 h-5" />
                                     {isSaving ? '저장 중...' : '회고 저장하기'}

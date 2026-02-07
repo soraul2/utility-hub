@@ -55,4 +55,8 @@ public class MonthlyLog {
       public void addXp(Long xp) {
             this.totalXp += xp;
       }
+
+      public void setTotalXp(Long totalXp) {
+            this.totalXp = totalXp;
+      }
 }

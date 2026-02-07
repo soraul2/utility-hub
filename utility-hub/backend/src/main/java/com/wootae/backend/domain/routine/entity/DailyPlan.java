@@ -18,7 +18,8 @@ import java.util.List;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Builder
-@Table(name = "routine_daily_plans")
+@Table(name = "routine_daily_plans",
+      uniqueConstraints = @UniqueConstraint(columnNames = {"user_id", "plan_date"}))
 @EntityListeners(AuditingEntityListener.class)
 public class DailyPlan {
 

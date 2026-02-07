@@ -13,7 +13,7 @@ interface KineticTimelineProps {
 const HOUR_WIDTH = 140; // Reduced from 200 to fit 9-hour range better
 const SNAP_INTERVAL = 15; // 15 minutes snap
 
-export const KineticTimeline: React.FC<KineticTimelineProps> = ({ tasks, isConfirmed, startHour, endHour }) => {
+export const KineticTimeline: React.FC<KineticTimelineProps> = ({ tasks, startHour, endHour }) => {
       const { updateTask, deleteTask } = useRoutineStore();
       const containerRef = useRef<HTMLDivElement>(null);
 

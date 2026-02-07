@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import { format } from 'date-fns';
 import { ko } from 'date-fns/locale';
-import { Sparkles, Check, Target, Clock, Layout, AlignLeft, Save, FolderOpen, X } from 'lucide-react';
+import { Sparkles, Check, Target, Layout, Save, FolderOpen, Plus, Download } from 'lucide-react';
 import classNames from 'classnames';
 import { useRoutineStore } from '../../stores/useRoutineStore';
 import { KineticPool } from '../../components/routine/kinetic/KineticPool';
@@ -10,16 +10,20 @@ import { KineticTimeline } from '../../components/routine/kinetic/KineticTimelin
 import { ConfirmedPlanView } from '../../components/routine/kinetic/ConfirmedPlanView';
 import { SaveTemplateModal } from '../../components/routine/template/SaveTemplateModal';
 import { LoadTemplateModal } from '../../components/routine/template/LoadTemplateModal';
-import type { Category, Priority } from '../../types/routine';
+import { WorkflowStepper } from '../../components/routine/daily/WorkflowStepper';
+import { TaskAddBar } from '../../components/routine/daily/TaskAddBar';
+import { ConfirmPlanModal } from '../../components/routine/daily/ConfirmPlanModal';
+import { routineApi } from '../../services/routine/api';
+import { calendarApi } from '../../services/calendar/api';
 
 const DailyPlanPage: React.FC = () => {
       const { date } = useParams<{ date: string }>();
-      const navigate = useNavigate();
       const {
             today,
             isLoading,
             error,
             loadPlan,
+            createNewPlan,
             confirmPlan,
             unconfirmPlan,
             toggleTask,
@@ -28,20 +32,29 @@ const DailyPlanPage: React.FC = () => {
             addTask
       } = useRoutineStore();
 
-      const [isDetailMode, setIsDetailMode] = useState(false);
       const [isInventoryOpen, setIsInventoryOpen] = useState(false);
       const [showSaveTemplate, setShowSaveTemplate] = useState(false);
       const [showLoadTemplate, setShowLoadTemplate] = useState(false);
       const [showConfirmModal, setShowConfirmModal] = useState(false);
+      const [gcalConnected, setGcalConnected] = useState(false);
 
-      const [newTask, setNewTask] = useState({
-            title: '',
-            category: 'WORK' as Category,
-            durationHours: '1',
-            durationMinutes: '0',
-            priority: 'MEDIUM' as Priority,
-            description: ''
-      });
+      const handleExportIcs = async () => {
+            const targetDate = date || today?.planDate;
+            if (!targetDate) return;
+            try {
+                  const res = await routineApi.exportDailyIcs(targetDate);
+                  const url = URL.createObjectURL(new Blob([res.data]));
+                  const a = document.createElement('a');
+                  a.href = url;
+                  a.download = `routine-${targetDate}.ics`;
+                  document.body.appendChild(a);
+                  a.click();
+                  document.body.removeChild(a);
+                  URL.revokeObjectURL(url);
+            } catch {
+                  // silently fail
+            }
+      };
 
       const [timelineRange, setTimelineRange] = useState({
             startHour: 9,
@@ -53,6 +66,12 @@ const DailyPlanPage: React.FC = () => {
             loadPlan(targetDate);
       }, [date, loadPlan]);
 
+      useEffect(() => {
+            calendarApi.getGoogleStatus()
+                  .then(res => setGcalConnected(res.data.connected))
+                  .catch(() => {});
+      }, []);
+
       if (isLoading && !today) {
             return (
                   <div className="h-full flex items-center justify-center">
@@ -62,30 +81,6 @@ const DailyPlanPage: React.FC = () => {
       }
 
       const isConfirmed = today?.status === 'CONFIRMED';
-
-      const handleQuickAdd = async (e: React.FormEvent) => {
-            e.preventDefault();
-            if (!newTask.title.trim()) return;
-
-            const totalMinutes = parseInt(newTask.durationHours || '0') * 60 + parseInt(newTask.durationMinutes || '0');
-
-            await addTask(newTask.title.trim(), {
-                  category: newTask.category,
-                  durationMinutes: totalMinutes,
-                  priority: newTask.priority,
-                  description: newTask.description
-            });
-
-            // addTask already updates the store state, no need to reload
-            setNewTask({
-                  title: '',
-                  category: 'WORK',
-                  durationHours: '1',
-                  durationMinutes: '0',
-                  priority: 'MEDIUM',
-                  description: ''
-            });
-      };
 
       const handleAssignTask = async (taskId: number) => {
             const task = today?.keyTasks.find(t => t.id === taskId);
@@ -106,10 +101,18 @@ const DailyPlanPage: React.FC = () => {
             setIsInventoryOpen(false);
       };
 
+      const handleConfirm = () => {
+            const targetDate = date || today?.planDate;
+            if (targetDate) {
+                  confirmPlan(targetDate);
+                  setShowConfirmModal(false);
+            }
+      };
+
       return (
-            <div className="flex flex-col h-[calc(100vh-80px)] overflow-hidden bg-white dark:bg-gray-950">
+            <div className="flex flex-col h-[calc(100vh-80px)] overflow-hidden bg-mystic-bg">
                   {/* Global Sub-Header */}
-                  <div className="px-4 md:px-8 border-b border-gray-100 dark:border-gray-800 bg-white/80 dark:bg-gray-950/80 backdrop-blur-md z-40 py-4">
+                  <div className="px-4 md:px-8 border-b border-mystic-border bg-mystic-bg/80 backdrop-blur-md z-40 py-4">
                         <div className="w-full max-w-7xl mx-auto flex items-center justify-between gap-4">
                               {/* Left: Date */}
                               <div className="flex items-center gap-3 shrink-0">
@@ -128,56 +131,7 @@ const DailyPlanPage: React.FC = () => {
 
                               {/* Center: Workflow Stepper */}
                               <div className="flex items-center gap-1 md:gap-1.5">
-                                    {(() => {
-                                          const allTasksDone = isConfirmed && today && today.keyTasks.length > 0 &&
-                                                today.keyTasks.filter(t => t.startTime).every(t => t.completed);
-                                          const currentStep = !today ? 0 : !isConfirmed ? 0 : allTasksDone ? 3 : 2;
-                                          const steps = [
-                                                { label: '계획', num: 1 },
-                                                { label: '확정', num: 2 },
-                                                { label: '실행', num: 3 },
-                                                { label: '회고', num: 4, link: '/routine/reflection' }
-                                          ];
-                                          return steps.map((step, i) => {
-                                                const isDone = i < currentStep;
-                                                const isActive = i === currentStep;
-                                                const StepWrapper = step.link && (isDone || isActive) ? 'button' : 'div';
-                                                return (
-                                                      <React.Fragment key={step.label}>
-                                                            {/* Arrow connector */}
-                                                            {i > 0 && (
-                                                                  <svg className="w-3 md:w-4 h-3 md:h-4 shrink-0" viewBox="0 0 16 16" fill="none">
-                                                                        <path d="M4 3 L11 8 L4 13" className={isDone || isActive ? 'fill-indigo-400' : 'fill-gray-300 dark:fill-gray-600'} />
-                                                                  </svg>
-                                                            )}
-                                                            {/* Step */}
-                                                            <StepWrapper
-                                                                  className={`flex items-center gap-2 md:gap-2.5 px-3 md:px-4 py-2 md:py-2.5 rounded-xl transition-all ${
-                                                                        isDone ? 'bg-indigo-100 dark:bg-indigo-900/30' :
-                                                                        isActive ? 'bg-indigo-600 shadow-lg shadow-indigo-200 dark:shadow-none' :
-                                                                        'bg-gray-100 dark:bg-gray-800'
-                                                                  } ${step.link && (isDone || isActive) ? 'cursor-pointer hover:scale-105' : ''}`}
-                                                                  {...(step.link && (isDone || isActive) ? { onClick: () => navigate(step.link) } : {})}
-                                                            >
-                                                                  <div className={`w-6 h-6 md:w-7 md:h-7 rounded-full flex items-center justify-center text-[10px] md:text-xs font-black shrink-0 ${
-                                                                        isDone ? 'bg-indigo-500 text-white' :
-                                                                        isActive ? 'bg-white text-indigo-600' :
-                                                                        'bg-gray-200 dark:bg-gray-700 text-gray-400 dark:text-gray-500'
-                                                                  }`}>
-                                                                        {isDone ? <Check className="w-3.5 h-3.5 md:w-4 md:h-4" /> : step.num}
-                                                                  </div>
-                                                                  <span className={`text-xs md:text-sm font-black tracking-wide ${
-                                                                        isDone ? 'text-indigo-600 dark:text-indigo-400' :
-                                                                        isActive ? 'text-white' :
-                                                                        'text-gray-400 dark:text-gray-500'
-                                                                  }`}>
-                                                                        {step.label}
-                                                                  </span>
-                                                            </StepWrapper>
-                                                      </React.Fragment>
-                                                );
-                                          });
-                                    })()}
+                                    <WorkflowStepper isConfirmed={isConfirmed} today={today} />
                               </div>
 
                               {/* Right: Actions */}
@@ -243,24 +197,34 @@ const DailyPlanPage: React.FC = () => {
                                     {!isConfirmed ? (
                                           <button
                                                 onClick={() => setShowConfirmModal(true)}
-                                                className="flex items-center gap-2 px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs md:text-sm font-black shadow-lg shadow-indigo-200 dark:shadow-none transition-all active:scale-95"
+                                                className="flex items-center gap-2 px-5 py-2.5 mystic-solid mystic-solid-hover text-white rounded-xl text-xs md:text-sm font-black shadow-lg transition-all active:scale-95"
                                           >
                                                 <Check className="w-4 h-4" />
                                                 <span className="whitespace-nowrap">확정하기</span>
                                           </button>
                                     ) : (
-                                          <button
-                                                onClick={() => {
-                                                      const targetDate = date || today?.planDate;
-                                                      if (targetDate) {
-                                                            unconfirmPlan(targetDate);
-                                                      }
-                                                }}
-                                                className="flex items-center gap-2 px-5 py-2.5 bg-gray-700 dark:bg-gray-600 hover:bg-gray-800 dark:hover:bg-gray-500 text-white rounded-xl text-xs md:text-sm font-black transition-all active:scale-95"
-                                          >
-                                                <Layout className="w-4 h-4" />
-                                                <span className="whitespace-nowrap">수정하기</span>
-                                          </button>
+                                          <>
+                                                <button
+                                                      onClick={handleExportIcs}
+                                                      className="hidden md:flex items-center gap-1.5 px-4 py-2.5 bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 rounded-xl text-xs font-black transition-all active:scale-95"
+                                                      title="ICS 내보내기"
+                                                >
+                                                      <Download className="w-4 h-4" />
+                                                      <span className="whitespace-nowrap">ICS</span>
+                                                </button>
+                                                <button
+                                                      onClick={() => {
+                                                            const targetDate = date || today?.planDate;
+                                                            if (targetDate) {
+                                                                  unconfirmPlan(targetDate);
+                                                            }
+                                                      }}
+                                                      className="flex items-center gap-2 px-5 py-2.5 bg-gray-700 dark:bg-gray-600 hover:bg-gray-800 dark:hover:bg-gray-500 text-white rounded-xl text-xs md:text-sm font-black transition-all active:scale-95"
+                                                >
+                                                      <Layout className="w-4 h-4" />
+                                                      <span className="whitespace-nowrap">수정하기</span>
+                                                </button>
+                                          </>
                                     )}
                               </div>
                         </div>
@@ -281,16 +245,37 @@ const DailyPlanPage: React.FC = () => {
 
                               {/* Left Sidebar: Inventory */}
                               <aside className={classNames(
-                                    "fixed inset-y-0 left-0 w-[280px] bg-white dark:bg-gray-900 border-r border-gray-100 dark:border-gray-800 flex-shrink-0 z-[45] shadow-2xl transition-transform duration-300 md:relative md:translate-x-0 md:z-30 md:w-[300px]",
+                                    "fixed inset-y-0 left-0 w-[280px] bg-white dark:bg-gray-900 border-r border-gray-100 dark:border-gray-800 flex-shrink-0 z-[45] shadow-2xl transition-transform duration-300 md:relative md:translate-x-0 md:z-30 md:w-[300px] flex flex-col",
                                     isInventoryOpen ? "translate-x-0" : "-translate-x-full"
                               )}>
-                                    <KineticPool
-                                          tasks={today?.keyTasks || []}
-                                          onDeleteTask={deleteTask}
-                                          onUnassignTask={(id) => updateTask(id, { startTime: undefined, endTime: undefined })}
-                                          onAssignTask={handleAssignTask}
-                                          isConfirmed={isConfirmed}
-                                    />
+                                    <div className="flex-1 min-h-0">
+                                          <KineticPool
+                                                tasks={today?.keyTasks || []}
+                                                onDeleteTask={deleteTask}
+                                                onUnassignTask={(id) => updateTask(id, { startTime: undefined, endTime: undefined })}
+                                                onAssignTask={handleAssignTask}
+                                                isConfirmed={isConfirmed}
+                                          />
+                                    </div>
+                                    {/* Mobile Template Actions */}
+                                    <div className="md:hidden shrink-0 border-t border-mystic-border p-3 bg-mystic-bg-secondary space-y-2">
+                                          <button
+                                                onClick={() => { setShowLoadTemplate(true); setIsInventoryOpen(false); }}
+                                                className="w-full flex items-center justify-center gap-2 px-3 py-2.5 bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 rounded-xl text-xs font-black transition-all"
+                                          >
+                                                <FolderOpen className="w-4 h-4" />
+                                                템플릿 불러오기
+                                          </button>
+                                          {today && today.keyTasks.length > 0 && (
+                                                <button
+                                                      onClick={() => { setShowSaveTemplate(true); setIsInventoryOpen(false); }}
+                                                      className="w-full flex items-center justify-center gap-2 px-3 py-2.5 bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 rounded-xl text-xs font-black transition-all"
+                                                >
+                                                      <Save className="w-4 h-4" />
+                                                      현재 계획 저장
+                                                </button>
+                                          )}
+                                    </div>
                               </aside>
 
                               {/* Main Content Area: Horizontal Timeline */}
@@ -298,273 +283,55 @@ const DailyPlanPage: React.FC = () => {
 
                                     {/* Horizontal Timeline Workspace */}
                                     <div className="flex-1 overflow-y-auto custom-scrollbar bg-transparent pb-40 md:pb-32">
-                                          {error && (
-                                                <div className="m-4 md:m-6 bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-900/30 text-red-600 dark:text-red-400 px-4 py-3 rounded-2xl text-xs md:text-sm font-medium flex items-center gap-2 animate-in fade-in slide-in-from-top-4">
-                                                      < Sparkles className="w-4 h-4" />
-                                                      {error}
-                                                </div>
-                                          )}
-
-                                          <div className="p-4 md:p-8">
-                                                <KineticTimeline
-                                                      tasks={today?.keyTasks || []}
-                                                      isConfirmed={isConfirmed}
-                                                      startHour={timelineRange.startHour}
-                                                      endHour={timelineRange.endHour}
-                                                />
-
-                                                {/* Decoration grid */}
-                                                <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6 opacity-20 pointer-events-none grayscale">
-                                                      <div className="h-40 bg-white dark:bg-gray-900 rounded-3xl border border-gray-100 dark:border-gray-800" />
-                                                      <div className="h-40 bg-white dark:bg-gray-900 rounded-3xl border border-gray-100 dark:border-gray-800 shrink-0 md:block hidden" />
-                                                </div>
-                                          </div>
-                                    </div>
-
-                                    {/* Floating Task Add Bar: Premium Redesign with Enhanced Distinction */}
-                                    <div className="absolute bottom-6 md:bottom-14 left-0 right-0 z-40 pointer-events-none flex justify-center px-4 md:px-0">
-                                          <div className={`w-full ${isDetailMode ? 'max-w-2xl' : 'max-w-5xl'} pointer-events-auto transition-all duration-500 ease-[cubic-bezier(0.23,1,0.32,1)]`}>
-                                                <div className="relative group">
-                                                      {/* Enhanced glow effect */}
-                                                      <div className={`absolute -inset-1.5 bg-gradient-to-r from-indigo-500/30 to-purple-500/30 rounded-[2rem] md:rounded-[3rem] blur-2xl opacity-20 group-hover:opacity-40 transition duration-1000 ${isDetailMode ? 'opacity-40' : ''}`}></div>
-
-                                                      <div className={`relative bg-white dark:bg-gray-900 backdrop-blur-3xl border border-gray-200 dark:border-gray-700 shadow-[0_25px_70px_rgba(0,0,0,0.15)] dark:shadow-[0_25px_70px_rgba(0,0,0,0.5)] transition-all duration-500 overflow-hidden ${isDetailMode ? 'rounded-[2rem] md:rounded-[2.5rem] p-4 md:p-6' : 'rounded-[2.5rem] md:rounded-[2.8rem] p-1.5 md:p-3'}`}>
-                                                            <form onSubmit={(e) => {
-                                                                  handleQuickAdd(e);
-                                                                  if (isDetailMode) setIsDetailMode(false);
-                                                            }}>
-                                                                  <div className="flex flex-col gap-6">
-                                                                        {/* Header Row */}
-                                                                        <div className="flex flex-col lg:flex-row lg:items-center gap-3">
-                                                                              <div className="flex items-center gap-3">
-                                                                                    {/* Mode Toggle */}
-                                                                                    <div className={`flex bg-gray-50 dark:bg-gray-800 rounded-full p-1 border border-gray-100 dark:border-gray-700 shrink-0 ${isDetailMode ? 'shadow-sm' : ''}`}>
-                                                                                          <button
-                                                                                                type="button"
-                                                                                                onClick={() => setIsDetailMode(false)}
-                                                                                                className={`px-3 md:px-4 py-1.5 md:py-2 rounded-full text-[9px] md:text-[11px] font-black uppercase tracking-wider transition-all flex items-center gap-1.5 md:gap-2 ${!isDetailMode ? 'bg-white dark:bg-gray-700 shadow-sm text-indigo-600' : 'text-gray-400 hover:text-gray-600'}`}
-                                                                                          >
-                                                                                                <Layout className="w-3 md:w-3.5 h-3 md:h-3.5" />
-                                                                                                Task
-                                                                                          </button>
-                                                                                          <button
-                                                                                                type="button"
-                                                                                                onClick={() => setIsDetailMode(true)}
-                                                                                                className={`px-3 md:px-4 py-1.5 md:py-2 rounded-full text-[9px] md:text-[11px] font-black uppercase tracking-wider transition-all flex items-center gap-1.5 md:gap-2 ${isDetailMode ? 'bg-white dark:bg-gray-700 shadow-sm text-indigo-600' : 'text-gray-400 hover:text-gray-600'}`}
-                                                                                          >
-                                                                                                <AlignLeft className="w-3 md:w-3.5 h-3 md:h-3.5" />
-                                                                                                Detail
-                                                                                          </button>
-                                                                                    </div>
-
-                                                                                    {/* Primary Title Input (Mobile inline) */}
-                                                                                    <div className="relative flex-1 lg:hidden">
-                                                                                          <input
-                                                                                                type="text"
-                                                                                                placeholder="무엇을 준비할까요?"
-                                                                                                value={newTask.title}
-                                                                                                onChange={(e) => setNewTask({ ...newTask, title: e.target.value })}
-                                                                                                className="w-full bg-transparent border-none font-bold text-gray-900 dark:text-white placeholder:text-gray-500 focus:ring-0 outline-none text-sm py-2"
-                                                                                          />
-                                                                                    </div>
-                                                                              </div>
-
-                                                                              {/* Primary Title Input (Desktop) */}
-                                                                              <div className="relative flex-1 hidden lg:block">
-                                                                                    <input
-                                                                                          type="text"
-                                                                                          placeholder={isDetailMode ? "어떤 일을 하실 건가요?" : "무엇을 준비할까요?"}
-                                                                                          value={newTask.title}
-                                                                                          onChange={(e) => setNewTask({ ...newTask, title: e.target.value })}
-                                                                                          className={`w-full bg-transparent border-none font-bold text-gray-900 dark:text-white placeholder:text-gray-500 focus:ring-0 outline-none transition-all ${isDetailMode ? 'text-lg md:text-xl px-2' : 'text-sm md:text-base pl-2 md:pl-4 pr-4 md:pr-6 py-3 md:py-5'}`}
-                                                                                    />
-                                                                              </div>
-
-                                                                              {/* Quick Add Controls (Visible only in Quick Mode) */}
-                                                                              {!isDetailMode && (
-                                                                                    <>
-                                                                                          {/* Desktop Quick Add Controls */}
-                                                                                          <div className="hidden lg:flex items-center gap-4 pr-2 animate-in fade-in slide-in-from-right-4 duration-500">
-                                                                                                <div className="flex items-center bg-gray-50/50 dark:bg-gray-800/50 p-2 rounded-2xl border border-gray-100/50 dark:border-gray-700/50">
-                                                                                                      <select
-                                                                                                            value={newTask.category}
-                                                                                                            onChange={(e) => setNewTask({ ...newTask, category: e.target.value as Category })}
-                                                                                                            className="bg-transparent border-none pl-3 pr-8 py-2.5 text-xs font-black text-gray-600 dark:text-gray-300 focus:ring-0 outline-none cursor-pointer uppercase tracking-tight"
-                                                                                                      >
-                                                                                                            <option value="WORK">💼 Work</option>
-                                                                                                            <option value="PERSONAL">🏠 Home</option>
-                                                                                                            <option value="HEALTH">💪 Body</option>
-                                                                                                            <option value="STUDY">📚 Book</option>
-                                                                                                      </select>
-                                                                                                      <div className="w-px h-5 bg-gray-200 dark:bg-gray-700 mx-1" />
-                                                                                                      <select
-                                                                                                            value={newTask.priority}
-                                                                                                            onChange={(e) => setNewTask({ ...newTask, priority: e.target.value as Priority })}
-                                                                                                            className="bg-transparent border-none pl-3 pr-8 py-2.5 text-xs font-black text-gray-600 dark:text-gray-300 focus:ring-0 outline-none cursor-pointer uppercase tracking-tight"
-                                                                                                      >
-                                                                                                            <option value="LOW">Low</option>
-                                                                                                            <option value="MEDIUM">Medium</option>
-                                                                                                            <option value="HIGH">High</option>
-                                                                                                      </select>
-                                                                                                </div>
-
-                                                                                                <div className="flex items-center gap-2 bg-indigo-50/30 dark:bg-indigo-900/10 px-4 py-2 rounded-2xl border border-indigo-100/30 dark:border-indigo-800/30">
-                                                                                                      <Clock className="w-3.5 h-3.5 text-indigo-400" />
-                                                                                                      <div className="flex items-center">
-                                                                                                            <input
-                                                                                                                  type="number"
-                                                                                                                  min="0"
-                                                                                                                  value={newTask.durationHours}
-                                                                                                                  onChange={(e) => setNewTask({ ...newTask, durationHours: e.target.value })}
-                                                                                                                  className="w-7 bg-transparent border-none text-[11px] font-black text-center text-indigo-600 dark:text-indigo-400 focus:ring-0 outline-none"
-                                                                                                            />
-                                                                                                            <span className="text-[9px] font-black text-indigo-300 mx-0.5">H</span>
-                                                                                                            <input
-                                                                                                                  type="number"
-                                                                                                                  min="0" max="59"
-                                                                                                                  value={newTask.durationMinutes}
-                                                                                                                  onChange={(e) => setNewTask({ ...newTask, durationMinutes: e.target.value })}
-                                                                                                                  className="w-7 bg-transparent border-none text-[11px] font-black text-center text-indigo-600 dark:text-indigo-400 focus:ring-0 outline-none"
-                                                                                                            />
-                                                                                                            <span className="text-[9px] font-black text-indigo-300 mx-0.5">M</span>
-                                                                                                      </div>
-                                                                                                </div>
-
-                                                                                                <button
-                                                                                                      type="submit"
-                                                                                                      disabled={!newTask.title.trim()}
-                                                                                                      className="group/btn relative overflow-hidden px-10 py-3.5 bg-indigo-600 disabled:bg-gray-200 text-white rounded-[1.8rem] text-[11px] font-black shadow-[0_10px_20px_-5px_rgba(79,70,229,0.4)] disabled:shadow-none transition-all duration-300 active:scale-95 flex items-center gap-2 whitespace-nowrap uppercase tracking-widest"
-                                                                                                >
-                                                                                                      <div className="absolute inset-0 bg-gradient-to-r from-indigo-600 to-purple-600 opacity-100 group-hover/btn:scale-110 transition-transform duration-500" />
-                                                                                                      <Sparkles className="relative z-10 w-3.5 h-3.5 transition-transform group-hover/btn:rotate-12" />
-                                                                                                      <span className="relative z-10">Quick Add</span>
-                                                                                                </button>
-                                                                                          </div>
-
-                                                                                          {/* Mobile Quick Add Controls */}
-                                                                                          <div className="flex lg:hidden items-center gap-2 mt-2 animate-in slide-in-from-bottom-2 duration-300">
-                                                                                                <div className="flex-1 flex items-center bg-gray-50 dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 p-1">
-                                                                                                      <select
-                                                                                                            value={newTask.category}
-                                                                                                            onChange={(e) => setNewTask({ ...newTask, category: e.target.value as Category })}
-                                                                                                            className="flex-1 bg-transparent border-none pl-2 pr-4 py-1.5 text-[10px] font-black text-gray-600 dark:text-gray-300 focus:ring-0 outline-none"
-                                                                                                      >
-                                                                                                            <option value="WORK">💼 Work</option>
-                                                                                                            <option value="PERSONAL">🏠 Home</option>
-                                                                                                            <option value="HEALTH">💪 Body</option>
-                                                                                                            <option value="STUDY">📚 Book</option>
-                                                                                                      </select>
-                                                                                                      <div className="w-px h-3 bg-gray-200 dark:bg-gray-700 mx-0.5" />
-                                                                                                      <select
-                                                                                                            value={newTask.priority}
-                                                                                                            onChange={(e) => setNewTask({ ...newTask, priority: e.target.value as Priority })}
-                                                                                                            className="flex-1 bg-transparent border-none pl-2 pr-4 py-1.5 text-[10px] font-black text-gray-600 dark:text-gray-300 focus:ring-0 outline-none"
-                                                                                                      >
-                                                                                                            <option value="LOW">Low</option>
-                                                                                                            <option value="MEDIUM">Med</option>
-                                                                                                            <option value="HIGH">High</option>
-                                                                                                      </select>
-                                                                                                </div>
-                                                                                                <div className="flex items-center gap-1.5 bg-indigo-50 dark:bg-indigo-900/10 px-2.5 py-1.5 rounded-xl border border-indigo-100 dark:border-indigo-800/30">
-                                                                                                      <Clock className="w-3 h-3 text-indigo-400" />
-                                                                                                      <div className="flex items-center">
-                                                                                                            <input
-                                                                                                                  type="number"
-                                                                                                                  value={newTask.durationHours}
-                                                                                                                  onChange={(e) => setNewTask({ ...newTask, durationHours: e.target.value })}
-                                                                                                                  className="w-5 bg-transparent border-none p-0 text-[10px] font-black text-indigo-600 dark:text-indigo-400 focus:ring-0 outline-none text-center"
-                                                                                                            />
-                                                                                                            <span className="text-[8px] font-black text-indigo-300 ml-0.5">H</span>
-                                                                                                      </div>
-                                                                                                </div>
-                                                                                                <button
-                                                                                                      type="submit"
-                                                                                                      disabled={!newTask.title.trim()}
-                                                                                                      className="w-9 h-9 bg-indigo-600 disabled:bg-gray-100 text-white rounded-xl shadow-lg flex items-center justify-center active:scale-90 transition-all"
-                                                                                                >
-                                                                                                      <Sparkles className="w-3.5 h-3.5" />
-                                                                                                </button>
-                                                                                          </div>
-                                                                                    </>
-                                                                              )}
-                                                                        </div>
-
-                                                                        {/* Detail Mode Expanded Content */}
-                                                                        {isDetailMode && (
-                                                                              <div className="animate-in fade-in slide-in-from-top-4 duration-500 space-y-6">
-                                                                                    <div className="bg-gray-50/50 dark:bg-gray-800/50 rounded-3xl p-4 border border-gray-100/50 dark:border-gray-700/50 transition-all focus-within:bg-gray-50 focus-within:ring-2 focus-within:ring-indigo-500/10">
-                                                                                          <textarea
-                                                                                                placeholder="메모나 상세 내용을 적어주세요 (선택사항)"
-                                                                                                value={newTask.description}
-                                                                                                onChange={(e) => setNewTask({ ...newTask, description: e.target.value })}
-                                                                                                className="w-full bg-transparent border-none text-sm font-medium text-gray-700 dark:text-gray-300 focus:ring-0 resize-none h-24 placeholder:text-gray-400 p-2"
-                                                                                          />
-                                                                                    </div>
-
-                                                                                    <div className="flex flex-col lg:flex-row lg:items-center gap-4">
-                                                                                          <div className="flex-1 grid grid-cols-2 gap-4">
-                                                                                                <div className="bg-gray-50/50 dark:bg-gray-800/50 p-1.5 rounded-2xl border border-gray-100/50 dark:border-gray-700/50 flex items-center">
-                                                                                                      <select
-                                                                                                            value={newTask.category}
-                                                                                                            onChange={(e) => setNewTask({ ...newTask, category: e.target.value as Category })}
-                                                                                                            className="flex-1 bg-transparent border-none pl-3 pr-2 py-3 text-xs font-black text-gray-700 dark:text-gray-300 focus:ring-0 outline-none cursor-pointer"
-                                                                                                      >
-                                                                                                            <option value="WORK">💼 Work</option>
-                                                                                                            <option value="PERSONAL">🏠 Home</option>
-                                                                                                            <option value="HEALTH">💪 Body</option>
-                                                                                                            <option value="STUDY">📚 Book</option>
-                                                                                                      </select>
-                                                                                                      <div className="w-px h-6 bg-gray-200 dark:bg-gray-700 mx-1" />
-                                                                                                      <select
-                                                                                                            value={newTask.priority}
-                                                                                                            onChange={(e) => setNewTask({ ...newTask, priority: e.target.value as Priority })}
-                                                                                                            className="flex-1 bg-transparent border-none pl-3 pr-2 py-3 text-xs font-black text-gray-700 dark:text-gray-300 focus:ring-0 outline-none cursor-pointer"
-                                                                                                      >
-                                                                                                            <option value="LOW">Low</option>
-                                                                                                            <option value="MEDIUM">Med</option>
-                                                                                                            <option value="HIGH">High</option>
-                                                                                                      </select>
-                                                                                                </div>
-
-                                                                                                <div className="flex items-center gap-3 bg-gray-50/50 dark:bg-gray-800/50 px-4 py-2 rounded-2xl border border-gray-100/50 dark:border-gray-700/50">
-                                                                                                      <Clock className="w-4 h-4 text-gray-400" />
-                                                                                                      <div className="flex items-center flex-1 justify-center">
-                                                                                                            <input
-                                                                                                                  type="number"
-                                                                                                                  value={newTask.durationHours}
-                                                                                                                  onChange={(e) => setNewTask({ ...newTask, durationHours: e.target.value })}
-                                                                                                                  className="w-10 bg-transparent border-none text-sm font-black text-center text-gray-900 dark:text-white focus:ring-0 outline-none"
-                                                                                                            />
-                                                                                                            <span className="text-[10px] font-black text-gray-400 mx-1">H</span>
-                                                                                                            <input
-                                                                                                                  type="number"
-                                                                                                                  value={newTask.durationMinutes}
-                                                                                                                  onChange={(e) => setNewTask({ ...newTask, durationMinutes: e.target.value })}
-                                                                                                                  className="w-10 bg-transparent border-none text-sm font-black text-center text-gray-900 dark:text-white focus:ring-0 outline-none"
-                                                                                                            />
-                                                                                                            <span className="text-[10px] font-black text-gray-400 mx-1">M</span>
-                                                                                                      </div>
-                                                                                                </div>
-                                                                                          </div>
-
-                                                                                          <button
-                                                                                                type="submit"
-                                                                                                disabled={!newTask.title.trim()}
-                                                                                                className="group/btn relative overflow-hidden px-8 py-4 bg-indigo-600 disabled:bg-gray-200 text-white rounded-[1.5rem] font-black shadow-xl shadow-indigo-200/50 dark:shadow-none transition-all duration-300 active:scale-95 flex items-center gap-3 whitespace-nowrap justify-center"
-                                                                                          >
-                                                                                                <div className="absolute inset-0 bg-gradient-to-r from-indigo-600 to-purple-600 opacity-100 group-hover/btn:scale-110 transition-transform duration-500" />
-                                                                                                <Sparkles className="relative z-10 w-5 h-5" />
-                                                                                                <span className="relative z-10 text-sm tracking-wide">Create Task</span>
-                                                                                          </button>
-                                                                                    </div>
-                                                                              </div>
-                                                                        )}
-                                                                  </div>
-                                                            </form>
+                                          {!today && error ? (
+                                                <div className="flex flex-col items-center justify-center py-24 px-6 text-center animate-in fade-in">
+                                                      <div className="w-16 h-16 bg-indigo-50 dark:bg-indigo-900/30 rounded-2xl flex items-center justify-center mb-5">
+                                                            <Sparkles className="w-7 h-7 text-indigo-400" />
                                                       </div>
+                                                      <h3 className="text-lg font-black text-gray-900 dark:text-white mb-2">새로운 하루를 계획해보세요</h3>
+                                                      <p className="text-sm text-gray-500 dark:text-gray-400 mb-6 max-w-xs">
+                                                            아직 이 날의 계획이 없습니다. 아래 버튼을 눌러 시작하세요.
+                                                      </p>
+                                                      <button
+                                                            onClick={() => {
+                                                                  const targetDate = date || format(new Date(), 'yyyy-MM-dd');
+                                                                  createNewPlan(targetDate);
+                                                            }}
+                                                            className="flex items-center gap-2 px-6 py-3 mystic-solid mystic-solid-hover text-white rounded-xl text-sm font-black shadow-lg transition-all active:scale-95"
+                                                      >
+                                                            <Plus className="w-4 h-4" />
+                                                            새 계획 작성하기
+                                                      </button>
                                                 </div>
-                                          </div>
+                                          ) : (
+                                                <>
+                                                      {error && (
+                                                            <div className="m-4 md:m-6 bg-amber-50 dark:bg-amber-900/20 border border-amber-100 dark:border-amber-900/30 text-amber-600 dark:text-amber-400 px-4 py-3 rounded-2xl text-xs md:text-sm font-medium flex items-center gap-2 animate-in fade-in slide-in-from-top-4">
+                                                                  <Sparkles className="w-4 h-4" />
+                                                                  {error}
+                                                            </div>
+                                                      )}
+
+                                                      <div className="p-4 md:p-8">
+                                                            <KineticTimeline
+                                                                  tasks={today?.keyTasks || []}
+                                                                  isConfirmed={isConfirmed}
+                                                                  startHour={timelineRange.startHour}
+                                                                  endHour={timelineRange.endHour}
+                                                            />
+
+                                                            {/* Decoration grid */}
+                                                            <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6 opacity-20 pointer-events-none grayscale">
+                                                                  <div className="h-40 bg-mystic-bg-secondary rounded-3xl border border-mystic-border" />
+                                                                  <div className="h-40 bg-mystic-bg-secondary rounded-3xl border border-mystic-border shrink-0 md:block hidden" />
+                                                            </div>
+                                                      </div>
+                                                </>
+                                          )}
                                     </div>
+
+                                    {/* Floating Task Add Bar */}
+                                    {today && <TaskAddBar onAddTask={addTask} />}
                               </div>
                         </div>
                   )}
@@ -578,130 +345,14 @@ const DailyPlanPage: React.FC = () => {
                   )}
 
                   {/* Confirm Plan Modal */}
-                  {showConfirmModal && today && (() => {
-                        const tasks = today.keyTasks || [];
-                        const totalMinutes = tasks.reduce((sum, t) => sum + (t.durationMinutes || 0), 0);
-                        const totalHours = Math.floor(totalMinutes / 60);
-                        const remainMins = totalMinutes % 60;
-                        const scheduledCount = tasks.filter(t => t.startTime).length;
-                        const categoryMap: Record<string, number> = {};
-                        tasks.forEach(t => { if (t.category) categoryMap[t.category] = (categoryMap[t.category] || 0) + 1; });
-
-                        const priorityBarColor = (p?: string) =>
-                              p === 'HIGH' ? 'bg-red-500' : p === 'MEDIUM' ? 'bg-amber-500' : 'bg-blue-400';
-
-                        return (
-                              <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-                                    <div className="absolute inset-0 bg-black/60 backdrop-blur-md" onClick={() => setShowConfirmModal(false)} />
-                                    <div className="relative bg-white dark:bg-gray-900 rounded-3xl shadow-2xl w-full max-w-lg max-h-[85vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-
-                                          {/* Gradient Header */}
-                                          <div className="relative bg-gradient-to-br from-indigo-600 via-purple-600 to-indigo-700 p-6 pb-5 text-white">
-                                                {/* Close */}
-                                                <button
-                                                      onClick={() => setShowConfirmModal(false)}
-                                                      className="absolute top-4 right-4 p-1.5 text-white/50 hover:text-white hover:bg-white/20 rounded-lg transition-colors z-10"
-                                                >
-                                                      <X className="w-5 h-5" />
-                                                </button>
-
-                                                <div className="text-[10px] font-bold uppercase tracking-widest text-white/50 mb-1">계획 확정</div>
-                                                <h2 className="text-xl font-black mb-5">
-                                                      {today.planDate ? format(new Date(today.planDate), 'yyyy년 M월 d일 (EEEE)', { locale: ko }) : '오늘'}
-                                                </h2>
-
-                                                {/* Stats Row */}
-                                                <div className="grid grid-cols-3 gap-2">
-                                                      <div className="bg-white/10 rounded-xl px-3 py-2.5 text-center">
-                                                            <div className="text-lg font-black leading-tight">{tasks.length}</div>
-                                                            <div className="text-[9px] font-bold text-white/60 uppercase tracking-wider mt-0.5">태스크</div>
-                                                      </div>
-                                                      <div className="bg-white/10 rounded-xl px-3 py-2.5 text-center">
-                                                            <div className="text-lg font-black leading-tight">
-                                                                  {totalHours > 0 ? `${totalHours}h ` : ''}{remainMins > 0 ? `${remainMins}m` : totalHours > 0 ? '' : '0m'}
-                                                            </div>
-                                                            <div className="text-[9px] font-bold text-white/60 uppercase tracking-wider mt-0.5">총 시간</div>
-                                                      </div>
-                                                      <div className="bg-white/10 rounded-xl px-3 py-2.5 text-center">
-                                                            <div className="text-lg font-black leading-tight">{scheduledCount}<span className="text-white/50 text-sm">/{tasks.length}</span></div>
-                                                            <div className="text-[9px] font-bold text-white/60 uppercase tracking-wider mt-0.5">시간배정</div>
-                                                      </div>
-                                                </div>
-                                          </div>
-
-                                          {/* Category Chips */}
-                                          <div className="px-6 py-3 border-b border-gray-100 dark:border-gray-800 flex items-center gap-2 flex-wrap">
-                                                {Object.entries(categoryMap).map(([cat, count]) => {
-                                                      const emoji = cat === 'WORK' ? '💼' : cat === 'HEALTH' ? '💪' : cat === 'STUDY' ? '📚' : cat === 'PERSONAL' ? '🏠' : '🏷️';
-                                                      const label = cat === 'WORK' ? '업무' : cat === 'HEALTH' ? '건강' : cat === 'STUDY' ? '학습' : cat === 'PERSONAL' ? '개인' : '기타';
-                                                      return (
-                                                            <span key={cat} className="inline-flex items-center gap-1 px-2.5 py-1 bg-gray-100 dark:bg-gray-800 rounded-lg text-xs font-bold text-gray-600 dark:text-gray-300">
-                                                                  {emoji} {label} <span className="text-indigo-500 font-black">{count}</span>
-                                                            </span>
-                                                      );
-                                                })}
-                                          </div>
-
-                                          {/* Task List */}
-                                          <div className="flex-1 overflow-y-auto px-6 py-4 space-y-2">
-                                                {tasks.length === 0 ? (
-                                                      <p className="text-sm text-gray-400 text-center py-8">등록된 태스크가 없습니다</p>
-                                                ) : (
-                                                      tasks.map((task) => (
-                                                            <div key={task.id} className="flex items-center gap-3 p-3 rounded-xl bg-gray-50 dark:bg-gray-800/50 border border-gray-100 dark:border-gray-800 hover:border-indigo-200 dark:hover:border-indigo-800 transition-colors">
-                                                                  {/* Priority accent bar */}
-                                                                  <div className={`w-1 h-10 rounded-full shrink-0 ${priorityBarColor(task.priority)}`} />
-                                                                  <div className="flex-1 min-w-0">
-                                                                        <p className="text-sm font-bold text-gray-900 dark:text-white truncate">{task.title}</p>
-                                                                        <div className="flex items-center gap-2 mt-0.5">
-                                                                              {task.startTime ? (
-                                                                                    <span className="text-[10px] font-bold text-indigo-500 bg-indigo-50 dark:bg-indigo-900/30 px-1.5 py-0.5 rounded">
-                                                                                          {task.startTime.substring(0, 5)}
-                                                                                    </span>
-                                                                              ) : (
-                                                                                    <span className="text-[10px] font-bold text-gray-400 bg-gray-100 dark:bg-gray-700 px-1.5 py-0.5 rounded">미배정</span>
-                                                                              )}
-                                                                              {task.durationMinutes && (
-                                                                                    <span className="text-[10px] font-medium text-gray-400">{task.durationMinutes}분</span>
-                                                                              )}
-                                                                        </div>
-                                                                  </div>
-                                                                  <span className="text-base shrink-0">
-                                                                        {task.category === 'WORK' ? '💼' : task.category === 'HEALTH' ? '💪' : task.category === 'STUDY' ? '📚' : task.category === 'PERSONAL' ? '🏠' : '🏷️'}
-                                                                  </span>
-                                                            </div>
-                                                      ))
-                                                )}
-                                          </div>
-
-                                          {/* Footer */}
-                                          <div className="p-6 pt-4 border-t border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-900">
-                                                <div className="flex gap-3">
-                                                      <button
-                                                            onClick={() => setShowConfirmModal(false)}
-                                                            className="flex-1 py-3.5 border border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-300 rounded-xl text-sm font-black transition-colors"
-                                                      >
-                                                            취소
-                                                      </button>
-                                                      <button
-                                                            onClick={() => {
-                                                                  const targetDate = date || today?.planDate;
-                                                                  if (targetDate) {
-                                                                        confirmPlan(targetDate);
-                                                                        setShowConfirmModal(false);
-                                                                  }
-                                                            }}
-                                                            className="flex-[2] py-3.5 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white rounded-xl text-sm font-black shadow-lg shadow-indigo-200 dark:shadow-none transition-all active:scale-[0.98] flex items-center justify-center gap-2"
-                                                      >
-                                                            <Check className="w-4.5 h-4.5" />
-                                                            확정하기
-                                                      </button>
-                                                </div>
-                                          </div>
-                                    </div>
-                              </div>
-                        );
-                  })()}
+                  {showConfirmModal && today && (
+                        <ConfirmPlanModal
+                              plan={today}
+                              onConfirm={handleConfirm}
+                              onClose={() => setShowConfirmModal(false)}
+                              gcalConnected={gcalConnected}
+                        />
+                  )}
             </div>
       );
 };

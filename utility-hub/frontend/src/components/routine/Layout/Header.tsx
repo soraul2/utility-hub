@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Calendar, BookOpen, Archive, BarChart2, LogOut, User, ChevronDown, LayoutGrid, Menu, X, CalendarDays } from 'lucide-react';
+import { Calendar, BookOpen, Archive, BarChart2, LogOut, User, ChevronDown, LayoutGrid, Menu, X, CalendarDays, ShoppingBag } from 'lucide-react';
 import { useAuth } from '../../../hooks/useAuth';
 import { useTheme } from '../../../context/ThemeContext';
 import { Sun, Moon } from 'lucide-react';
@@ -56,11 +56,11 @@ const Header = () => {
 
       return (
             <div className="contents">
-                  <header className="fixed top-0 left-0 right-0 h-20 bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl border-b border-gray-100 dark:border-gray-800 z-50 px-4 md:px-8 transition-colors">
+                  <header className="fixed top-0 left-0 right-0 h-20 bg-mystic-bg-secondary/80 backdrop-blur-xl border-b border-mystic-border z-50 px-4 md:px-8 transition-colors">
                         <div className="h-full flex items-center justify-between">
                               <div className="flex items-center gap-4 md:gap-12">
                                     <Link to="/routine/daily-plan" className="hover:opacity-80 transition-opacity">
-                                          <h1 className="text-xl md:text-2xl font-black bg-gradient-to-r from-indigo-600 to-purple-600 dark:from-indigo-400 dark:to-purple-400 bg-clip-text text-transparent tracking-tight">
+                                          <h1 className="text-xl md:text-2xl font-black mystic-text-gradient tracking-tight">
                                                 Routine Hub
                                           </h1>
                                     </Link>
@@ -121,6 +121,14 @@ const Header = () => {
                                           </div>
 
                                           <Link
+                                                to="/routine/shop"
+                                                className="p-2.5 text-gray-400 dark:text-gray-500 hover:text-amber-600 dark:hover:text-amber-400 transition-all bg-gray-50 dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 hover:border-amber-100 dark:hover:border-amber-900/30 group"
+                                                title="테마 상점"
+                                          >
+                                                <ShoppingBag className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                                          </Link>
+
+                                          <Link
                                                 to="/"
                                                 className="p-2.5 text-gray-400 dark:text-gray-500 hover:text-indigo-600 dark:hover:text-indigo-400 transition-all bg-gray-50 dark:bg-gray-800 rounded-xl border border-gray-100 dark:border-gray-700 hover:border-indigo-100 dark:hover:border-indigo-900/30 group"
                                                 title="Utility Hub로 돌아가기"
@@ -143,7 +151,7 @@ const Header = () => {
                                                 onClick={() => setIsProfileOpen(!isProfileOpen)}
                                                 className="flex items-center gap-2 p-1.5 pr-3 rounded-2xl hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors border border-transparent hover:border-gray-100 dark:hover:border-gray-700"
                                           >
-                                                <div className="w-10 h-10 bg-gradient-to-br from-indigo-600 to-purple-600 rounded-xl flex items-center justify-center text-white font-bold text-sm shadow-lg shadow-indigo-200 dark:shadow-none">
+                                                <div className="w-10 h-10 mystic-gradient-br rounded-xl flex items-center justify-center text-white font-bold text-sm shadow-lg">
                                                       {user ? getInitials(user.nickname) : <User className="w-5 h-5" />}
                                                 </div>
                                                 {isAuthenticated && (
@@ -154,9 +162,9 @@ const Header = () => {
                                           {/* Dropdown Menu */}
                                           {isProfileOpen && isAuthenticated && (
                                                 <div className="absolute right-0 mt-2 w-64 bg-white dark:bg-gray-900 rounded-2xl shadow-xl border border-gray-100 dark:border-gray-800 overflow-hidden z-50 animate-in fade-in slide-in-from-top-2 duration-200">
-                                                      <div className="p-4 bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-indigo-900/20 dark:to-purple-900/20 border-b border-gray-100 dark:border-gray-800">
+                                                      <div className="p-4 mystic-gradient-muted-br border-b border-gray-100 dark:border-gray-800">
                                                             <div className="flex items-center gap-3">
-                                                                  <div className="w-12 h-12 bg-gradient-to-br from-indigo-600 to-purple-600 rounded-xl flex items-center justify-center text-white font-bold shadow-lg shadow-indigo-200 dark:shadow-none">
+                                                                  <div className="w-12 h-12 mystic-gradient-br rounded-xl flex items-center justify-center text-white font-bold shadow-lg">
                                                                         {user ? getInitials(user.nickname) : '?'}
                                                                   </div>
                                                                   <div className="flex-1 min-w-0">
@@ -212,7 +220,7 @@ const Header = () => {
                               {/* Sidebar Header */}
                               <div className="p-6 flex items-center justify-between border-b border-gray-100 dark:border-gray-800">
                                     <div className="flex items-center gap-2">
-                                          <div className="w-10 h-10 bg-gradient-to-br from-indigo-600 to-purple-600 rounded-xl flex items-center justify-center text-white font-bold shadow-lg shadow-indigo-200 dark:shadow-none">
+                                          <div className="w-10 h-10 mystic-gradient-br rounded-xl flex items-center justify-center text-white font-bold shadow-lg">
                                                 {user ? getInitials(user.nickname) : <User className="w-5 h-5" />}
                                           </div>
                                           <div className="flex-1 min-w-0">
@@ -278,12 +286,21 @@ const Header = () => {
                                     </div>
 
                                     <Link
+                                          to="/routine/shop"
+                                          onClick={() => setIsMobileMenuOpen(false)}
+                                          className="flex items-center gap-3 px-4 py-3 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-xl font-bold transition-all"
+                                    >
+                                          <ShoppingBag className="w-5 h-5" />
+                                          <span>테마 상점</span>
+                                    </Link>
+
+                                    <Link
                                           to="/"
                                           onClick={() => setIsMobileMenuOpen(false)}
                                           className="flex items-center gap-3 px-4 py-3 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-xl font-bold transition-all"
                                     >
                                           <LayoutGrid className="w-5 h-5" />
-                                          <span>Utility HubHome</span>
+                                          <span>Utility Hub Home</span>
                                     </Link>
                               </div>
 

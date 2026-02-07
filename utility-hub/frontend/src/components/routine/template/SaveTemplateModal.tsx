@@ -1,20 +1,8 @@
 import React, { useState } from 'react';
 import { X, Save, Clock } from 'lucide-react';
-import type { DailyPlan, Priority, Category } from '../../../types/routine';
+import type { DailyPlan } from '../../../types/routine';
 import { useRoutineStore } from '../../../stores/useRoutineStore';
-
-const PRIORITY_CONFIG: Record<Priority, { bgColor: string; borderColor: string; textColor: string }> = {
-      HIGH: { bgColor: 'bg-red-50 dark:bg-red-900/20', borderColor: 'border-red-200 dark:border-red-800', textColor: 'text-red-700 dark:text-red-300' },
-      MEDIUM: { bgColor: 'bg-yellow-50 dark:bg-yellow-900/20', borderColor: 'border-yellow-200 dark:border-yellow-800', textColor: 'text-yellow-700 dark:text-yellow-300' },
-      LOW: { bgColor: 'bg-green-50 dark:bg-green-900/20', borderColor: 'border-green-200 dark:border-green-800', textColor: 'text-green-700 dark:text-green-300' },
-};
-
-const CATEGORY_CONFIG: Record<Category, { emoji: string; label: string }> = {
-      WORK: { emoji: '💼', label: '업무' },
-      HEALTH: { emoji: '💪', label: '건강' },
-      STUDY: { emoji: '📚', label: '학습' },
-      PERSONAL: { emoji: '🏠', label: '개인' },
-};
+import { PRIORITY_CONFIG, CATEGORY_CONFIG } from '../../../lib/constants/routine';
 
 interface SaveTemplateModalProps {
       plan: DailyPlan;
@@ -139,7 +127,7 @@ export const SaveTemplateModal: React.FC<SaveTemplateModalProps> = ({ plan, onCl
                               <button
                                     onClick={handleSave}
                                     disabled={!name.trim() || saving}
-                                    className="px-5 py-2.5 text-sm font-bold text-white bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed rounded-xl transition-colors flex items-center gap-2"
+                                    className="px-5 py-2.5 text-sm font-bold text-white mystic-solid mystic-solid-hover disabled:opacity-50 disabled:cursor-not-allowed rounded-xl transition-colors flex items-center gap-2"
                               >
                                     <Save className="w-4 h-4" />
                                     {saving ? '저장 중...' : '저장'}

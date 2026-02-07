@@ -55,6 +55,8 @@ public class SecurityConfig {
                                     .requestMatchers("/oauth2/authorization/**").permitAll()
                                     // Public
                                     .requestMatchers("/", "/css/**", "/images/**", "/js/**", "/favicon.ico").permitAll()
+                                    // Google Calendar OAuth callback (public - uses state JWT for auth)
+                                    .requestMatchers("/api/calendar/google/callback").permitAll()
                                     // Features (Public for now)
                                     .requestMatchers("/api/tarot/**", "/api/text-to-md/**").permitAll()
                                     // Swagger

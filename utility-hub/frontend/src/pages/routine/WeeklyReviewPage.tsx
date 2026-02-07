@@ -103,7 +103,7 @@ export const WeeklyReviewPage = () => {
                         setSelectedReflection(reflection);
                         setReflectionModalOpen(true);
                   } else {
-                        setSaveMessage({ type: 'error', text: '해당 날짜의 회고 기록이 없습니다.' });
+                        setSaveMessage({ type: 'success', text: '회고가 아직 없어요. 오늘의 하루를 돌아보세요!' });
                   }
             } catch (err) {
                   console.error(err);
@@ -187,7 +187,7 @@ export const WeeklyReviewPage = () => {
       }
 
       return (
-            <div className="min-h-screen bg-white dark:bg-gray-950 max-w-5xl mx-auto px-4 py-6 space-y-6 pb-20">
+            <div className="min-h-screen bg-mystic-bg max-w-5xl mx-auto px-4 py-6 space-y-6 pb-20">
                   {/* 헤더: 주 선택 네비게이션 */}
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                         <div>
@@ -205,7 +205,7 @@ export const WeeklyReviewPage = () => {
                               >
                                     <ChevronLeft className="w-5 h-5 text-gray-600 dark:text-gray-400" />
                               </button>
-                              <div className="flex-1 sm:flex-none px-3 md:px-4 py-1.5 md:py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl min-w-[140px] md:min-w-[180px] text-center">
+                              <div className="flex-1 sm:flex-none px-3 md:px-4 py-1.5 md:py-2 bg-mystic-bg-secondary border border-mystic-border rounded-xl min-w-[140px] md:min-w-[180px] text-center">
                                     <div className="flex items-center justify-center gap-2">
                                           <CalendarDays className="w-4 h-4 text-gray-400" />
                                           <span className="text-xs md:text-sm font-bold text-gray-900 dark:text-white">
@@ -247,7 +247,7 @@ export const WeeklyReviewPage = () => {
                         </div>
 
                         {/* 일별 달성률 차트 */}
-                        <div className="lg:col-span-2 bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-100 dark:border-gray-700">
+                        <div className="lg:col-span-2 bg-mystic-bg-secondary rounded-2xl p-6 border border-mystic-border">
                               <h3 className="text-sm font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
                                     <TrendingUp className="w-4 h-4 text-indigo-500" />
                                     일별 달성률
@@ -270,7 +270,7 @@ export const WeeklyReviewPage = () => {
                               </div>
 
                               {/* 바 영역 + 50% 기준선 */}
-                              <div className="relative h-28">
+                              <div className="relative h-24 md:h-28">
                                     {/* 50% 기준선 - 바 영역의 정확히 가운데 */}
                                     <div className="absolute left-0 right-0 top-1/2 -translate-y-1/2 flex items-center pointer-events-none z-[1]">
                                           <div className="flex-1 border-t border-dashed border-gray-300 dark:border-gray-600" />
@@ -293,7 +293,7 @@ export const WeeklyReviewPage = () => {
                                                       >
                                                             <div
                                                                   className={`w-full transition-all duration-500 rounded-t-md ${isFuture ? 'bg-gray-200 dark:bg-gray-600' :
-                                                                        isToday ? 'bg-indigo-500' :
+                                                                        isToday ? 'mystic-solid' :
                                                                               rate >= 80 ? 'bg-emerald-500' :
                                                                                     rate >= 50 ? 'bg-amber-400' :
                                                                                           rate > 0 ? 'bg-rose-400' : 'bg-gray-200 dark:bg-gray-600'
@@ -416,8 +416,8 @@ export const WeeklyReviewPage = () => {
                   </div>
 
                   {/* 주간 회고 작성 */}
-                  <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 overflow-hidden">
-                        <div className="px-6 py-4 bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-900/20 dark:to-purple-900/20 border-b border-gray-100 dark:border-gray-700">
+                  <div className="bg-mystic-bg-secondary rounded-2xl border border-mystic-border overflow-hidden">
+                        <div className="px-6 py-4 mystic-gradient-muted border-b border-mystic-border">
                               <h2 className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
                                     <CheckCircle2 className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
                                     주간 회고 작성
@@ -474,7 +474,7 @@ export const WeeklyReviewPage = () => {
                                     <button
                                           onClick={handleSaveReview}
                                           disabled={isSaving}
-                                          className="flex items-center gap-2 px-6 py-3 bg-indigo-600 dark:bg-indigo-500 text-white font-bold rounded-xl hover:bg-indigo-700 dark:hover:bg-indigo-600 transition-colors disabled:opacity-50 shadow-lg shadow-indigo-200 dark:shadow-none"
+                                          className="flex items-center gap-2 px-6 py-3 mystic-solid text-white font-bold rounded-xl mystic-solid-hover transition-colors disabled:opacity-50 shadow-lg"
                                     >
                                           <Save className="w-4 h-4" />
                                           {isSaving ? '저장 중...' : '회고 저장'}

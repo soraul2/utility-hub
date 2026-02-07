@@ -187,7 +187,7 @@ const CalendarEventModal: React.FC<CalendarEventModalProps> = ({
                                                       onClick={() => setType(t.value)}
                                                       className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors ${
                                                             type === t.value
-                                                                  ? 'bg-indigo-600 text-white'
+                                                                  ? 'mystic-solid text-white'
                                                                   : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'
                                                       }`}
                                                 >
@@ -243,7 +243,7 @@ const CalendarEventModal: React.FC<CalendarEventModalProps> = ({
                                     <button
                                           type="submit"
                                           disabled={isSaving || !title.trim() || !startDate || !endDate}
-                                          className="px-6 py-2.5 bg-indigo-600 text-white text-sm font-bold rounded-xl hover:bg-indigo-700 disabled:opacity-50 transition-colors"
+                                          className="px-6 py-2.5 mystic-solid text-white text-sm font-bold rounded-xl mystic-solid-hover disabled:opacity-50 transition-colors"
                                     >
                                           {isSaving ? '저장 중...' : (editEvent ? '수정' : '추가')}
                                     </button>

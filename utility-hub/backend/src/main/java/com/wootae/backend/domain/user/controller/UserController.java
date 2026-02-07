@@ -11,10 +11,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.Map;
 
 /**
  * 사용자 정보 조회 컨트롤러
@@ -58,6 +57,26 @@ public class UserController {
             // [개선] 조회 성공 로깅
             log.debug("사용자 정보 조회 성공: userId={}, nickname={}", userId, user.getNickname());
             return ResponseEntity.ok(AuthDto.UserResponse.from(user));
+      }
+
+      /**
+       * 온보딩 완료 처리
+       */
+      @PostMapping("/onboarding/complete")
+      public ResponseEntity<Map<String, Boolean>> completeOnboarding(@AuthenticationPrincipal UserDetails userDetails) {
+            if (userDetails == null) {
+                  throw new BusinessException(ErrorCode.AUTH_UNAUTHORIZED);
+            }
+
+            Long userId = Long.valueOf(userDetails.getUsername());
+            User user = userRepository.findById(userId)
+                        .orElseThrow(() -> new BusinessException(ErrorCode.AUTH_UNAUTHORIZED));
+
+            user.completeOnboarding();
+            userRepository.save(user);
+
+            log.info("온보딩 완료: userId={}", userId);
+            return ResponseEntity.ok(Map.of("success", true));
       }
 
       /**
