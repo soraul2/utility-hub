@@ -1,5 +1,8 @@
 package com.wootae.backend.domain.routine.service;
 
+import com.wootae.backend.domain.routine.dto.AiArrangeRequest;
+import com.wootae.backend.domain.routine.dto.AiArrangeResult;
+import com.wootae.backend.domain.routine.dto.AiTaskArrangement;
 import com.wootae.backend.domain.routine.dto.DailyPlanCreateRequest;
 import com.wootae.backend.domain.routine.dto.DailyPlanDto;
 import com.wootae.backend.domain.routine.dto.ReflectionDto;
@@ -54,6 +57,7 @@ public class RoutineService {
       private final MonthlyLogRepository monthlyLogRepository;
       private final CalendarEventRepository calendarEventRepository;
       private final GoogleCalendarService googleCalendarService;
+      private final RoutineAiService routineAiService;
 
       private Long getCurrentUserId() {
             try {
@@ -813,6 +817,78 @@ public class RoutineService {
             plan.setAppliedTemplateName(template.getName());
 
             return DailyPlanDto.from(plan);
+      }
+
+      // ==================== AI Arrange ====================
+
+      @Transactional
+      public AiArrangeResult aiArrangeTasks(Long planId, AiArrangeRequest request) {
+            DailyPlan plan = dailyPlanRepository.findById(planId)
+                        .orElseThrow(() -> new BusinessException(ErrorCode.PLAN_NOT_FOUND));
+
+            Long userId = getCurrentUserId();
+            if (!plan.getUser().getId().equals(userId)) {
+                  throw new BusinessException(ErrorCode.UNAUTHORIZED_ACCESS);
+            }
+
+            // 1. Already scheduled tasks (fixed, do not move)
+            List<Task> scheduled = plan.getKeyTasks().stream()
+                        .filter(t -> t.getStartTime() != null)
+                        .collect(Collectors.toList());
+
+            // 2. Unassigned tasks (inventory)
+            List<Task> unassigned = plan.getKeyTasks().stream()
+                        .filter(t -> t.getStartTime() == null)
+                        .collect(Collectors.toList());
+
+            // 3. Call AI
+            AiArrangeResult result = routineAiService.arrangeTasks(
+                        unassigned, scheduled, request.getTaskText(),
+                        request.getStartHour(), request.getEndHour(),
+                        request.getMode());
+
+            // 4. Apply results
+            for (AiTaskArrangement arr : result.getArrangements()) {
+                  if (arr.getExistingTaskId() != null) {
+                        // Update existing inventory task with assigned time
+                        Task task = taskRepository.findById(arr.getExistingTaskId())
+                                    .orElse(null);
+                        if (task != null && task.getDailyPlan().getId().equals(planId)) {
+                              LocalTime startTime = LocalTime.parse(arr.getStartTime());
+                              LocalTime endTime = LocalTime.parse(arr.getEndTime());
+                              task.update(
+                                          task.getTitle(),
+                                          task.isCompleted(),
+                                          arr.getCategory() != null ? arr.getCategory() : task.getCategory(),
+                                          startTime,
+                                          endTime,
+                                          arr.getDurationMinutes() != null ? arr.getDurationMinutes() : task.getDurationMinutes(),
+                                          task.getDescription(),
+                                          arr.getPriority() != null ? arr.getPriority() : task.getPriority());
+                        }
+                  } else {
+                        // Create new task from AI-parsed text
+                        LocalTime startTime = LocalTime.parse(arr.getStartTime());
+                        LocalTime endTime = LocalTime.parse(arr.getEndTime());
+                        Task newTask = Task.builder()
+                                    .dailyPlan(plan)
+                                    .title(arr.getTitle())
+                                    .completed(false)
+                                    .taskOrder(plan.getKeyTasks().size())
+                                    .category(arr.getCategory())
+                                    .startTime(startTime)
+                                    .endTime(endTime)
+                                    .durationMinutes(arr.getDurationMinutes() != null ? arr.getDurationMinutes() : 60)
+                                    .priority(arr.getPriority() != null ? arr.getPriority() : "MEDIUM")
+                                    .build();
+                        taskRepository.save(newTask);
+                        plan.addTask(newTask);
+                  }
+            }
+
+            // Return result with plan data and reasoning
+            result.setPlan(DailyPlanDto.from(plan));
+            return result;
       }
 
       // ==================== Calendar Events ====================

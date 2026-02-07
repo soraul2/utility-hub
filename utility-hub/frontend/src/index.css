@@ -628,6 +628,39 @@
   }
 }
 
+/* Timeline Horizontal Scrollbar - subtle, design-friendly */
+.timeline-scrollbar::-webkit-scrollbar {
+  height: 6px;
+}
+
+.timeline-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+  margin: 0 24px;
+}
+
+.timeline-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(99, 102, 241, 0.2);
+  border-radius: 9999px;
+  transition: background 0.2s;
+}
+
+.timeline-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(99, 102, 241, 0.45);
+}
+
+.dark .timeline-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(129, 140, 248, 0.2);
+}
+
+.dark .timeline-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(129, 140, 248, 0.45);
+}
+
+.timeline-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(99, 102, 241, 0.2) transparent;
+}
+
 /* Hide Scrollbar Utility */
 .scrollbar-none {
   -ms-overflow-style: none;

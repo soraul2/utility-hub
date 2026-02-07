@@ -13,6 +13,8 @@ interface RoutineState {
       templates: RoutineTemplate[];
       templatesLoading: boolean;
       isLoading: boolean;
+      aiArranging: boolean;
+      aiReasoning: string | null;
       error: string | null;
 
       loadToday: () => Promise<void>;
@@ -33,6 +35,9 @@ interface RoutineState {
       createTemplate: (data: TemplateCreateRequest) => Promise<void>;
       deleteTemplate: (templateId: number) => Promise<void>;
       applyTemplate: (templateId: number) => Promise<void>;
+      clearAllTasks: () => Promise<void>;
+      aiArrangeTasks: (startHour: number, endHour: number, taskText?: string, mode?: string) => Promise<void>;
+      clearAiReasoning: () => void;
 }
 
 export const useRoutineStore = create<RoutineState>((set, get) => ({
@@ -43,6 +48,8 @@ export const useRoutineStore = create<RoutineState>((set, get) => ({
       templates: [],
       templatesLoading: false,
       isLoading: false,
+      aiArranging: false,
+      aiReasoning: null,
       error: null,
 
       loadToday: async () => {
@@ -284,5 +291,39 @@ export const useRoutineStore = create<RoutineState>((set, get) => ({
                   console.error(err);
                   set({ error: '템플릿 적용에 실패했습니다' });
             }
-      }
+      },
+
+      clearAllTasks: async () => {
+            const { today } = get();
+            if (!today || today.keyTasks.length === 0) return;
+            try {
+                  await Promise.all(today.keyTasks.map(t => routineApi.deleteTask(t.id)));
+                  set(state => ({
+                        today: state.today ? { ...state.today, keyTasks: [] } : null
+                  }));
+            } catch (err: any) {
+                  console.error(err);
+                  set({ error: '태스크 삭제에 실패했습니다' });
+            }
+      },
+
+      aiArrangeTasks: async (startHour: number, endHour: number, taskText?: string, mode?: string) => {
+            const { today } = get();
+            if (!today) return;
+            set({ aiArranging: true, error: null, aiReasoning: null });
+            try {
+                  const res = await routineApi.aiArrangeTasks(today.id, { startHour, endHour, taskText, mode });
+                  set({
+                        today: res.data.data,
+                        aiArranging: false,
+                        aiReasoning: res.data.reasoning || null
+                  });
+            } catch (err: any) {
+                  console.error(err);
+                  const msg = err.response?.data?.error?.message || 'AI 배치에 실패했습니다. 다시 시도해주세요.';
+                  set({ error: msg, aiArranging: false });
+            }
+      },
+
+      clearAiReasoning: () => set({ aiReasoning: null })
 }));

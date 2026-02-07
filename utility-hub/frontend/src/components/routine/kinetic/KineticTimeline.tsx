@@ -10,34 +10,50 @@ interface KineticTimelineProps {
       endHour: number;
 }
 
-const HOUR_WIDTH = 140; // Reduced from 200 to fit 9-hour range better
-const SNAP_INTERVAL = 15; // 15 minutes snap
+const DEFAULT_HOURS = 10; // 9-18 baseline: fits container perfectly, more hours → scroll
+const SNAP_INTERVAL = 15;
 
 export const KineticTimeline: React.FC<KineticTimelineProps> = ({ tasks, startHour, endHour }) => {
       const { updateTask, deleteTask } = useRoutineStore();
+      const outerRef = useRef<HTMLDivElement>(null);
       const containerRef = useRef<HTMLDivElement>(null);
 
+      const [containerWidth, setContainerWidth] = useState(0);
       const [draggedTaskId, setDraggedTaskId] = useState<number | null>(null);
       const [resizingTaskId, setResizingTaskId] = useState<number | null>(null);
       const [dragOffsetX, setDragOffsetX] = useState(0);
       const [ghostTime, setGhostTime] = useState<{ start: string; left: number; duration: number } | null>(null);
 
+      // Measure container width for dynamic hour sizing
+      useEffect(() => {
+            const el = outerRef.current;
+            if (!el) return;
+            const ro = new ResizeObserver(entries => {
+                  for (const entry of entries) {
+                        setContainerWidth(entry.contentRect.width);
+                  }
+            });
+            ro.observe(el);
+            return () => ro.disconnect();
+      }, []);
+
+      const hoursCount = endHour >= startHour ? (endHour - startHour + 1) : (24 - startHour + endHour + 1);
+      // Fixed hourWidth: based on fitting DEFAULT_HOURS in container.
+      // Fewer hours → wider columns. More hours → same width, scrollbar appears.
+      const hourWidth = containerWidth > 0
+            ? containerWidth / Math.min(hoursCount, DEFAULT_HOURS)
+            : 140;
+
       const placedTasks = tasks.filter(t => t.startTime);
 
       const posToTime = (left: number) => {
-            // Constrain left position to be non-negative
             const constrainedLeft = Math.max(0, left);
-
-            const minutesFromStart = Math.floor(constrainedLeft / (HOUR_WIDTH / 60));
+            const minutesFromStart = Math.floor(constrainedLeft / (hourWidth / 60));
             const totalMinutes = startHour * 60 + minutesFromStart;
 
-            // Constrain to timeline range
             const maxMinutes = endHour * 60;
             const constrainedMinutes = Math.min(totalMinutes, maxMinutes);
-
             const snappedMinutes = Math.round(constrainedMinutes / SNAP_INTERVAL) * SNAP_INTERVAL;
-
-            // Ensure we don't go below startHour
             const finalMinutes = Math.max(startHour * 60, snappedMinutes);
 
             const h = Math.floor(finalMinutes / 60) % 24;
@@ -57,7 +73,7 @@ export const KineticTimeline: React.FC<KineticTimelineProps> = ({ tasks, startHo
       const timeToPos = (timeStr?: string) => {
             if (!timeStr) return 0;
             const minutes = timeToMinutes(timeStr);
-            return (minutes - startHour * 60) * (HOUR_WIDTH / 60);
+            return (minutes - startHour * 60) * (hourWidth / 60);
       };
 
       const handleDrop = (e: React.DragEvent) => {
@@ -93,7 +109,7 @@ export const KineticTimeline: React.FC<KineticTimelineProps> = ({ tasks, startHo
 
             setGhostTime({
                   start: str,
-                  left: Math.max(0, (snappedMinutes - startHour * 60) * (HOUR_WIDTH / 60)),
+                  left: Math.max(0, (snappedMinutes - startHour * 60) * (hourWidth / 60)),
                   duration: duration
             });
       };
@@ -110,14 +126,14 @@ export const KineticTimeline: React.FC<KineticTimelineProps> = ({ tasks, startHo
                         const { minutes: snappedMinutes, str } = posToTime(left);
                         setGhostTime({
                               start: str,
-                              left: Math.max(0, (snappedMinutes - startHour * 60) * (HOUR_WIDTH / 60)),
+                              left: Math.max(0, (snappedMinutes - startHour * 60) * (hourWidth / 60)),
                               duration: tasks.find(t => t.id === draggedTaskId)?.durationMinutes || 60
                         });
                   } else if (resizingTaskId) {
                         const task = tasks.find(t => t.id === resizingTaskId);
                         if (!task) return;
                         const startMin = timeToMinutes(task.startTime);
-                        const currentMinutes = Math.max(0, currentLeft / (HOUR_WIDTH / 60));
+                        const currentMinutes = startHour * 60 + Math.max(0, currentLeft / (hourWidth / 60));
                         const endMin = Math.max(startMin + SNAP_INTERVAL, Math.round(currentMinutes / SNAP_INTERVAL) * SNAP_INTERVAL);
                         const newDuration = Math.min(endMin - startMin, (endHour * 60) - startMin);
 
@@ -150,13 +166,12 @@ export const KineticTimeline: React.FC<KineticTimelineProps> = ({ tasks, startHo
                   window.removeEventListener('mousemove', handleMouseMove);
                   window.removeEventListener('mouseup', handleMouseUp);
             };
-      }, [draggedTaskId, resizingTaskId, ghostTime, tasks, updateTask, dragOffsetX]);
+      }, [draggedTaskId, resizingTaskId, ghostTime, tasks, updateTask, dragOffsetX, hourWidth, startHour, endHour]);
 
       const renderGrid = () => {
-            const hoursCount = endHour >= startHour ? (endHour - startHour + 1) : (24 - startHour + endHour + 1);
             const hours = Array.from({ length: hoursCount }, (_, i) => (startHour + i) % 24);
             return hours.map(h => (
-                  <div key={h} className="inline-flex flex-col border-l border-gray-100 dark:border-gray-800" style={{ width: HOUR_WIDTH, height: '100%' }}>
+                  <div key={h} className="inline-flex flex-col border-l border-gray-100 dark:border-gray-800" style={{ width: hourWidth, height: '100%' }}>
                         <div className="h-8 flex items-center px-4 bg-gray-50/50 dark:bg-gray-900/50 border-b border-gray-100 dark:border-gray-800">
                               <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{String(h).padStart(2, '0')}:00</span>
                         </div>
@@ -166,13 +181,16 @@ export const KineticTimeline: React.FC<KineticTimelineProps> = ({ tasks, startHo
       };
 
       return (
-            <div className="relative bg-white dark:bg-gray-950 rounded-[2.5rem] border border-gray-200/60 dark:border-gray-800 overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.04)] dark:shadow-none h-[650px]">
+            <div ref={outerRef} className="relative bg-white dark:bg-gray-950 rounded-[2.5rem] border border-gray-200/60 dark:border-gray-800 overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.04)] dark:shadow-none h-[650px]">
                   <div
                         ref={containerRef}
-                        className="h-full overflow-x-auto overflow-y-hidden custom-scrollbar relative select-none"
+                        className="h-full overflow-x-auto overflow-y-hidden timeline-scrollbar relative select-none"
+                        style={{ transform: 'scaleY(-1)' }}
                         onDragOver={handleDragOver}
                         onDrop={handleDrop}
                   >
+                        {/* Inner wrapper: flip content back to normal */}
+                        <div style={{ transform: 'scaleY(-1)' }} className="relative h-full">
                         {/* Grid Layer */}
                         <div className="absolute inset-0 flex whitespace-nowrap min-w-max pointer-events-none">
                               {renderGrid()}
@@ -185,7 +203,7 @@ export const KineticTimeline: React.FC<KineticTimelineProps> = ({ tasks, startHo
                                           className="absolute top-4 bottom-4 rounded-2xl border-2 border-dashed border-indigo-400 bg-indigo-50/20 z-0 transition-all duration-75"
                                           style={{
                                                 left: ghostTime.left,
-                                                width: ghostTime.duration * (HOUR_WIDTH / 60)
+                                                width: ghostTime.duration * (hourWidth / 60)
                                           }}
                                     >
                                           <div className="absolute -top-6 left-2 text-[10px] font-black text-indigo-600 bg-white px-1.5 py-0.5 rounded border border-indigo-100 italic">
@@ -196,30 +214,28 @@ export const KineticTimeline: React.FC<KineticTimelineProps> = ({ tasks, startHo
 
                               {(() => {
                                     const sortedTasks = [...placedTasks].sort((a, b) => timeToMinutes(a.startTime) - timeToMinutes(b.startTime));
-                                    const lanes: number[] = []; // Stores the end time of the last task in each lane
+                                    const lanes: number[] = [];
 
                                     return sortedTasks.map(task => {
                                           const start = timeToMinutes(task.startTime);
                                           const end = start + (task.durationMinutes || 60);
                                           let laneIndex = 0;
 
-                                          // Find the first available lane
                                           while (laneIndex < lanes.length && lanes[laneIndex] > start) {
                                                 laneIndex++;
                                           }
 
-                                          // Update or add new lane
                                           lanes[laneIndex] = end;
 
                                           const left = timeToPos(task.startTime);
-                                          const width = (task.durationMinutes || 60) * (HOUR_WIDTH / 60);
+                                          const width = (task.durationMinutes || 60) * (hourWidth / 60);
                                           const isDragging = draggedTaskId === task.id;
                                           const isResizing = resizingTaskId === task.id;
 
                                           return (
                                                 <div
                                                       key={task.id}
-                                                      className={`absolute pointer-events-auto rounded-2xl border-t-[6px] shadow-sm transition-all duration-200 ${isDragging || isResizing ? 'opacity-20 scale-95' : 'hover:shadow-xl hover:z-10 group'
+                                                      className={`absolute pointer-events-auto rounded-2xl border-t-[6px] shadow-sm transition-all duration-200 overflow-hidden ${isDragging || isResizing ? 'opacity-20 scale-95' : 'hover:shadow-xl hover:z-10 group'
                                                             } ${task.priority === 'HIGH' ? 'bg-red-50/95 border-red-500 text-red-950' :
                                                                   task.priority === 'MEDIUM' ? 'bg-amber-50/95 border-amber-500 text-amber-950' :
                                                                         'bg-blue-50/95 border-blue-500 text-blue-950'
@@ -296,6 +312,7 @@ export const KineticTimeline: React.FC<KineticTimelineProps> = ({ tasks, startHo
                                     });
                               })()}
                         </div>
+                        </div>{/* close inner scaleY(-1) wrapper */}
                   </div>
             </div>
       );

@@ -1,5 +1,6 @@
 package com.wootae.backend.domain.routine.controller;
 
+import com.wootae.backend.domain.routine.dto.AiArrangeRequest;
 import com.wootae.backend.domain.routine.dto.DailyPlanCreateRequest;
 import com.wootae.backend.domain.routine.dto.DailyPlanDto;
 import com.wootae.backend.domain.routine.dto.RoutineTemplateCreateRequest;
@@ -215,6 +216,18 @@ public class RoutineController {
       public ResponseEntity<?> deleteCalendarEvent(@PathVariable Long eventId) {
             routineService.deleteCalendarEvent(eventId);
             return ResponseEntity.ok(Map.of("success", true));
+      }
+
+      // AI Arrange Endpoint
+
+      @PostMapping("/daily-plans/{planId}/ai-arrange")
+      public ResponseEntity<?> aiArrangeTasks(@PathVariable Long planId,
+                  @RequestBody AiArrangeRequest request) {
+            var result = routineService.aiArrangeTasks(planId, request);
+            return ResponseEntity.ok(Map.of(
+                        "success", true,
+                        "data", result.getPlan(),
+                        "reasoning", result.getReasoning() != null ? result.getReasoning() : ""));
       }
 
       // ICS Export Endpoints

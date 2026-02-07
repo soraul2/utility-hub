@@ -97,6 +97,10 @@ export const routineApi = {
       deleteCalendarEvent: (eventId: number) =>
             axiosInstance.delete<{ success: boolean }>(`${BASE_URL}/calendar-events/${eventId}`),
 
+      // AI Arrange
+      aiArrangeTasks: (planId: number, data: { startHour: number; endHour: number; taskText?: string; mode?: string }) =>
+            axiosInstance.post<{ success: boolean, data: DailyPlan, reasoning: string }>(`${BASE_URL}/daily-plans/${planId}/ai-arrange`, data),
+
       // ICS Export
       exportDailyIcs: (date: string) =>
             axiosInstance.get(`${BASE_URL}/daily-plans/${date}/export.ics`, { responseType: 'blob' }),

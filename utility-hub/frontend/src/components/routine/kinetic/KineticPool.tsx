@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Target, GripVertical, Clock, Trash2, LayoutList, Plus } from 'lucide-react';
+import { Target, GripVertical, Clock, Trash2, LayoutList, Plus, ChevronDown, ChevronUp } from 'lucide-react';
 import type { Task } from '../../../types/routine';
 
 interface KineticPoolProps {
@@ -8,9 +8,12 @@ interface KineticPoolProps {
       onUnassignTask: (taskId: number) => void;
       onAssignTask?: (taskId: number) => void;
       isConfirmed?: boolean;
+      inline?: boolean;
+      isOpen?: boolean;
+      onToggle?: () => void;
 }
 
-export const KineticPool: React.FC<KineticPoolProps> = ({ tasks, onDeleteTask, onUnassignTask, onAssignTask }) => {
+export const KineticPool: React.FC<KineticPoolProps> = ({ tasks, onDeleteTask, onUnassignTask, onAssignTask, inline, isOpen, onToggle }) => {
       const [isDraggingOver, setIsDraggingOver] = useState(false);
       const unassignedTasks = tasks.filter(t => !t.startTime);
 
@@ -42,6 +45,93 @@ export const KineticPool: React.FC<KineticPoolProps> = ({ tasks, onDeleteTask, o
             }
       };
 
+      // ─── Inline (horizontal strip) mode ───
+      if (inline) {
+            // Hide entirely when no unassigned tasks and collapsed
+            if (unassignedTasks.length === 0 && !isOpen) return null;
+
+            return (
+                  <div
+                        className={`transition-all duration-300 ${isDraggingOver ? 'ring-2 ring-indigo-500/30' : ''}`}
+                        onDragOver={handleDragOver}
+                        onDragEnter={handleDragOver}
+                        onDragLeave={handleDragLeave}
+                        onDrop={handleDrop}
+                  >
+                        {/* Compact Toggle Header */}
+                        <button
+                              type="button"
+                              onClick={onToggle}
+                              className="w-full flex items-center gap-2 px-3 py-1.5 hover:bg-gray-50/50 dark:hover:bg-gray-800/30 transition-colors"
+                        >
+                              {isOpen ? (
+                                    <ChevronDown className="w-3 h-3 text-gray-400" />
+                              ) : (
+                                    <ChevronUp className="w-3 h-3 text-gray-400" />
+                              )}
+                              <span className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider">
+                                    {unassignedTasks.length > 0 ? `${unassignedTasks.length} unassigned` : 'All assigned'}
+                              </span>
+                        </button>
+
+                        {/* Expanded: horizontal card strip */}
+                        {isOpen && unassignedTasks.length > 0 && (
+                              <div className="px-2 pb-2.5 pt-0.5 animate-in fade-in slide-in-from-bottom-2 duration-200">
+                                    <div className="flex gap-2 overflow-x-auto scrollbar-none">
+                                          {unassignedTasks.map(task => (
+                                                <div
+                                                      key={task.id}
+                                                      draggable={true}
+                                                      onDragStart={(e) => {
+                                                            e.dataTransfer.setData('taskId', task.id.toString());
+                                                            e.dataTransfer.effectAllowed = 'move';
+                                                            e.currentTarget.style.opacity = '0.5';
+                                                      }}
+                                                      onDragEnd={(e) => {
+                                                            e.currentTarget.style.opacity = '1';
+                                                      }}
+                                                      className={`group relative shrink-0 rounded-xl border-l-[3px] pl-3 pr-2.5 py-2.5 shadow-sm transition-all hover:shadow-md cursor-grab active:cursor-grabbing ${task.priority === 'HIGH' ? 'bg-red-50/90 border-red-500 dark:bg-red-900/20' :
+                                                            task.priority === 'MEDIUM' ? 'bg-amber-50/90 border-amber-500 dark:bg-amber-900/20' :
+                                                                  'bg-blue-50/90 border-blue-500 dark:bg-blue-900/20'
+                                                            }`}
+                                                >
+                                                      <div className="flex items-center gap-2.5">
+                                                            <div className="min-w-0">
+                                                                  <h4 className="font-bold text-gray-900 dark:text-white text-xs truncate leading-tight max-w-[140px]">
+                                                                        {task.title}
+                                                                  </h4>
+                                                                  <span className="text-[9px] text-gray-400 uppercase tracking-wide">
+                                                                        {task.category === 'WORK' ? '💼' : task.category === 'HEALTH' ? '💪' : task.category === 'STUDY' ? '📚' : task.category === 'PERSONAL' ? '🏠' : '🏷️'} {task.category || 'GENERAL'}
+                                                                  </span>
+                                                            </div>
+                                                            <span className="text-[10px] font-bold text-gray-400 shrink-0">
+                                                                  {task.durationMinutes || 60}m
+                                                            </span>
+                                                            <button
+                                                                  onClick={(e) => { e.stopPropagation(); onAssignTask?.(task.id); }}
+                                                                  className="p-1 text-indigo-500 hover:bg-indigo-100 dark:hover:bg-indigo-900/40 rounded-md transition-all shrink-0"
+                                                                  title="Add to timeline"
+                                                            >
+                                                                  <Plus className="w-3.5 h-3.5" />
+                                                            </button>
+                                                            <button
+                                                                  onClick={(e) => { e.stopPropagation(); onDeleteTask(task.id); }}
+                                                                  className="p-1 text-gray-300 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-md transition-all opacity-0 group-hover:opacity-100 shrink-0"
+                                                                  title="Delete"
+                                                            >
+                                                                  <Trash2 className="w-3.5 h-3.5" />
+                                                            </button>
+                                                      </div>
+                                                </div>
+                                          ))}
+                                    </div>
+                              </div>
+                        )}
+                  </div>
+            );
+      }
+
+      // ─── Default (sidebar) mode ───
       return (
             <div
                   className={`flex flex-col h-full bg-white dark:bg-gray-900 border-r border-gray-100 dark:border-gray-800 transition-all duration-300 ${isDraggingOver ? 'ring-4 ring-indigo-500/20 bg-indigo-50/10' : ''}`}
@@ -64,7 +154,7 @@ export const KineticPool: React.FC<KineticPoolProps> = ({ tasks, onDeleteTask, o
                         </div>
                   </div>
 
-                  <div className="flex-1 overflow-y-auto p-6 space-y-4 custom-scrollbar">
+                  <div className="flex-1 overflow-y-auto p-6 space-y-4">
                         {unassignedTasks.length === 0 ? (
                               <div className="flex flex-col items-center justify-center py-12 px-4 text-center opacity-30 select-none">
                                     <Target size={32} className="mb-4 text-gray-300" />

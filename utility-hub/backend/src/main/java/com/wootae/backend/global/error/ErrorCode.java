@@ -18,6 +18,7 @@ public enum ErrorCode {
       // AI Provider
       AI_PROVIDER_ERROR(HttpStatus.BAD_GATEWAY, "AI_001", "AI 서비스 연동 중 오류가 발생했습니다."),
       AI_TIMEOUT(HttpStatus.GATEWAY_TIMEOUT, "AI_002", "AI 서비스 응답 시간이 초과되었습니다."),
+      AI_ARRANGE_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "AI_003", "AI 배치에 실패했습니다. 다시 시도해주세요."),
 
       // Auth
       AUTH_UNSUPPORTED_PROVIDER(HttpStatus.BAD_REQUEST, "AUTH_001", "지원하지 않는 인증 공급자입니다."),
