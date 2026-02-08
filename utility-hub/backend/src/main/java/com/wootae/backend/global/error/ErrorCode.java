@@ -47,6 +47,11 @@ public enum ErrorCode {
       GCAL_TOKEN_EXPIRED(HttpStatus.UNAUTHORIZED, "GCAL_002", "Google Calendar 토큰이 만료되었습니다. 재연동이 필요합니다."),
       GCAL_SYNC_FAILED(HttpStatus.BAD_GATEWAY, "GCAL_003", "Google Calendar 동기화 중 오류가 발생했습니다."),
 
+      // Lotto
+      LOTTO_RULE_NOT_FOUND(HttpStatus.NOT_FOUND, "LOTTO_001", "로또 규칙을 찾을 수 없습니다."),
+      LOTTO_GENERATE_LIMIT_EXCEEDED(HttpStatus.BAD_REQUEST, "LOTTO_002", "번호 생성 한도를 초과했습니다."),
+      LOTTO_INVALID_PERIOD(HttpStatus.BAD_REQUEST, "LOTTO_003", "유효하지 않은 기간입니다."),
+
       // OAuth2
       OAUTH2_FAILED(HttpStatus.BAD_REQUEST, "OAUTH2_001", "소셜 로그인 중 오류가 발생했습니다."),
 

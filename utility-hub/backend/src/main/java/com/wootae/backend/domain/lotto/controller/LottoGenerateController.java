@@ -1,7 +1,9 @@
 package com.wootae.backend.domain.lotto.controller;
 
+import com.wootae.backend.domain.lotto.dto.LottoGenerateRequest;
 import com.wootae.backend.domain.lotto.dto.LottoGenerateResponse;
 import com.wootae.backend.domain.lotto.service.LottoGenerateService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -13,10 +15,10 @@ public class LottoGenerateController {
 
       private final LottoGenerateService lottoGenerateService;
 
-      @PostMapping("/{id}/generate")
+      @PostMapping("/{ruleId}/generate")
       public ResponseEntity<LottoGenerateResponse> generateNumbers(
-                  @PathVariable Long id,
-                  @RequestParam(defaultValue = "5") int count) {
-            return ResponseEntity.ok(lottoGenerateService.generate(id, count));
+                  @PathVariable Long ruleId,
+                  @Valid @RequestBody LottoGenerateRequest request) {
+            return ResponseEntity.ok(lottoGenerateService.generate(ruleId, request.getCount()));
       }
 }

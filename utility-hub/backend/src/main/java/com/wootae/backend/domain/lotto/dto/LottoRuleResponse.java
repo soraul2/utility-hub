@@ -14,9 +14,12 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class LottoRuleResponse {
 
-      private Long id;
+      private Long ruleId;
       private String name;
       private String type;
+      private Double popularity;
+      private Integer rank;
+      private Double recentForm;
       private String description;
       private String script;
       private String parameters;
@@ -25,9 +28,12 @@ public class LottoRuleResponse {
 
       public static LottoRuleResponse from(LottoRule rule) {
             return LottoRuleResponse.builder()
-                        .id(rule.getId())
+                        .ruleId(rule.getId())
                         .name(rule.getName())
                         .type(rule.getType())
+                        .popularity(rule.getPopularity())
+                        .rank(rule.getRank())
+                        .recentForm(rule.getRecentForm())
                         .description(rule.getDescription())
                         .script(rule.getScript())
                         .parameters(rule.getParameters())

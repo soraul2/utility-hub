@@ -9,6 +9,5 @@ import java.util.List;
 @Builder
 public class LottoGenerateResponse {
       private Long ruleId;
-      private int count;
-      private List<List<Integer>> games;
+      private List<List<Integer>> tickets;
 }

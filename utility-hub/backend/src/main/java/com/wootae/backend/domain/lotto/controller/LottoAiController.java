@@ -1,10 +1,13 @@
 package com.wootae.backend.domain.lotto.controller;
 
+import com.wootae.backend.domain.lotto.dto.LottoAiExplainRequest;
+import com.wootae.backend.domain.lotto.dto.LottoAiExplainResponse;
 import com.wootae.backend.domain.lotto.service.LottoAiService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -15,8 +18,9 @@ public class LottoAiController {
 
       private final LottoAiService lottoAiService;
 
-      @GetMapping("/rule-explain/{id}")
-      public ResponseEntity<String> explainRule(@PathVariable Long id) {
-            return ResponseEntity.ok(lottoAiService.explainRule(id));
+      @PostMapping("/rule-explain")
+      public ResponseEntity<LottoAiExplainResponse> explainRule(
+                  @Valid @RequestBody LottoAiExplainRequest request) {
+            return ResponseEntity.ok(lottoAiService.explainRule(request.getRuleId()));
       }
 }
