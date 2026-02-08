@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(c:/AiProject/utility-hub/utility-hub/backend/gradlew.bat:*)",
+      "Bash(npm run build:*)",
+      "Bash(./gradlew test:*)",
+      "Bash(gradlew.bat build:*)",
+      "Bash(./gradlew build:*)",
+      "Bash(cmd.exe:*)",
+      "Bash(bash -c:*)"
+    ]
+  }
+}
